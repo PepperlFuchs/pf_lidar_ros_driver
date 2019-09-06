@@ -18,10 +18,12 @@
 #include <std_msgs/String.h>
 #include "pf_driver/driver.hpp"
 
-class PF_Node {
+class PF_Node
+{
 public:
     //! Initialize and connect to laser range finder
-    PF_Node() : nh_("~") {
+    PF_Node() : nh_("~")
+    {
         driver = 0;
 
         nh_.param("frame_id", frame_id, std::string("/scan"));
@@ -31,12 +33,13 @@ public:
         nh_.param("major_version", major_version, 0);
         nh_.param("connection_type", connection_type, 1);
 
-        if( scanner_ip == "" ) {
+        if (scanner_ip == "")
+        {
             std::cerr << "IP of laser range finder not set!" << std::endl;
             return;
         }
 
-        if(!connect(major_version, connection_type))
+        if (!connect(major_version, connection_type))
             return;
 
         scan_publisher = nh_.advertise<sensor_msgs::LaserScan>("scan", 100);
@@ -45,14 +48,16 @@ public:
     }
 
 private:
-    bool connect(int major_version, int connection_type) {
+    bool connect(int major_version, int connection_type)
+    {
         delete driver;
 
         driver = new PFDriver();
         std::cout << "Connecting to scanner at " << scanner_ip << " ... ";
-        if(driver->connect(scanner_ip,80, major_version) )
+        if (driver->connect(scanner_ip, 80, major_version))
             std::cout << "OK" << std::endl;
-        else {
+        else
+        {
             std::cout << "FAILED!" << std::endl;
             std::cerr << "Connection to scanner at " << scanner_ip << " failed!" << std::endl;
             return false;
@@ -63,23 +68,25 @@ private:
         auto params = driver->getParameters();
         std::cout << "Current scanner settings:" << std::endl;
         std::cout << "============================================================" << std::endl;
-        for( const auto& p : params )
+        for (const auto &p : params)
             std::cout << p.first << " : " << p.second << std::endl;
         std::cout << "============================================================" << std::endl;
 
         std::cout << "Starting capturing: ";
-        if(driver->startCapturingUDP())
+        if (driver->startCapturingUDP())
             std::cout << "OK" << std::endl;
-        else {
+        else
+        {
             std::cout << "FAILED!" << std::endl;
             return false;
         }
         return true;
     }
 
-    void getScanData(const ros::TimerEvent& e) {
+    void getScanData(const ros::TimerEvent &e)
+    {
         auto scandata = driver->getFullScan();
-        if( scandata.amplitude_data.empty() || scandata.distance_data.empty() )
+        if (scandata.amplitude_data.empty() || scandata.distance_data.empty())
             return;
 
         sensor_msgs::LaserScan scanmsg;
@@ -97,31 +104,37 @@ private:
 
         scanmsg.ranges.resize(scandata.distance_data.size());
         scanmsg.intensities.resize(scandata.amplitude_data.size());
-        for(std::size_t i = 0; i < scandata.distance_data.size(); i++) {
+        for (std::size_t i = 0; i < scandata.distance_data.size(); i++)
+        {
             scanmsg.ranges[i] = float(scandata.distance_data[i]) / 1000.0f;
             scanmsg.intensities[i] = scandata.amplitude_data[i];
         }
         scan_publisher.publish(scanmsg);
     }
 
-    void cmdMsgCallback(const std_msgs::StringConstPtr &msg) {
-        const std::string& cmd = msg->data;
+    void cmdMsgCallback(const std_msgs::StringConstPtr &msg)
+    {
+        const std::string &cmd = msg->data;
         static const std::string set_scan_frequency_cmd("set scan_frequency=");
         static const std::string set_samples_per_scan_cmd("set samples_per_scan=");
 
-        if(cmd.substr(0,set_scan_frequency_cmd.size()) == set_scan_frequency_cmd) {
+        if (cmd.substr(0, set_scan_frequency_cmd.size()) == set_scan_frequency_cmd)
+        {
             std::string value = cmd.substr(set_scan_frequency_cmd.size());
             int frequency = std::atoi(value.c_str());
-            if(frequency == 50 || frequency == 100) {
+            if (frequency == 50 || frequency == 100)
+            {
                 scan_frequency = frequency;
                 driver->setScanFrequency(frequency);
             }
         }
 
-        if(cmd.substr(0,set_samples_per_scan_cmd.size()) == set_samples_per_scan_cmd) {
+        if (cmd.substr(0, set_samples_per_scan_cmd.size()) == set_samples_per_scan_cmd)
+        {
             std::string value = cmd.substr(set_samples_per_scan_cmd.size());
             int samples = std::atoi(value.c_str());
-            if(samples >= 0) {
+            if (samples >= 0)
+            {
                 samples_per_scan = samples;
                 driver->setSamplesPerScan(samples);
             }
@@ -137,10 +150,11 @@ private:
     int major_version, connection_type;
     int scan_frequency;
     int samples_per_scan;
-    PFDriver* driver;
+    PFDriver *driver;
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     ros::init(argc, argv, "pf_ros_node", ros::init_options::AnonymousName);
     new PF_Node();
     ros::spin();
