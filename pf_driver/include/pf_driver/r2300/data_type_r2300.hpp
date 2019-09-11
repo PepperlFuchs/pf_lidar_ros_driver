@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef PF_DRIVER_R2300_DATATYPE_H
+#define PF_DRIVER_R2300_DATATYPE_H
+
 #include "pf_driver/data_type.h"
 
 #pragma pack(1)
 
-struct PacketHeaderR2300 : public PacketHeader
+struct PacketHeaderR2300
 {
     std::uint16_t magic;             //magic byte (0xa25c) marking the beginning of a packet
     std::uint16_t packet_type;       //scan data packet type (0x0041 - 'A'; 0x0042 - 'B'; 0x0043 - 'C')
@@ -41,15 +44,6 @@ struct PacketHeaderR2300 : public PacketHeader
     std::uint64_t reserved5;         //reserved - all bits zero for devices without switching I/Q
 };
 
-struct PacketTypeC1 : public PacketType
-{ //distance and amplitude (compact)
-    PacketHeaderR2300 header;
-    struct Data
-    {
-        std::uint32_t distance : 20;  //distance 20 bit, amplitude 12 bit
-        std::uint16_t amplitude : 12; //distance 20 bit, amplitude 12 bit
-    };
-    Data data;
-};
-
 #pragma pack()
+
+#endif

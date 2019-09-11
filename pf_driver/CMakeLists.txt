@@ -29,9 +29,15 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(pf_driver src/pf_ros_node.cpp)
+add_executable(r2000_node src/r2000_node.cpp)
 
-target_link_libraries(pf_driver
+target_link_libraries(r2000_node
+  ${catkin_LIBRARIES} cpprestsdk::cpprest
+)
+
+add_executable(r2300_node src/r2300_node.cpp)
+
+target_link_libraries(r2300_node
   ${catkin_LIBRARIES} cpprestsdk::cpprest
 )
 
