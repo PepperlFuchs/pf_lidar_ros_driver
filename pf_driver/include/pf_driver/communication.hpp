@@ -12,19 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef PF_DRIVER_COMMUNICATION_H
+#define PF_DRIVER_COMMUNICATION_H
+
+#include <iostream>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <mutex>
 #include <condition_variable>
-
-#include "pf_driver/r2300/transport_r2300.hpp"
+#include "pf_driver/data_parser.hpp"
 
 class Connection
 {
 public:
-    void start_read()
+    void start_read(std::size_t n)
     {
-        async_read(transport.get_header_size(), &Connection::handle_read_header);
+        async_read(n, &Connection::handle_packet);
         io_service_thread = boost::thread(boost::bind(&boost::asio::io_service::run, &io_service));
     }
 
@@ -61,24 +64,9 @@ public:
         }
     }
 
-    ScanData get_scan()
+    void set_handle_read(boost::function<void(DataParser *parser, std::string str)> h, DataParser *parser)
     {
-        return transport.get_scan();
-    }
-
-    ScanData get_full_scan()
-    {
-        return transport.get_full_scan();
-    }
-
-    std::size_t get_full_scans_available() const
-    {
-        return transport.get_full_scans_available();
-    }
-
-    std::size_t get_scans_available() const
-    {
-        return transport.get_scans_available();
+        handle_read = boost::bind(h, parser, boost::placeholders::_1);
     }
 
     const std::string get_port()
@@ -86,11 +74,13 @@ public:
         return this->port;
     }
 
+    void set_port(std::string port)
+    {
+        this->port = port;
+    }
+
     virtual void connect() = 0;
     virtual void close() = 0;
-    bool is_connected_;
-    double last_data_time;
-    std::string port;
 
 protected:
     std::string get_buffer_string(std::size_t n)
@@ -101,45 +91,15 @@ protected:
         return s;
     }
 
-    void handle_read_header(const boost::system::error_code &ec, std::size_t n)
+    void handle_packet(const boost::system::error_code &ec, std::size_t n)
     {
         if (!ec)
         {
             std::string str = get_buffer_string(n);
             if (str.empty())
                 return;
-            auto res = transport.parse_header(str);
-            if (res.first == false)
-            {
-                async_read(res.second, &Connection::handle_read_header);
-            }
-            else
-            {
-                async_read(res.second, &Connection::handle_read_data);
-            }
-        }
-        else if (ec != boost::asio::error::eof)
-        {
-            std::cout << "Error: " << ec << "\n";
-        }
-    }
-
-    void handle_read_data(const boost::system::error_code &ec, std::size_t n)
-    {
-        if (!ec)
-        {
-            std::string str = get_buffer_string(n);
-            if (str.empty())
-                return;
-            auto res = transport.parse_data(str);
-            if (res.first == true)
-            {
-                async_read(res.second, &Connection::handle_read_header);
-            }
-            else
-            {
-                async_read(res.second, &Connection::handle_read_data);
-            }
+            handle_read(str);
+            async_read(4096, &Connection::handle_packet);
         }
         else if (ec != boost::asio::error::eof)
         {
@@ -150,10 +110,14 @@ protected:
     boost::thread io_service_thread;
     boost::asio::io_service io_service;
 
-    TransportR2300 transport;
     boost::asio::streambuf buf;
 
+    boost::function<void(std::string str)> handle_read;
     virtual void async_read(std::size_t s, boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> h) = 0;
+
+    bool is_connected_;
+    double last_data_time;
+    std::string ip_address, port;
 };
 
 class TCPConnection : public Connection
@@ -208,17 +172,21 @@ private:
     }
 
     boost::asio::ip::tcp::socket *tcp_socket;
-    std::string ip_address;
 };
 
 class UDPConnection : public Connection
 {
 public:
+    UDPConnection(std::string IP, std::string port)
+    {
+        this->ip_address = IP;
+        this->port = port;
+    }
     void connect()
     {
-        udp_socket = new boost::asio::ip::udp::socket(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0));
+        udp_socket = new boost::asio::ip::udp::socket(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), atoi(port.c_str())));
         port = std::to_string(udp_socket->local_endpoint().port());
-        udp_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string("10.0.10.76"), atoi(port.c_str()));
+        udp_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(ip_address), atoi(port.c_str()));
 
         is_connected_ = true;
     }
@@ -230,14 +198,16 @@ public:
     }
 
 private:
-    void async_read(std::size_t s, boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> handle_read)
+    void async_read(std::size_t s, boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> handle_packet)
     {
-        boost::asio::streambuf::mutable_buffers_type bufs = buf.prepare(150000);
+        boost::asio::streambuf::mutable_buffers_type bufs = buf.prepare(s);
         udp_socket->async_receive_from(boost::asio::buffer(bufs), udp_endpoint,
-                                       boost::bind(handle_read, this,
+                                       boost::bind(handle_packet, this,
                                                    boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
     }
 
     boost::asio::ip::udp::socket *udp_socket;
     boost::asio::ip::udp::endpoint udp_endpoint;
 };
+
+#endif

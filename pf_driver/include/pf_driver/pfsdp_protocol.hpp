@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef PF_DRIVER_PFSDP_PROTOCOL_H
+#define PF_DRIVER_PFSDP_PROTOCOL_H
+
 #include <boost/algorithm/string.hpp>
 #include "pf_driver/http_helpers.hpp"
 
@@ -199,3 +202,5 @@ public:
         return true;
     }
 };
+
+#endif

@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef PF_DRIVER_DATA_TYPE_H
+#define PF_DRIVER_DATA_TYPE_H
+
 #include <vector>
 #include <cstdint>
 
@@ -36,6 +39,10 @@ constexpr std::uint32_t device_overload_error = (1 << 20);
 //defects
 std::uint32_t device_defect = (1 << 30);
 
-struct PacketHeader {};
+struct ScanData
+{
+    std::vector<std::uint32_t> distance_data;
+    std::vector<std::uint32_t> amplitude_data;
+};
 
-struct PacketType {};
+#endif

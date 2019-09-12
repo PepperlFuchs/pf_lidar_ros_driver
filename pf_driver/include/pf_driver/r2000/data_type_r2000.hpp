@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef PF_DRIVER_R2000_DATATYPE_H
+#define PF_DRIVER_R2000_DATATYPE_H
+
 #include "pf_driver/data_type.h"
 
 #pragma pack(1)
 
-struct PacketHeaderR2000 : public PacketHeader
+struct PacketHeaderR2000
 {
     std::uint16_t magic;             //magic byte (0xa25c) marking the beginning of a packet
     std::uint16_t packet_type;       //scan data packet type (0x0041 - 'A'; 0x0042 - 'B'; 0x0043 - 'C')
@@ -39,38 +42,6 @@ struct PacketHeaderR2000 : public PacketHeader
     //std::uint8_t padding[3];          //0-3 bytes padding to align header size to 32bit boundary (TODO: should I use vector instead?)
 };
 
-struct PacketTypeA : public PacketType
-{ //distance only
-    PacketHeaderR2000 header;
-    struct Data
-    {
-        std::uint32_t distance; //measured distance in mm;
-                                //invalid measurement returns 0xFFFFFFFF
-    };
-    Data data;
-};
-
-struct PacketTypeB : public PacketType
-{ //distance and amplitude
-    PacketHeaderR2000 header;
-    struct Data
-    {
-        std::uint32_t distance;  //measured distance in mm;
-                                 //invalid measurement returns 0xFFFFFFFF
-        std::uint16_t amplitude; //measured amplitude (padded 12bit value - MSB's are zero)
-    };
-    Data data;
-};
-
-struct PacketTypeC : public PacketType
-{ //distance and amplitude (compact)
-    PacketHeaderR2000 header;
-    struct Data
-    {
-        std::uint32_t distance : 20;  //distance 20 bit, amplitude 12 bit
-        std::uint32_t amplitude : 12; //distance 20 bit, amplitude 12 bit
-    };
-    Data data;
-};
-
 #pragma pack()
+
+#endif

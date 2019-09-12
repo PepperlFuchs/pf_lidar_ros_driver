@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef PF_DRIVER_HTTP_HELPER_H
+#define PF_DRIVER_HTTP_HELPER_H
+
 #include <iostream>
 #include <string>
 #include <memory>
@@ -140,3 +143,5 @@ private:
     const utility::string_t host;
     const utility::string_t base_path;
 };
+
+#endif
