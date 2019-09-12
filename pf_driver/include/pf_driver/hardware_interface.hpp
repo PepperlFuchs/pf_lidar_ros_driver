@@ -23,6 +23,8 @@ public:
 
         connection->set_handle_read(&DataParser::parse_data, parser);
         is_connected = false;
+
+        scans.resize(4);
     }
 
     bool connect()
@@ -56,27 +58,34 @@ public:
     }
 
     //device specific interface should take care of feeding watchdog, etc
-    ScanData get_scan()
+    std::vector<ScanData> get_scan(std::vector<int> layers)
     {
+        std::vector<ScanData> scan_layers(layers.size());
         std::unique_lock<std::mutex> lock(data_mutex);
-        while (scans.size() < 2)
+        for(int i = 0; i < layers.size(); i++)
         {
-            data_notifier.wait_for(lock, std::chrono::seconds(1));
+            if(!layers[i]) {
+                continue;
+            }
+            while (scans[i].size() < 2)
+            {
+                data_notifier.wait_for(lock, std::chrono::seconds(1));
+            }
+            //ScanData data;
+            if (scans[i].size() >= 2)
+            {
+                scan_layers[i] = ScanData(std::move(scans[i].front()));
+                scans[i].pop_front();
+            }
         }
-        ScanData data;
-        if (scans.size() >= 2)
-        {
-            data = ScanData(std::move(scans.front()));
-            scans.pop_front();
-        }
-        return data;
+        return scan_layers;
     }
 
 protected:
     Connection *connection;
     DataParser *parser;
 
-    std::deque<ScanData> scans;
+    std::vector<std::deque<ScanData>> scans;
 
     std::condition_variable data_notifier;
     std::mutex data_mutex;

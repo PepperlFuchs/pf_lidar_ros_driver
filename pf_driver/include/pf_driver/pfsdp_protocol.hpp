@@ -147,7 +147,7 @@ public:
     template <typename... Ts>
     std::map<std::string, std::string> get_parameter(const Ts &... ts)
     {
-        return get_request("get_parameter", ts..., {KV("list", ts...)});
+        return get_request("get_parameter", {ts...}, {KV("list", ts...)});
     }
 
     template <typename... Ts>
@@ -200,6 +200,21 @@ public:
     {
         get_request("feed_watchdog", {""}, {{"handle", handle}});
         return true;
+    }
+
+    //Protocol for R2300 -- should be a new class
+    std::vector<int> get_layers_enabled()
+    {
+        auto layers = get_parameter("layer_enable");
+        auto vals = split(layers["layer_enable"]);
+        std::vector<int> enabled_layers(vals.size(), 0);
+        for(int i = 0; i < vals.size(); i++) {
+            if(vals[i].compare("on") == 0)
+            {
+                enabled_layers[i] = 1;
+            }
+        }
+        return enabled_layers;
     }
 };
 

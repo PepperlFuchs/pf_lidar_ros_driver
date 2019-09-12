@@ -32,6 +32,14 @@ public:
         {
             return false;
         }
+
+        if(std::is_same<PacketHeader, PacketHeaderR2300>::value) {
+            layers = protocol_interface->get_layers_enabled();
+        } else if(std::is_same<PacketHeader, PacketHeaderR2000>::value) {
+            layers.resize(4, 0);
+            layers[0] = 1;
+        }
+
         handle_info = handle_connect();
         protocol_interface->start_scanoutput(handle_info.handle);
         feed_timeout = std::floor(std::max((handle_info.watchdog_timeout / 1000.0 / 3.0), 1.0));
@@ -57,21 +65,26 @@ public:
 
             std::uint16_t num_points = p_header->num_points_packet;
             int packet_num = p_header->packet_number;
+            int layer_index = 0;
+
+            if(std::is_same<PacketHeader, PacketHeaderR2300>::value) {
+                layer_index = reinterpret_cast<PacketHeaderR2300 *>(p_header)->layer_index;;
+            }
 
             str.erase(str.begin(), str.end() - (str.size() - p_header->header_size));
             std::unique_lock<std::mutex> lock(HardwareInterface<ConnectionType>::data_mutex);
 
-            if (packet_num == 1 || HardwareInterface<ConnectionType>::scans.empty())
+            if (packet_num == 1 || HardwareInterface<ConnectionType>::scans[layer_index].empty())
             {
-                HardwareInterface<ConnectionType>::scans.emplace_back();
-                if (HardwareInterface<ConnectionType>::scans.size() > 100)
+                HardwareInterface<ConnectionType>::scans[layer_index].emplace_back();
+                if (HardwareInterface<ConnectionType>::scans[layer_index].size() > 100)
                 {
-                    HardwareInterface<ConnectionType>::scans.pop_front();
+                    HardwareInterface<ConnectionType>::scans[layer_index].pop_front();
                     // std::cerr << "Too many scans in receiver queue: Dropping scans!" << std::endl;
                 }
                 HardwareInterface<ConnectionType>::data_notifier.notify_one();
             }
-            ScanData &scandata = HardwareInterface<ConnectionType>::scans.back();
+            ScanData &scandata = HardwareInterface<ConnectionType>::scans[layer_index].back();
 
             for (int i = 0; i < num_points; i++)
             {
@@ -84,33 +97,38 @@ public:
 
     void publish_scan(std::string frame_id)
     {
-        auto scandata = HardwareInterface<ConnectionType>::get_scan();
-        if (scandata.amplitude_data.empty() || scandata.distance_data.empty())
-            return;
+        auto scandatas = HardwareInterface<ConnectionType>::get_scan(layers);
+        for(int i = 0; i < layers.size(); i++) {
+            if(!layers[i])
+                continue;
+            ScanData scandata = scandatas[i];
+            if (scandata.amplitude_data.empty() || scandata.distance_data.empty())
+                return;
 
-        sensor_msgs::LaserScan scanmsg;
-        scanmsg.header.frame_id = frame_id;
-        scanmsg.header.stamp = ros::Time::now();
+            sensor_msgs::LaserScan scanmsg;
+            scanmsg.header.frame_id = frame_id;
+            scanmsg.header.stamp = ros::Time::now();
 
-        std::uint32_t fov = std::atof(parameters["angular_fov"].c_str()) / 2.0;
-        scanmsg.angle_min = -fov * M_PI / 180;
-        scanmsg.angle_max = +fov * M_PI / 180;
+            std::uint32_t fov = std::atof(parameters["angular_fov"].c_str()) / 2.0;
+            scanmsg.angle_min = -fov * M_PI / 180;
+            scanmsg.angle_max = +fov * M_PI / 180;
 
-        scanmsg.angle_increment = (fov * M_PI / 90) / float(scandata.distance_data.size());
-        scanmsg.time_increment = 1 / 35.0f / float(scandata.distance_data.size());
+            scanmsg.angle_increment = (fov * M_PI / 90) / float(scandata.distance_data.size());
+            scanmsg.time_increment = 1 / 35.0f / float(scandata.distance_data.size());
 
-        scanmsg.scan_time = 1 / std::atof(parameters["scan_frequency"].c_str());
-        scanmsg.range_min = std::atof(parameters["radial_range_min"].c_str());
-        scanmsg.range_max = std::atof(parameters["radial_range_max"].c_str());
+            scanmsg.scan_time = 1 / std::atof(parameters["scan_frequency"].c_str());
+            scanmsg.range_min = std::atof(parameters["radial_range_min"].c_str());
+            scanmsg.range_max = std::atof(parameters["radial_range_max"].c_str());
 
-        scanmsg.ranges.resize(scandata.distance_data.size());
-        scanmsg.intensities.resize(scandata.amplitude_data.size());
-        for (std::size_t i = 0; i < scandata.distance_data.size(); i++)
-        {
-            scanmsg.ranges[i] = float(scandata.distance_data[i]) / 1000.0f;
-            scanmsg.intensities[i] = scandata.amplitude_data[i];
+            scanmsg.ranges.resize(scandata.distance_data.size());
+            scanmsg.intensities.resize(scandata.amplitude_data.size());
+            for (std::size_t i = 0; i < scandata.distance_data.size(); i++)
+            {
+                scanmsg.ranges[i] = float(scandata.distance_data[i]) / 1000.0f;
+                scanmsg.intensities[i] = scandata.amplitude_data[i];
+            }
+            scan_publishers[i].publish(scanmsg);
         }
-        scan_publisher.publish(scanmsg);
     }
 
     static int main(const std::string &device_name, int argc, char *argv[])
@@ -131,7 +149,7 @@ public:
         nh.param("major_version", major_version, 0);
 
         PF_Interface<ConnectionType, ProtocolType, PacketHeader> pf_interface(scanner_ip, std::string("0"), major_version);
-        pf_interface.init_publisher(nh);
+        pf_interface.init_publishers(nh);
         pf_interface.connect();
 
         ros::Rate pub_rate(2 * scan_frequency);
@@ -210,9 +228,13 @@ protected:
         return true;
     }
 
-    void init_publisher(ros::NodeHandle nh)
+    void init_publishers(ros::NodeHandle nh)
     {
-        scan_publisher = nh.advertise<sensor_msgs::LaserScan>("scan", 100);
+        scan_publishers.resize(4);
+        for(int i = 0; i < 4; i++) {
+            std::string topic = "scan_" + std::to_string(i);
+            scan_publishers[i] = nh.advertise<sensor_msgs::LaserScan>(topic.c_str(), 100);
+        }
     }
 
     void parser_data()
@@ -266,7 +288,7 @@ protected:
     ProtocolType *protocol_interface;
     PacketHeader *p_header;
 
-    ros::Publisher scan_publisher;
+    std::vector<ros::Publisher> scan_publishers;
 
     HandleInfo handle_info;
     ProtocolInfo protocol_info;
@@ -275,6 +297,7 @@ protected:
     int major_version;
     double watchdog_feed_time;
     double feed_timeout;
+    std::vector<int> layers;
 };
 
 #endif
