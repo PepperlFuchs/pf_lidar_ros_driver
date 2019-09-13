@@ -53,25 +53,31 @@ public:
         HardwareInterface<ConnectionType>::disconnect();
     }
 
-    void parse_data(std::string str) override
+    void parse_data(std::basic_string<u_char> str) override
     {
         int start = find_packet_start(get_packet_type(), str);
-        int len = str.length() - start;
+        std::cout << "start: " << start << std::endl;
 
-        str.erase(str.begin(), str.end() - len);
         if (start >= 0 && str.size() >= get_header_size())
         {
-            p_header = reinterpret_cast<PacketHeader *>((char *)str.c_str());
+            p_header = reinterpret_cast<PacketHeader *>((u_char *)str.c_str());
+            std::cout << "packet info " << p_header->packet_size << " " << str.size() << " "
+                                        << p_header->header_size << " " << get_header_size() << " "
+                                        << p_header->num_points_packet << "  "
+                                        << p_header->num_points_scan << " " << p_header->scan_number << " "
+                                        << p_header->packet_number<< std::endl;
 
             std::uint16_t num_points = p_header->num_points_packet;
+            std::uint16_t packet_size = p_header->packet_size;
             int packet_num = p_header->packet_number;
             int layer_index = 0;
 
             if(std::is_same<PacketHeader, PacketHeaderR2300>::value) {
-                layer_index = reinterpret_cast<PacketHeaderR2300 *>(p_header)->layer_index;;
+                layer_index = reinterpret_cast<PacketHeaderR2300 *>(p_header)->layer_index;
             }
 
-            str.erase(str.begin(), str.end() - (str.size() - p_header->header_size));
+            std::uint32_t* p_scan_data = (std::uint32_t*) &str[p_header->header_size];
+
             std::unique_lock<std::mutex> lock(HardwareInterface<ConnectionType>::data_mutex);
 
             if (packet_num == 1 || HardwareInterface<ConnectionType>::scans[layer_index].empty())
@@ -88,9 +94,24 @@ public:
 
             for (int i = 0; i < num_points; i++)
             {
-                std::string d = str.substr(0, sizeof(std::uint32_t));
-                fill_scan_data(scandata, d);
-                str.erase(str.begin(), str.end() - (str.size() - sizeof(std::uint32_t)));
+                std::uint32_t data = p_scan_data[i];
+
+                std::uint32_t distance = (data & 0x000FFFFFul);
+                std::uint32_t amplitude = ((data & 0xFFF00000ul) >> 20);
+
+                scandata.distance_data.push_back(distance);
+                scandata.amplitude_data.push_back(amplitude);
+            }
+
+            std::basic_string<u_char> remaining_data = str.substr(packet_size, str.size());
+            std::cout << "remainíng data: " << remaining_data.size() << std::endl;
+            if(remaining_data.size() >= get_header_size())
+            {
+                if(find_packet_start(get_packet_type(), remaining_data) >= 0)
+                {
+                    lock.unlock();
+                    parse_data(remaining_data);
+                }
             }
         }
     }
@@ -252,7 +273,7 @@ protected:
         scandata.amplitude_data.push_back(amplitude);
     }
 
-    int find_packet_start(std::string type, std::string str)
+    int find_packet_start(std::string type, std::basic_string<u_char> str)
     {
         for (int i = 0; i < str.size() - 4; i++)
         {
