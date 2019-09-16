@@ -55,17 +55,13 @@ public:
 
     void parse_data(std::basic_string<u_char> str) override
     {
+        str.insert(0, remaining_data);
+        remaining_data.clear();
         int start = find_packet_start(get_packet_type(), str);
-        std::cout << "start: " << start << std::endl;
 
         if (start >= 0 && str.size() >= get_header_size())
         {
             p_header = reinterpret_cast<PacketHeader *>((u_char *)str.c_str());
-            std::cout << "packet info " << p_header->packet_size << " " << str.size() << " "
-                                        << p_header->header_size << " " << get_header_size() << " "
-                                        << p_header->num_points_packet << "  "
-                                        << p_header->num_points_scan << " " << p_header->scan_number << " "
-                                        << p_header->packet_number<< std::endl;
 
             std::uint16_t num_points = p_header->num_points_packet;
             std::uint16_t packet_size = p_header->packet_size;
@@ -103,16 +99,7 @@ public:
                 scandata.amplitude_data.push_back(amplitude);
             }
 
-            std::basic_string<u_char> remaining_data = str.substr(packet_size, str.size());
-            std::cout << "remainíng data: " << remaining_data.size() << std::endl;
-            if(remaining_data.size() >= get_header_size())
-            {
-                if(find_packet_start(get_packet_type(), remaining_data) >= 0)
-                {
-                    lock.unlock();
-                    parse_data(remaining_data);
-                }
-            }
+            remaining_data = str.substr(packet_size, str.size());
         }
     }
 
@@ -319,6 +306,8 @@ protected:
     double watchdog_feed_time;
     double feed_timeout;
     std::vector<int> layers;
+
+    std::basic_string<u_char> remaining_data;
 };
 
 #endif

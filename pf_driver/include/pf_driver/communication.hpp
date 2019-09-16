@@ -99,7 +99,7 @@ protected:
             if (str.empty())
                 return;
             handle_read(str);
-            async_read(4096, &Connection::handle_packet);
+            async_read(1500, &Connection::handle_packet);
         }
         else if (ec != boost::asio::error::eof)
         {
