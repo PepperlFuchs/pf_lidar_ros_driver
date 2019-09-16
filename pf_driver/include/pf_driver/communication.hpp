@@ -64,7 +64,7 @@ public:
         }
     }
 
-    void set_handle_read(boost::function<void(DataParser *parser, std::string str)> h, DataParser *parser)
+    void set_handle_read(boost::function<void(DataParser *parser, std::basic_string<u_char> str)> h, DataParser *parser)
     {
         handle_read = boost::bind(h, parser, boost::placeholders::_1);
     }
@@ -83,10 +83,10 @@ public:
     virtual void close() = 0;
 
 protected:
-    std::string get_buffer_string(std::size_t n)
+    std::basic_string<u_char> get_buffer_string(std::size_t n)
     {
         buf.commit(n);
-        std::string s(boost::asio::buffers_begin(buf.data()), boost::asio::buffers_end(buf.data()));
+        std::basic_string<u_char> s(boost::asio::buffers_begin(buf.data()), boost::asio::buffers_end(buf.data()));
         buf.consume(n);
         return s;
     }
@@ -95,11 +95,11 @@ protected:
     {
         if (!ec)
         {
-            std::string str = get_buffer_string(n);
+            std::basic_string<u_char> str = get_buffer_string(n);
             if (str.empty())
                 return;
             handle_read(str);
-            async_read(4096, &Connection::handle_packet);
+            async_read(1500, &Connection::handle_packet);
         }
         else if (ec != boost::asio::error::eof)
         {
@@ -112,7 +112,7 @@ protected:
 
     boost::asio::streambuf buf;
 
-    boost::function<void(std::string str)> handle_read;
+    boost::function<void(std::basic_string<u_char> str)> handle_read;
     virtual void async_read(std::size_t s, boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> h) = 0;
 
     bool is_connected_;

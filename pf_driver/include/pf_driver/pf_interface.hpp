@@ -53,25 +53,27 @@ public:
         HardwareInterface<ConnectionType>::disconnect();
     }
 
-    void parse_data(std::string str) override
+    void parse_data(std::basic_string<u_char> str) override
     {
+        str.insert(0, remaining_data);
+        remaining_data.clear();
         int start = find_packet_start(get_packet_type(), str);
-        int len = str.length() - start;
 
-        str.erase(str.begin(), str.end() - len);
         if (start >= 0 && str.size() >= get_header_size())
         {
-            p_header = reinterpret_cast<PacketHeader *>((char *)str.c_str());
+            p_header = reinterpret_cast<PacketHeader *>((u_char *)str.c_str());
 
             std::uint16_t num_points = p_header->num_points_packet;
+            std::uint16_t packet_size = p_header->packet_size;
             int packet_num = p_header->packet_number;
             int layer_index = 0;
 
             if(std::is_same<PacketHeader, PacketHeaderR2300>::value) {
-                layer_index = reinterpret_cast<PacketHeaderR2300 *>(p_header)->layer_index;;
+                layer_index = reinterpret_cast<PacketHeaderR2300 *>(p_header)->layer_index;
             }
 
-            str.erase(str.begin(), str.end() - (str.size() - p_header->header_size));
+            std::uint32_t* p_scan_data = (std::uint32_t*) &str[p_header->header_size];
+
             std::unique_lock<std::mutex> lock(HardwareInterface<ConnectionType>::data_mutex);
 
             if (packet_num == 1 || HardwareInterface<ConnectionType>::scans[layer_index].empty())
@@ -88,10 +90,16 @@ public:
 
             for (int i = 0; i < num_points; i++)
             {
-                std::string d = str.substr(0, sizeof(std::uint32_t));
-                fill_scan_data(scandata, d);
-                str.erase(str.begin(), str.end() - (str.size() - sizeof(std::uint32_t)));
+                std::uint32_t data = p_scan_data[i];
+
+                std::uint32_t distance = (data & 0x000FFFFFul);
+                std::uint32_t amplitude = ((data & 0xFFF00000ul) >> 20);
+
+                scandata.distance_data.push_back(distance);
+                scandata.amplitude_data.push_back(amplitude);
             }
+
+            remaining_data = str.substr(packet_size, str.size());
         }
     }
 
@@ -106,7 +114,7 @@ public:
                 return;
 
             sensor_msgs::LaserScan scanmsg;
-            scanmsg.header.frame_id = frame_id;
+            scanmsg.header.frame_id = frame_id + "_" + std::to_string(i);
             scanmsg.header.stamp = ros::Time::now();
 
             std::uint32_t fov = std::atof(parameters["angular_fov"].c_str()) / 2.0;
@@ -252,7 +260,7 @@ protected:
         scandata.amplitude_data.push_back(amplitude);
     }
 
-    int find_packet_start(std::string type, std::string str)
+    int find_packet_start(std::string type, std::basic_string<u_char> str)
     {
         for (int i = 0; i < str.size() - 4; i++)
         {
@@ -298,6 +306,8 @@ protected:
     double watchdog_feed_time;
     double feed_timeout;
     std::vector<int> layers;
+
+    std::basic_string<u_char> remaining_data;
 };
 
 #endif

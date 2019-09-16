@@ -30,7 +30,7 @@ public:
     bool connect()
     {
         connection->connect();
-        connection->start_read(4096);
+        connection->start_read(1500);
 
         is_connected = true;
         return true;
