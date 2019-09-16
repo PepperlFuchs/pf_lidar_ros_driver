@@ -114,7 +114,7 @@ public:
                 return;
 
             sensor_msgs::LaserScan scanmsg;
-            scanmsg.header.frame_id = frame_id;
+            scanmsg.header.frame_id = frame_id + "_" + std::to_string(i);
             scanmsg.header.stamp = ros::Time::now();
 
             std::uint32_t fov = std::atof(parameters["angular_fov"].c_str()) / 2.0;
