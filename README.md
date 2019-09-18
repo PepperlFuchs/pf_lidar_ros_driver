@@ -33,4 +33,22 @@ OR
 ```
 roslaunch pf_driver r2300.launch
 ```
+With R2300, the term scan refers to a contiguous group of measurements spanning one particular horizontal circular
+sector. Depending on the orientation of the mirrors on the cube, the scans may be taken in the same or slightly different
+layers.  
+  
+In current sensors, all four mirrors are inclined slightly differently so that scans are taken at the following vertical
+angle (relative to the mounting plane). Note that the layers are numbered in the order they are scanned during one
+turn. This is (yet) not strictly from bottom to top:
 
+| **Layer index** | **Angle** | **Description** |
+|-----------------|-----------|-----------------|
+|0 |-4.5°|bottom (connector side)|
+|1 |-1.5° | - |
+|2 |+4.5° | top |
+|3 |+1.5° | - |
+
+To visualize the 4 rings in RViz, run the following launch file:
+```
+roslaunch pf_driver r2300_allscans.launch
+```
