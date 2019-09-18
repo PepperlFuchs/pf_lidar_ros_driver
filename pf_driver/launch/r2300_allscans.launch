@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find pf_driver)/launch/r2300.launch"/>
+  <node pkg="tf" type="static_transform_publisher" name="ring1" args="0 0 0 0 0 0.0785 /scan /scan_0 10" />
+  <node pkg="tf" type="static_transform_publisher" name="ring2" args="0 0 0 0 0 0.0262 /scan /scan_1 10" />
+  <node pkg="tf" type="static_transform_publisher" name="ring3" args="0 0 0 0 0 -0.0785 /scan /scan_2 10" />
+  <node pkg="tf" type="static_transform_publisher" name="ring4" args="0 0 0 0 0 -0.0262 /scan /scan_3 10" />
+  <!--node name="rvizLocal" pkg="rviz" type="rviz" respawn="false" output="screen" args= "-d $(find pf_driver)/rviz/4layer.rviz" required="true" /-->
+</launch> 
+
+

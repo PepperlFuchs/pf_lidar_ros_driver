@@ -36,7 +36,7 @@ public:
         if(std::is_same<PacketHeader, PacketHeaderR2300>::value) {
             layers = protocol_interface->get_layers_enabled();
         } else if(std::is_same<PacketHeader, PacketHeaderR2000>::value) {
-            layers.resize(4, 0);
+            layers.resize(1, 0);
             layers[0] = 1;
         }
 
@@ -157,8 +157,12 @@ public:
         nh.param("major_version", major_version, 0);
 
         PF_Interface<ConnectionType, ProtocolType, PacketHeader> pf_interface(scanner_ip, std::string("0"), major_version);
-        pf_interface.init_publishers(nh);
-        pf_interface.connect();
+        if(std::is_same<PacketHeader, PacketHeaderR2300>::value) {
+            pf_interface.init_publishers(nh, 4);
+        } else if(std::is_same<PacketHeader, PacketHeaderR2000>::value) {
+            pf_interface.init_publishers(nh, 1);
+        }
+        pf_interface.connect();   
 
         ros::Rate pub_rate(2 * scan_frequency);
         while (ros::ok())
@@ -236,10 +240,10 @@ protected:
         return true;
     }
 
-    void init_publishers(ros::NodeHandle nh)
+    void init_publishers(ros::NodeHandle nh, std::size_t num_layers)
     {
-        scan_publishers.resize(4);
-        for(int i = 0; i < 4; i++) {
+        scan_publishers.resize(num_layers);
+        for(int i = 0; i < num_layers; i++) {
             std::string topic = "scan_" + std::to_string(i);
             scan_publishers[i] = nh.advertise<sensor_msgs::LaserScan>(topic.c_str(), 100);
         }
