@@ -117,9 +117,9 @@ public:
             scanmsg.header.frame_id = frame_id + "_" + std::to_string(i);
             scanmsg.header.stamp = ros::Time::now();
 
-            std::uint32_t fov = std::atof(parameters["angular_fov"].c_str()) / 2.0;
-            scanmsg.angle_min = -fov * M_PI / 180;
-            scanmsg.angle_max = +fov * M_PI / 180;
+            float fov = std::atof(parameters["angular_fov"].c_str()) / 2.0;
+            scanmsg.angle_min = -fov * M_PI / 180.0;
+            scanmsg.angle_max = +fov * M_PI / 180.0;
 
             scanmsg.angle_increment = (fov * M_PI / 90) / float(scandata.distance_data.size());
             scanmsg.time_increment = 1 / 35.0f / float(scandata.distance_data.size());
