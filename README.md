@@ -21,7 +21,7 @@ rosdep install --from-paths src --ignore-src --rosdistro=melodic -y
 cd <path/to/workspace>
 source /opt/ros/melodic/setup.bash
 catkin build
-source cd <path/to/workspace>/devel/setup.bash
+source <path/to/workspace>/devel/setup.bash
 ```
   
 **Usage:**  
