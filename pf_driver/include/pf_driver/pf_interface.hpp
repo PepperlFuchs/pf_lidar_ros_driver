@@ -95,6 +95,10 @@ public:
                 std::uint32_t distance = (data & 0x000FFFFFul);
                 std::uint32_t amplitude = ((data & 0xFFF00000ul) >> 20);
 
+                if(amplitude < 32) {
+                    amplitude = std::numeric_limits<std::uint32_t>::quiet_NaN();
+                }
+
                 scandata.distance_data.push_back(distance);
                 scandata.amplitude_data.push_back(amplitude);
             }
