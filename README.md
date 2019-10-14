@@ -6,7 +6,7 @@ Ubuntu 18.04 and ROS Melodic
 **Clone the repository:**  
 Clone the repository in the `src` folder of your ROS workspace
 ```
-git clone --branch=master https://github.com/ipa320/pepperl-fuchs.git
+git clone --branch=master https://github.com/PepperlFuchs/ROS_driver.git
 ```
   
 **Install the missing dependencies:**  
