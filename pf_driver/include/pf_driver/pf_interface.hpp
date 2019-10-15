@@ -65,6 +65,8 @@ public:
 
             std::uint16_t num_points = p_header->num_points_packet;
             std::uint16_t packet_size = p_header->packet_size;
+            std::uint64_t timestamp = p_header->timestamp_raw;
+            float angular_increment = (p_header->angular_increment / 10000.0)  * M_PI / 180.0;
             int packet_num = p_header->packet_number;
             int layer_index = 0;
 
@@ -103,6 +105,9 @@ public:
                 scandata.amplitude_data.push_back(amplitude);
             }
 
+            scandata.header.timestamp = timestamp;
+            scandata.header.angular_increment = angular_increment;
+
             remaining_data = str.substr(packet_size, str.size());
         }
     }
@@ -117,24 +122,27 @@ public:
             if (scandata.amplitude_data.empty() || scandata.distance_data.empty())
                 return;
 
+            std::size_t num_points = scandata.distance_data.size();
+
             sensor_msgs::LaserScan scanmsg;
             scanmsg.header.frame_id = frame_id + "_" + std::to_string(i);
-            scanmsg.header.stamp = ros::Time::now();
+            scanmsg.header.stamp = ros::Time::now();//().fromNSec(scandata.header.timestamp);
 
-            float fov = std::atof(parameters["angular_fov"].c_str()) / 2.0;
-            scanmsg.angle_min = -fov * M_PI / 180.0;
-            scanmsg.angle_max = +fov * M_PI / 180.0;
+            float fov = std::atof(parameters["angular_fov"].c_str()) * M_PI / 180.0;
+            scanmsg.angle_min = -fov / 2.0;
+            scanmsg.angle_max = +fov / 2.0;
 
-            scanmsg.angle_increment = (fov * M_PI / 90) / float(scandata.distance_data.size());
-            scanmsg.time_increment = 1 / 35.0f / float(scandata.distance_data.size());
-
-            scanmsg.scan_time = 1 / std::atof(parameters["scan_frequency"].c_str());
+            float scan_time = 1 / std::atof(parameters["scan_frequency"].c_str());
+            scanmsg.scan_time = scan_time;
             scanmsg.range_min = std::atof(parameters["radial_range_min"].c_str());
             scanmsg.range_max = std::atof(parameters["radial_range_max"].c_str());
 
-            scanmsg.ranges.resize(scandata.distance_data.size());
-            scanmsg.intensities.resize(scandata.amplitude_data.size());
-            for (std::size_t i = 0; i < scandata.distance_data.size(); i++)
+            scanmsg.angle_increment = scandata.header.angular_increment;
+            scanmsg.time_increment = (fov * scan_time) / (M_PI * 2.0) / num_points;
+
+            scanmsg.ranges.resize(num_points);
+            scanmsg.intensities.resize(num_points);
+            for (std::size_t i = 0; i < num_points; i++)
             {
                 scanmsg.ranges[i] = float(scandata.distance_data[i]) / 1000.0f;
                 scanmsg.intensities[i] = scandata.amplitude_data[i];
