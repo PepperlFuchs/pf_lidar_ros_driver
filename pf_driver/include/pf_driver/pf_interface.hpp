@@ -42,6 +42,7 @@ public:
 
         handle_info = handle_connect();
         protocol_interface->start_scanoutput(handle_info.handle);
+        angle_min_max = protocol_interface->get_angle_min_max(handle_info.handle);
         feed_timeout = std::floor(std::max((handle_info.watchdog_timeout / 1000.0 / 3.0), 1.0));
         return true;
     }
@@ -128,9 +129,9 @@ public:
             scanmsg.header.frame_id = frame_id + "_" + std::to_string(i);
             scanmsg.header.stamp = ros::Time::now();//().fromNSec(scandata.header.timestamp);
 
-            float fov = std::atof(parameters["angular_fov"].c_str()) * M_PI / 180.0;
-            scanmsg.angle_min = -fov / 2.0;
-            scanmsg.angle_max = +fov / 2.0;
+            float fov = angle_min_max.second - angle_min_max.first;
+            scanmsg.angle_min = angle_min_max.first;
+            scanmsg.angle_max = angle_min_max.second;
 
             float scan_time = 1 / std::atof(parameters["scan_frequency"].c_str());
             scanmsg.scan_time = scan_time;
@@ -322,6 +323,7 @@ protected:
     double watchdog_feed_time;
     double feed_timeout;
     std::vector<int> layers;
+    std::pair<float, float> angle_min_max;
 
     std::basic_string<u_char> remaining_data;
 };

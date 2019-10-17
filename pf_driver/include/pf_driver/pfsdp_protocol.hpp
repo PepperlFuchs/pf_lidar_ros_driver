@@ -150,6 +150,11 @@ public:
         return get_request("get_parameter", {ts...}, {KV("list", ts...)});
     }
 
+    std::string get_scanoutput_config(std::string param, std::string handle) {
+        auto resp = get_request("get_scanoutput_config", {param}, {KV("handle", handle)});
+        return resp[param];
+    }
+
     template <typename... Ts>
     bool reset_parameter(const Ts &... ts)
     {
@@ -215,6 +220,42 @@ public:
             }
         }
         return enabled_layers;
+    }
+
+    int get_parameter_i(std::string param)
+    {
+        auto resp = get_parameter(param.c_str());
+        return stoi(resp[param]);
+    }
+
+    float get_parameter_f(std::string param)
+    {
+        auto resp = get_parameter(param.c_str());
+        return stof(resp[param]);
+    }
+
+    std::string get_parameter_s(std::string param)
+    {
+        auto resp = get_parameter(param.c_str());
+        return resp[param];
+    }
+
+    std::int32_t get_start_angle(std::string handle) {
+        std::string angle_str = get_scanoutput_config(std::string("start_angle"), handle);
+        std::int32_t start_angle = stof(angle_str);
+        return start_angle / 10000;
+    }
+
+    std::pair<float, float> get_angle_min_max(std::string handle)
+    {
+        float measure_start_angle = get_parameter_i(std::string("measure_start_angle")) / 10000 * M_PI / 180.0;
+        float measure_stop_angle = get_parameter_i(std::string("measure_stop_angle")) / 10000 * M_PI / 180.0;
+        float start_angle = get_start_angle(handle) * M_PI / 180.0;
+        std::string scan_direction = get_parameter_s(std::string("scan_direction"));
+
+        float min = (measure_start_angle > start_angle) ? measure_start_angle : start_angle;
+        float max = measure_stop_angle;
+        return std::pair<float, float>(min, max);
     }
 };
 
