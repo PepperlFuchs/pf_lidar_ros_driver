@@ -257,6 +257,12 @@ public:
         float max = measure_stop_angle;
         return std::pair<float, float>(min, max);
     }
+
+    bool set_scan_frequency(std::int32_t scan_frequency)
+    {
+        set_parameter({KV("scan_frequency", scan_frequency)});
+        return true;
+    }
 };
 
 #endif

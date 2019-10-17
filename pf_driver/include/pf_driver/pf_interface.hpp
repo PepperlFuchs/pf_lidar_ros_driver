@@ -4,12 +4,15 @@
 #include <type_traits>
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
+#include <dynamic_reconfigure/server.h>
 
 #include "pf_driver/communication.hpp"
 #include "pf_driver/hardware_interface.hpp"
 #include "pf_driver/pfsdp_protocol.hpp"
 #include "pf_driver/r2000/data_type_r2000.hpp"
 #include "pf_driver/r2300/data_type_r2300.hpp"
+
+#include "pf_driver/PFDriverConfig.h"
 
 template <typename ConnectionType, typename ProtocolType, typename PacketHeader>
 class PF_Interface : public HardwareInterface<ConnectionType>, public DataParser
@@ -152,6 +155,11 @@ public:
         }
     }
 
+    void reconfig_callback(pf_driver::PFDriverConfig &config, uint32_t level) {
+        ROS_INFO("Reconfigure Request: %d", config.scan_frequency);
+        protocol_interface->set_scan_frequency(config.scan_frequency);
+    }
+
     static int main(const std::string &device_name, int argc, char *argv[])
     {
         std::string node_name = device_name + "_driver";
@@ -166,15 +174,18 @@ public:
         nh.param("frame_id", frame_id, std::string("/scan"));
         nh.param("scanner_ip", scanner_ip, std::string(""));
         nh.param("scan_frequency", scan_frequency, 100);
-        nh.param("samples_per_scan", samples_per_scan, 500);
         nh.param("major_version", major_version, 0);
 
-        PF_Interface<ConnectionType, ProtocolType, PacketHeader> pf_interface(scanner_ip, std::string("0"), major_version);
+        using PF_Device = PF_Interface<ConnectionType, ProtocolType, PacketHeader>;
+        PF_Device pf_interface(scanner_ip, std::string("0"), major_version);
         if(std::is_same<PacketHeader, PacketHeaderR2300>::value) {
             pf_interface.init_publishers(nh, 4);
         } else if(std::is_same<PacketHeader, PacketHeaderR2000>::value) {
             pf_interface.init_publishers(nh, 1);
         }
+
+        dynamic_reconfigure::Server<pf_driver::PFDriverConfig> param_server;
+        param_server.setCallback(boost::bind(&PF_Device::reconfig_callback, &pf_interface, boost::placeholders::_1, boost::placeholders::_2));
         pf_interface.connect();   
 
         ros::Rate pub_rate(2 * scan_frequency);
