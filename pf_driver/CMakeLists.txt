@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.5.1)
 project(pf_driver)
 
-add_compile_options(-std=c++14)
+add_compile_options(-std=c++11)
 
 ## Currently a bug with cpprestsdk
 ## https://github.com/microsoft/cpprestsdk/issues/686#issuecomment-440622042

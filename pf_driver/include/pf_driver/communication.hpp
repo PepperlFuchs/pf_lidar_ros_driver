@@ -66,7 +66,7 @@ public:
 
     void set_handle_read(boost::function<void(DataParser *parser, std::basic_string<u_char> str)> h, DataParser *parser)
     {
-        handle_read = boost::bind(h, parser, boost::placeholders::_1);
+        handle_read = boost::bind(h, parser, _1);
     }
 
     const std::string get_port()
