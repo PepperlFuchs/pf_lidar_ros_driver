@@ -6,20 +6,29 @@ Ubuntu 18.04 and ROS Melodic
 **Clone the repository:**  
 Clone the repository in the `src` folder of your ROS workspace
 ```
-git clone --branch=master https://github.com/ipa320/pepperl-fuchs.git
+git clone https://github.com/PepperlFuchs/ROS_driver.git
 ```
-  
+
+**Only for ROS Kinetic installation:**  
+[Skip this step for Ubuntu Bionic / ROS Melodic]  
+```
+$ cd <path/to/ROS_driver>
+$ git checkout kinetic-devel
+$ chmod +x install_cpprestsdk.sh
+$ sudo ./install_cpprestsdk.sh
+```
+
 **Install the missing dependencies:**  
 ```
 cd <path/to/workspace>
 rosdep update
-rosdep install --from-paths src --ignore-src --rosdistro=melodic -y
+rosdep install --from-paths src --ignore-src --rosdistro=kinetic -y
 ```
   
 **Build the workspace:**  
 ```
 cd <path/to/workspace>
-source /opt/ros/melodic/setup.bash
+source /opt/ros/kinetic/setup.bash
 catkin build
 source <path/to/workspace>/devel/setup.bash
 ```
