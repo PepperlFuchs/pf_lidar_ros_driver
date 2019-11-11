@@ -217,7 +217,8 @@ protected:
                 std::cerr << "Exception: " << e.what() << std::endl;
                 return HandleInfo();
             }
-            return protocol_interface->request_handle_udp(HardwareInterface<ConnectionType>::get_port(), 'C', 0);
+            return protocol_interface->request_handle_udp(HardwareInterface<ConnectionType>::get_host_ip(),
+                HardwareInterface<ConnectionType>::get_port(), 'C', 0);
         }
     }
 

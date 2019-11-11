@@ -171,9 +171,9 @@ public:
         return handle_info;
     }
 
-    HandleInfo request_handle_udp(const std::string port, const char packet_type, const int start_angle)
+    HandleInfo request_handle_udp(const std::string host_ip, const std::string port, const char packet_type, const int start_angle)
     {
-        auto resp = get_request("request_handle_udp", {"handle", "port"}, {KV("address", "10.0.10.1"), KV("port", port)});
+        auto resp = get_request("request_handle_udp", {"handle", "port"}, {KV("address", host_ip), KV("port", port)});
         HandleInfo handle_info;
         handle_info.handle = resp["handle"];
         handle_info.port = resp["port"];

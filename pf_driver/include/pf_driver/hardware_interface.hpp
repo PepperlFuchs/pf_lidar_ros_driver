@@ -52,6 +52,11 @@ public:
         return connection->get_port();
     }
 
+    const std::string get_host_ip()
+    {
+        return connection->get_host_ip();
+    }
+
     void set_port(std::string port)
     {
         connection->set_port(port);
