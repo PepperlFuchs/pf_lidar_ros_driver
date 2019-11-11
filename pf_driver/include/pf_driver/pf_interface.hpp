@@ -17,6 +17,8 @@
 
 #include "pf_driver/PFDriverConfig.h"
 
+#include <ros/serialization.h>
+
 template <typename ConnectionType, typename ProtocolType, typename PacketHeader>
 class PF_Interface : public HardwareInterface<ConnectionType>, public DataParser
 {
