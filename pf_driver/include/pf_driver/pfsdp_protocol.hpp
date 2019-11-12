@@ -100,7 +100,25 @@ private:
     keys.insert(keys.end(), json_keys.begin(), json_keys.end());
     std::map<std::string, std::string> json_resp = http_interface->get(keys, command, query);
 
+    if (check_error(json_resp))
+    {
+    }
+
     return json_resp;
+  }
+
+  bool check_error(std::map<std::string, std::string> &mp)
+  {
+    std::string err_code = mp["error_code"];
+    std::string err_text = mp["error_text"];
+    std::cout << "protocol error: " << err_code << " " << err_text << std::endl;
+    std::map<std::string, std::string>::iterator it = mp.find(std::string("http_error"));
+    if (it != mp.end())
+    {
+      std::cerr << "HTTP ERROR: " << mp["http_error"];
+      return false;
+    }
+    return true;
   }
 
 public:

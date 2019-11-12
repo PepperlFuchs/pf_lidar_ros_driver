@@ -118,17 +118,21 @@ public:
   {
     const std::string uri = Resource(host).set_path(base_path).append_path(command).append_query(list).to_string();
 
+    http_client client(uri);
+    std::map<std::string, std::string> json_kv;
+    json::value json_resp;
+    try
     {
+      auto response = client.request(methods::GET).get();
+      response.headers().set_content_type("application/json");
+      json_resp = response.extract_json().get();
+    }
+    catch (const std::exception &e)
+    {
+      json_kv[std::string("http_error")] = std::string(e.what());
+      return json_kv;
+    }
 
-        const std::string uri = Resource(host).set_path(base_path).append_path(command).append_query(list).to_string();
-
-        http_client client(uri);
-        auto response = client.request(methods::GET).get();
-        response.headers().set_content_type("application/json");
-        json::value json_resp = response.extract_json().get();
-
-        std::map<std::string, std::string> json_kv;
-        for (std::string key : json_keys)
     for (std::string key : json_keys)
     {
       try
