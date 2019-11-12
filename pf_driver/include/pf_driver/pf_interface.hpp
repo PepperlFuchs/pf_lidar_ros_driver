@@ -176,7 +176,7 @@ public:
 
       sensor_msgs::LaserScan scanmsg;
       scanmsg.header.frame_id = frame_id + "_" + std::to_string(i);
-      scanmsg.header.stamp = ros::Time::now();  //().fromNSec(scandata.header.timestamp);
+      scanmsg.header.stamp = ros::Time::now();
 
       float fov = angle_min_max.second - angle_min_max.first;
       scanmsg.angle_min = angle_min_max.first;
@@ -215,7 +215,7 @@ public:
           add_pointcloud(cloud, cloud_);
         }
       }
-    }
+  }
 
     pcl_publisher.publish(cloud);
   }
