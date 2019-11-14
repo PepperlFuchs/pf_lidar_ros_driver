@@ -15,6 +15,7 @@
 #ifndef PF_DRIVER_HTTP_HELPER_H
 #define PF_DRIVER_HTTP_HELPER_H
 
+#define _TURN_OFF_PLATFORM_STRING
 #include <cpprest/http_client.h>
 #include <iostream>
 #include <memory>
@@ -127,10 +128,11 @@ public:
       response = client.request(methods::GET).get();
       response.headers().set_content_type("application/json");
       json_resp = response.extract_json().get();
+      json_kv[std::string("error_http")] = std::string("OK");
     }
     catch (const std::exception &e)
     {
-      json_kv[std::string("http_error")] = std::string(e.what());
+      json_kv[std::string("error_http")] = std::string(e.what());
       return json_kv;
     }
 
@@ -138,7 +140,7 @@ public:
     {
       try
       {
-        json_kv[key] = to_string(json_resp.at(U(key)));
+        json_kv[key] = to_string(json_resp.at(key));
       }
       catch (std::exception &e)
       {

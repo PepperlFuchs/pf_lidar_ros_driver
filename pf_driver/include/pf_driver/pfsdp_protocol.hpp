@@ -98,11 +98,12 @@ private:
   {
     const std::string err_code = "error_code";
     const std::string err_text = "error_text";
+    const std::string err_http = "error_http";
     std::vector<std::string> keys = { err_code, err_text };
     keys.insert(keys.end(), json_keys.begin(), json_keys.end());
     std::map<std::string, std::string> json_resp = http_interface->get(keys, command, query);
 
-    if (!check_error(json_resp, err_code, err_text))
+    if (!check_error(json_resp, err_code, err_text, err_http))
     {
       return std::map<std::string, std::string>();
     }
@@ -110,16 +111,22 @@ private:
     return json_resp;
   }
 
-  bool check_error(std::map<std::string, std::string> &mp, const std::string &err_code, const std::string &err_text)
+  bool check_error(std::map<std::string, std::string> &mp, const std::string &err_code, const std::string &err_text, const std::string &err_http)
   {
-    std::map<std::string, std::string>::iterator it = mp.find(std::string("http_error"));
-    if (it != mp.end())
+    const std::string http_error = mp[err_http];
+    if (http_error.compare(std::string("OK")))
     {
-      std::cerr << "HTTP ERROR: " << mp["http_error"] << std::endl;
+      std::cerr << "HTTP ERROR: " << http_error << std::endl;
       return false;
     }
-    std::string code = mp[err_code];
-    std::string text = mp[err_text];
+    const std::string code = mp[err_code];
+    const std::string text = mp[err_text];
+    std::cout << code << " " << text << std::endl;
+    if (!code.compare("--COULD NOT RETRIEVE VALUE--") || !text.compare("--COULD NOT RETRIEVE VALUE--"))
+    {
+      std::cout << "Invalid command or parameter requested." << std::endl;
+      return false;
+    }
     if (code.compare("0") || text.compare("success"))
     {
       std::cout << "protocol error: " << code << " " << text << std::endl;
@@ -241,7 +248,8 @@ public:
   // Protocol for R2300 -- should be a new class
   std::vector<int> get_layers_enabled()
   {
-    auto layers = get_parameter("layer_enable");
+    const std::string param = "layer_enable";
+    auto layers = get_parameter(param);
     auto vals = split(layers["layer_enable"]);
     std::vector<int> enabled_layers(vals.size(), 0);
     for (int i = 0; i < vals.size(); i++)
