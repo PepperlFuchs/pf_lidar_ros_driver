@@ -15,6 +15,7 @@
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>dynamic_reconfigure</depend>
+  <test_depend>rosunit</test_depend>
 
   <export>
   </export>

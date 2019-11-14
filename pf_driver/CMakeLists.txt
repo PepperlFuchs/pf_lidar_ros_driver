@@ -45,3 +45,10 @@ target_link_libraries(r2300_node
 
 add_dependencies(r2300_node ${PROJECT_NAME}_gencfg)
 
+if (CATKIN_ENABLE_TESTING)
+  set(${PROJECT_NAME}_TEST_SOURCES
+    tests/http_request.cpp)
+
+  catkin_add_gtest(pf_driver_test ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_TEST_SOURCES} tests/main.cpp)
+  target_link_libraries(pf_driver_test ${catkin_LIBRARIES} cpprestsdk::cpprest)
+endif()
