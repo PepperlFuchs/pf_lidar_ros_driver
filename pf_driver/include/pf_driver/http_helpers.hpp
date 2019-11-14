@@ -121,9 +121,10 @@ public:
     http_client client(uri);
     std::map<std::string, std::string> json_kv;
     json::value json_resp;
+    http_response response;
     try
     {
-      auto response = client.request(methods::GET).get();
+      response = client.request(methods::GET).get();
       response.headers().set_content_type("application/json");
       json_resp = response.extract_json().get();
     }
