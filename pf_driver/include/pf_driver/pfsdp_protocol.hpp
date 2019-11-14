@@ -96,26 +96,33 @@ private:
   get_request(const std::string command, std::vector<std::string> json_keys = std::vector<std::string>(),
               std::initializer_list<param_type> query = std::initializer_list<param_type>())
   {
-    std::vector<std::string> keys = { "error_code", "error_text" };
+    const std::string err_code = "error_code";
+    const std::string err_text = "error_text";
+    std::vector<std::string> keys = { err_code, err_text };
     keys.insert(keys.end(), json_keys.begin(), json_keys.end());
     std::map<std::string, std::string> json_resp = http_interface->get(keys, command, query);
 
-    if (check_error(json_resp))
+    if (!check_error(json_resp, err_code, err_text))
     {
+      return std::map<std::string, std::string>();
     }
 
     return json_resp;
   }
 
-  bool check_error(std::map<std::string, std::string> &mp)
+  bool check_error(std::map<std::string, std::string> &mp, const std::string &err_code, const std::string &err_text)
   {
-    std::string err_code = mp["error_code"];
-    std::string err_text = mp["error_text"];
-    std::cout << "protocol error: " << err_code << " " << err_text << std::endl;
     std::map<std::string, std::string>::iterator it = mp.find(std::string("http_error"));
     if (it != mp.end())
     {
-      std::cerr << "HTTP ERROR: " << mp["http_error"];
+      std::cerr << "HTTP ERROR: " << mp["http_error"] << std::endl;
+      return false;
+    }
+    std::string code = mp[err_code];
+    std::string text = mp[err_text];
+    if (code.compare("0") || text.compare("success"))
+    {
+      std::cout << "protocol error: " << code << " " << text << std::endl;
       return false;
     }
     return true;
