@@ -74,6 +74,11 @@ public:
         return this->port;
     }
 
+    const std::string get_host_ip()
+    {
+        return this->host_address;
+    }
+
     void set_port(std::string port)
     {
         this->port = port;
@@ -117,7 +122,7 @@ protected:
 
     bool is_connected_;
     double last_data_time;
-    std::string ip_address, port;
+    std::string ip_address, port, host_address;
 };
 
 class TCPConnection : public Connection
@@ -185,8 +190,12 @@ public:
     void connect()
     {
         udp_socket = new boost::asio::ip::udp::socket(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), atoi(port.c_str())));
-        port = std::to_string(udp_socket->local_endpoint().port());
         udp_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(ip_address), atoi(port.c_str()));
+
+        udp_socket->connect(udp_endpoint);
+
+        port = std::to_string(udp_socket->local_endpoint().port());
+        host_address = udp_socket->local_endpoint().address().to_string();
 
         is_connected_ = true;
     }
