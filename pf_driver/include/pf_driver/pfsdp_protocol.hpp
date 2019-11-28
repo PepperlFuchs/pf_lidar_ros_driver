@@ -85,6 +85,36 @@ const std::vector<std::string> split(std::string str, const char delim = ';')
   return results;
 }
 
+std::int64_t to_long(const std::string &s)
+{
+  std::int64_t int_val = 0;
+  try
+  {
+    int_val = std::stoll(s);
+  }
+  catch (std::exception &e)
+  {
+    std::cerr << "conversion of data from string failed" << std::endl;
+    return std::numeric_limits<std::int64_t>::quiet_NaN();
+  }
+  return int_val;
+}
+
+float to_float(const std::string &s)
+{
+  float float_val = 0;
+  try
+  {
+    float_val = std::stof(s);
+  }
+  catch (std::exception &e)
+  {
+    std::cerr << "conversion of data from string failed" << std::endl;
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+  return float_val;
+}
+
 class PFSDPBase
 {
 private:
@@ -111,22 +141,44 @@ private:
     return json_resp;
   }
 
-  bool check_error(std::map<std::string, std::string> &mp, const std::string &err_code, const std::string &err_text, const std::string &err_http)
+  bool get_request_bool(const std::string command, std::vector<std::string> json_keys = std::vector<std::string>(),
+                        std::initializer_list<param_type> query = std::initializer_list<param_type>())
+  {
+    std::map<std::string, std::string> resp = get_request(command, json_keys, query);
+    if (resp.empty())
+    {
+      return false;
+    }
+    return true;
+  }
+
+  bool check_error(std::map<std::string, std::string> &mp, const std::string &err_code, const std::string &err_text,
+                   const std::string &err_http)
   {
     const std::string http_error = mp[err_http];
+    const std::string code = mp[err_code];
+    const std::string text = mp[err_text];
+
+    // remove error related key-value pairs
+    mp.erase(err_http);
+    mp.erase(err_code);
+    mp.erase(err_text);
+
+    // check if HTTP has an error
     if (http_error.compare(std::string("OK")))
     {
       std::cerr << "HTTP ERROR: " << http_error << std::endl;
       return false;
     }
-    const std::string code = mp[err_code];
-    const std::string text = mp[err_text];
-    std::cout << code << " " << text << std::endl;
+
+    // check if 'error_code' and 'error_text' does not exist in the response
+    // this happens in case of invalid command
     if (!code.compare("--COULD NOT RETRIEVE VALUE--") || !text.compare("--COULD NOT RETRIEVE VALUE--"))
     {
       std::cout << "Invalid command or parameter requested." << std::endl;
       return false;
     }
+    // check for error messages in protocol response
     if (code.compare("0") || text.compare("success"))
     {
       std::cout << "protocol error: " << code << " " << text << std::endl;
@@ -148,8 +200,7 @@ public:
 
   bool reboot_device()
   {
-    get_request("reboot_device");
-    return true;
+    return get_request_bool("reboot_device");
   }
 
   void factory_reset()
@@ -176,8 +227,7 @@ public:
   template <typename... Ts>
   bool set_parameter(const std::initializer_list<param_type> params)
   {
-    get_request("set_parameter", { "" }, params);
-    return true;
+    return get_request("set_parameter", { "" }, params);
   }
 
   template <typename... Ts>
@@ -186,16 +236,30 @@ public:
     return get_request("get_parameter", { ts... }, { KV("list", ts...) });
   }
 
-    std::string get_scanoutput_config(std::string param, std::string handle) {
-        auto resp = get_request("get_scanoutput_config", {param}, {KV("handle", handle)});
-        return resp[param];
+  std::int64_t get_parameter_int(const std::string param)
+  {
+    std::map<std::string, std::string> resp = get_parameter(param);
+    if (resp.empty())
+    {
+      return std::numeric_limits<std::int64_t>::quiet_NaN();
     }
+    return to_long(param);
+  }
+
+  std::string get_parameter_str(const std::string param)
+  {
+    std::map<std::string, std::string> resp = get_parameter(param);
+    if (resp.empty())
+    {
+      return std::string("");
+    }
+    return resp[param];
+  }
 
   template <typename... Ts>
   bool reset_parameter(const Ts &... ts)
   {
-    get_request("reset_parameter", { "" }, { KV("list", ts...) });
-    return true;
+    return get_request_bool("reset_parameter", { "" }, { KV("list", ts...) });
   }
 
   HandleInfo request_handle_tcp(const char packet_type, const int start_angle)
@@ -229,28 +293,24 @@ public:
 
   bool start_scanoutput(std::string handle)
   {
-    get_request("start_scanoutput", { "" }, { { "handle", handle } });
-    return true;
+    return get_request_bool("start_scanoutput", { "" }, { { "handle", handle } });
   }
 
   bool stop_scanoutput(std::string handle)
   {
-    get_request("stop_scanoutput", { "" }, { { "handle", handle } });
-    return true;
+    return get_request_bool("stop_scanoutput", { "" }, { { "handle", handle } });
   }
 
   bool feed_watchdog(std::string handle)
   {
-    get_request("feed_watchdog", { "" }, { { "handle", handle } });
-    return true;
+    return get_request_bool("feed_watchdog", { "" }, { { "handle", handle } });
   }
 
   // Protocol for R2300 -- should be a new class
   std::vector<int> get_layers_enabled()
   {
-    const std::string param = "layer_enable";
-    auto layers = get_parameter(param);
-    auto vals = split(layers["layer_enable"]);
+    std::string layers = get_parameter_str("layer_enable");
+    std::vector<std::string> vals = split(layers);
     std::vector<int> enabled_layers(vals.size(), 0);
     for (int i = 0; i < vals.size(); i++)
     {
