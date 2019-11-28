@@ -4,12 +4,15 @@
 #include <type_traits>
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
+#include <dynamic_reconfigure/server.h>
 
 #include "pf_driver/communication.hpp"
 #include "pf_driver/hardware_interface.hpp"
 #include "pf_driver/pfsdp_protocol.hpp"
 #include "pf_driver/r2000/data_type_r2000.hpp"
 #include "pf_driver/r2300/data_type_r2300.hpp"
+
+#include "pf_driver/PFDriverConfig.h"
 
 template <typename ConnectionType, typename ProtocolType, typename PacketHeader>
 class PF_Interface : public HardwareInterface<ConnectionType>, public DataParser
@@ -42,6 +45,7 @@ public:
 
         handle_info = handle_connect();
         protocol_interface->start_scanoutput(handle_info.handle);
+        angle_min_max = protocol_interface->get_angle_min_max(handle_info.handle);
         feed_timeout = std::floor(std::max((handle_info.watchdog_timeout / 1000.0 / 3.0), 1.0));
         return true;
     }
@@ -65,6 +69,8 @@ public:
 
             std::uint16_t num_points = p_header->num_points_packet;
             std::uint16_t packet_size = p_header->packet_size;
+            std::uint64_t timestamp = p_header->timestamp_raw;
+            float angular_increment = (p_header->angular_increment / 10000.0)  * M_PI / 180.0;
             int packet_num = p_header->packet_number;
             int layer_index = 0;
 
@@ -95,9 +101,16 @@ public:
                 std::uint32_t distance = (data & 0x000FFFFFul);
                 std::uint32_t amplitude = ((data & 0xFFF00000ul) >> 20);
 
+                if(amplitude < 32) {
+                    amplitude = std::numeric_limits<std::uint32_t>::quiet_NaN();
+                }
+
                 scandata.distance_data.push_back(distance);
                 scandata.amplitude_data.push_back(amplitude);
             }
+
+            scandata.header.timestamp = timestamp;
+            scandata.header.angular_increment = angular_increment;
 
             remaining_data = str.substr(packet_size, str.size());
         }
@@ -113,30 +126,38 @@ public:
             if (scandata.amplitude_data.empty() || scandata.distance_data.empty())
                 return;
 
+            std::size_t num_points = scandata.distance_data.size();
+
             sensor_msgs::LaserScan scanmsg;
             scanmsg.header.frame_id = frame_id + "_" + std::to_string(i);
-            scanmsg.header.stamp = ros::Time::now();
+            scanmsg.header.stamp = ros::Time::now();//().fromNSec(scandata.header.timestamp);
 
-            float fov = std::atof(parameters["angular_fov"].c_str()) / 2.0;
-            scanmsg.angle_min = -fov * M_PI / 180.0;
-            scanmsg.angle_max = +fov * M_PI / 180.0;
+            float fov = angle_min_max.second - angle_min_max.first;
+            scanmsg.angle_min = angle_min_max.first;
+            scanmsg.angle_max = angle_min_max.second;
 
-            scanmsg.angle_increment = (fov * M_PI / 90) / float(scandata.distance_data.size());
-            scanmsg.time_increment = 1 / 35.0f / float(scandata.distance_data.size());
-
-            scanmsg.scan_time = 1 / std::atof(parameters["scan_frequency"].c_str());
+            float scan_time = 1 / std::atof(parameters["scan_frequency"].c_str());
+            scanmsg.scan_time = scan_time;
             scanmsg.range_min = std::atof(parameters["radial_range_min"].c_str());
             scanmsg.range_max = std::atof(parameters["radial_range_max"].c_str());
 
-            scanmsg.ranges.resize(scandata.distance_data.size());
-            scanmsg.intensities.resize(scandata.amplitude_data.size());
-            for (std::size_t i = 0; i < scandata.distance_data.size(); i++)
+            scanmsg.angle_increment = scandata.header.angular_increment;
+            scanmsg.time_increment = (fov * scan_time) / (M_PI * 2.0) / num_points;
+
+            scanmsg.ranges.resize(num_points);
+            scanmsg.intensities.resize(num_points);
+            for (std::size_t i = 0; i < num_points; i++)
             {
                 scanmsg.ranges[i] = float(scandata.distance_data[i]) / 1000.0f;
                 scanmsg.intensities[i] = scandata.amplitude_data[i];
             }
             scan_publishers[i].publish(scanmsg);
         }
+    }
+
+    void reconfig_callback(pf_driver::PFDriverConfig &config, uint32_t level) {
+        ROS_INFO("Reconfigure Request: %d", config.scan_frequency);
+        protocol_interface->set_scan_frequency(config.scan_frequency);
     }
 
     static int main(const std::string &device_name, int argc, char *argv[])
@@ -153,15 +174,18 @@ public:
         nh.param("frame_id", frame_id, std::string("/scan"));
         nh.param("scanner_ip", scanner_ip, std::string(""));
         nh.param("scan_frequency", scan_frequency, 100);
-        nh.param("samples_per_scan", samples_per_scan, 500);
         nh.param("major_version", major_version, 0);
 
-        PF_Interface<ConnectionType, ProtocolType, PacketHeader> pf_interface(scanner_ip, std::string("0"), major_version);
+        using PF_Device = PF_Interface<ConnectionType, ProtocolType, PacketHeader>;
+        PF_Device pf_interface(scanner_ip, std::string("0"), major_version);
         if(std::is_same<PacketHeader, PacketHeaderR2300>::value) {
             pf_interface.init_publishers(nh, 4);
         } else if(std::is_same<PacketHeader, PacketHeaderR2000>::value) {
             pf_interface.init_publishers(nh, 1);
         }
+
+        dynamic_reconfigure::Server<pf_driver::PFDriverConfig> param_server;
+        param_server.setCallback(boost::bind(&PF_Device::reconfig_callback, &pf_interface, boost::placeholders::_1, boost::placeholders::_2));
         pf_interface.connect();   
 
         ros::Rate pub_rate(2 * scan_frequency);
@@ -311,6 +335,7 @@ protected:
     double watchdog_feed_time;
     double feed_timeout;
     std::vector<int> layers;
+    std::pair<float, float> angle_min_max;
 
     std::basic_string<u_char> remaining_data;
 };

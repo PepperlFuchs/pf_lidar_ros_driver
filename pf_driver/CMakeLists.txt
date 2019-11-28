@@ -11,10 +11,15 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   sensor_msgs
+  dynamic_reconfigure
 )
 
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(cpprestsdk REQUIRED)
+
+generate_dynamic_reconfigure_options(
+  cfg/settings.cfg
+)
 
 # catkin_python_setup()
 
@@ -35,11 +40,15 @@ target_link_libraries(r2000_node
   ${catkin_LIBRARIES} cpprestsdk::cpprest
 )
 
+add_dependencies(r2000_node ${PROJECT_NAME}_gencfg)
+
 add_executable(r2300_node src/r2300_node.cpp)
 
 target_link_libraries(r2300_node
   ${catkin_LIBRARIES} cpprestsdk::cpprest
 )
+
+add_dependencies(r2300_node ${PROJECT_NAME}_gencfg)
 
 #############
 ## Install ##

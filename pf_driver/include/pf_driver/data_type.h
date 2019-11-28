@@ -39,8 +39,15 @@ constexpr std::uint32_t device_overload_error = (1 << 20);
 //defects
 std::uint32_t device_defect = (1 << 30);
 
+struct Header {
+    std::uint64_t timestamp;
+    float angular_increment;
+    std::int32_t start_angle;
+};
+
 struct ScanData
 {
+    Header header;
     std::vector<std::uint32_t> distance_data;
     std::vector<std::uint32_t> amplitude_data;
 };
