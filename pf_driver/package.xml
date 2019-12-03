@@ -10,11 +10,14 @@
   <url type="website">http://wiki.ros.org/pepperl_fuchs_r2000</url>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>libpcl-all-dev</build_depend>
+  <exec_depend>libpcl-all</exec_depend>
   <depend>roscpp</depend>
   <depend>libcpprest-dev</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>dynamic_reconfigure</depend>
+  <depend>laser_geometry</depend>
 
   <export>
   </export>
