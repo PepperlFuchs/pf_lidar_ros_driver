@@ -12,7 +12,10 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   dynamic_reconfigure
-  message_generation
+  laser_geometry
+  tf
+  pcl_conversions
+  pcl_ros
 )
 
 find_package(Boost REQUIRED COMPONENTS system)

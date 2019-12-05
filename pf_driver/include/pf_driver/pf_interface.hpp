@@ -2,8 +2,12 @@
 #define PF_DRIVER_PF_INTERFACE_H
 
 #include <dynamic_reconfigure/server.h>
+#include <laser_geometry/laser_geometry.h>
+#include <pcl_conversions/pcl_conversions.h>
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
+#include <tf/transform_listener.h>
+#include <type_traits>
 
 #include "pf_driver/communication.hpp"
 #include "pf_driver/hardware_interface.hpp"
@@ -123,9 +127,43 @@ public:
     }
   }
 
+  void copy_pointcloud(sensor_msgs::PointCloud2 &c1, sensor_msgs::PointCloud2 c2)
+  {
+    c1.height = c2.height;
+    c1.width = c2.width;
+    c1.is_bigendian = c2.is_bigendian;
+    c1.point_step = c2.point_step;
+    c1.row_step = c2.row_step;
+
+    c1.fields = std::move(c2.fields);
+    c1.data = std::move(c2.data);
+  }
+
+  // TODO: should move() the 2nd param
+  void add_pointcloud(sensor_msgs::PointCloud2 &orig, sensor_msgs::PointCloud2 cloud)
+  {
+    pcl::PCLPointCloud2 p1, p2;
+    pcl_conversions::toPCL(orig, p1);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr p1_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+    // handle when point cloud is empty
+    pcl::fromPCLPointCloud2(p1, *p1_cloud);
+
+    pcl_conversions::toPCL(cloud, p2);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr p2_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::fromPCLPointCloud2(p2, *p2_cloud);
+
+    *p1_cloud += *p2_cloud;
+    pcl::toROSMsg(*p1_cloud.get(), orig);
+  }
+
   void publish_scan(std::string frame_id)
   {
     auto scandatas = HardwareInterface<ConnectionType>::get_scan(layers);
+    sensor_msgs::PointCloud2 cloud;
+    cloud.header.frame_id = "/scan";
+    cloud.header.stamp = ros::Time::now();
+
     for (int i = 0; i < layers.size(); i++)
     {
       if (!layers[i])
@@ -160,10 +198,29 @@ public:
         scanmsg.intensities[i] = scandata.amplitude_data[i];
       }
       scan_publishers[i].publish(scanmsg);
+
+      sensor_msgs::PointCloud2 cloud_;
+      if (tfListener_.waitForTransform(scanmsg.header.frame_id, "/scan",
+                                       scanmsg.header.stamp +
+                                           ros::Duration().fromSec(scanmsg.ranges.size() * scanmsg.time_increment),
+                                       ros::Duration(1.0)))
+      {
+        projector_.transformLaserScanToPointCloud("/scan", scanmsg, cloud_, tfListener_);
+        if (cloud.data.empty())
+        {
+          copy_pointcloud(cloud, cloud_);
+        }
+        else
+        {
+          add_pointcloud(cloud, cloud_);
+        }
+      }
     }
   }
+  pcl_publisher.publish(cloud);
+}
 
-  void reconfig_callback(pf_driver::PFDriverConfig &config, uint32_t level)
+void reconfig_callback(pf_driver::PFDriverConfig &config, uint32_t level)
   {
     ROS_INFO("Reconfigure Request: %d", config.scan_frequency);
     protocol_interface->set_scan_frequency(config.scan_frequency);
@@ -187,6 +244,7 @@ public:
 
     using PF_Device = PF_Interface<ConnectionType, ProtocolType, PacketHeader>;
     PF_Device pf_interface(scanner_ip, std::string("0"), major_version);
+    if (std::is_same<PacketHeader, PacketHeaderR2300>::value)
     {
       pf_interface.init_publishers(nh, 4);
     }
@@ -198,160 +256,163 @@ public:
     dynamic_reconfigure::Server<pf_driver::PFDriverConfig> param_server;
     param_server.setCallback(
         boost::bind(&PF_Device::reconfig_callback, &pf_interface, boost::placeholders::_1, boost::placeholders::_2));
+    pf_interface.connect();
+
+    ros::Rate pub_rate(2 * scan_frequency);
+    while (ros::ok())
+    {
+      pf_interface.publish_scan(frame_id);
+      pf_interface.feedWatchdog();
+      ros::spinOnce();
+      pub_rate.sleep();
+    }
+
+    return 0;
+  }
+
+  void feedWatchdog(bool feed_always = false)
+  {
+    const double current_time = std::time(0);
+
+    if (feed_always || watchdog_feed_time < (current_time - feed_timeout))
+    {
+      if (!protocol_interface->feed_watchdog(handle_info.handle))
+        std::cerr << "ERROR: Feeding watchdog failed!" << std::endl;
+      watchdog_feed_time = current_time;
+    }
+  }
+
+protected:
+  HandleInfo handle_connect()
+  {
+    if (std::is_same<ConnectionType, TCPConnection>::value)
+    {
+      HandleInfo hi = protocol_interface->request_handle_tcp('C', 0);
+      HardwareInterface<ConnectionType>::set_port(hi.port);
+      try
+      {
+        HardwareInterface<ConnectionType>::connect();
+      }
+      catch (std::exception &e)
+      {
+        std::cerr << "Exception: " << e.what() << std::endl;
+        return HandleInfo();
+      }
+      return hi;
+    }
+    else if (std::is_same<ConnectionType, UDPConnection>::value)
+    {
+      try
+      {
+        HardwareInterface<ConnectionType>::connect();
+      }
+      catch (std::exception &e)
+      {
+        std::cerr << "Exception: " << e.what() << std::endl;
+        return HandleInfo();
+      }
+      return protocol_interface->request_handle_udp(HardwareInterface<ConnectionType>::get_host_ip(),
+                                                    HardwareInterface<ConnectionType>::get_port(), 'C', 0);
+    }
+  }
+
+  bool init_protocol()
+  {
+    auto opi = protocol_interface->get_protocol_info();
+    if (opi.version_major != major_version)
+    {
+      std::cerr << "ERROR: Could not connect to laser range finder!" << std::endl;
+      return false;
+    }
+    if (opi.version_major != major_version)
+    {
+      std::cerr << "ERROR: Wrong protocol version (version_major=" << opi.version_major
+                << ", version_minor=" << opi.version_minor << ")" << std::endl;
+      return false;
+    }
+    protocol_info = opi;
+    parameters = protocol_interface->get_parameter(protocol_interface->list_parameters());
+    watchdog_feed_time = 0;
+    return true;
+  }
+
+  void init_publishers(ros::NodeHandle nh, std::size_t num_layers)
+  {
+    scan_publishers.resize(num_layers);
+    for (int i = 0; i < num_layers; i++)
+    {
+      std::string topic = "/scan_" + std::to_string(i);
+      scan_publishers[i] = nh.advertise<sensor_msgs::LaserScan>(topic.c_str(), 100);
+    }
+    pcl_publisher = nh.advertise<sensor_msgs::PointCloud2>("/cloud", 100);
+  }
+
+  void parser_data()
+  {
+  }
+
+  void fill_scan_data(ScanData &scandata, std::string str)
+  {
+    std::uint32_t *data = reinterpret_cast<std::uint32_t *>((char *)str.c_str());
+
+    std::uint32_t distance = (*data & 0x000FFFFF);
+    std::uint32_t amplitude = ((*data & 0xFFF00000) >> 20);
+
+    scandata.distance_data.push_back(distance);
+    scandata.amplitude_data.push_back(amplitude);
+  }
+
+  int find_packet_start(std::string type, std::basic_string<u_char> str)
+  {
+    for (int i = 0; i < str.size() - 4; i++)
+    {
+      if (((unsigned char)str[i]) == 0x5c && ((unsigned char)str[i + 1]) == 0xa2 &&
+          ((unsigned char)str[i + 2]) == type[0] && ((unsigned char)str[i + 3]) == type[1])
+      {
+        return i;
+      }
+    }
     return -1;
   }
 
-  ros::Rate pub_rate(2 * scan_frequency);
-  while (ros::ok())
+  std::size_t get_header_size()
   {
-    pf_interface.publish_scan(frame_id);
-    pf_interface.feedWatchdog();
-    ros::spinOnce();
-    pub_rate.sleep();
+    return sizeof(PacketHeader);
   }
 
-  return 0;
-}
-
-  void feedWatchdog(bool feed_always = false)
-{
-  const double current_time = std::time(0);
-
-  if (feed_always || watchdog_feed_time < (current_time - feed_timeout))
+  // should extend this in R2300 class
+  std::string get_packet_type()
   {
-    if (!protocol_interface->feed_watchdog(handle_info.handle))
-      std::cerr << "ERROR: Feeding watchdog failed!" << std::endl;
-    watchdog_feed_time = current_time;
-  }
-}
-
-protected:
-HandleInfo handle_connect()
-{
-  if (std::is_same<ConnectionType, TCPConnection>::value)
-  {
-    HandleInfo hi = protocol_interface->request_handle_tcp('C', 0);
-    HardwareInterface<ConnectionType>::set_port(hi.port);
-    try
+    if (std::is_same<PacketHeader, PacketHeaderR2000>::value)
     {
-      HardwareInterface<ConnectionType>::connect();
+      return "C";
     }
-    catch (std::exception &e)
+    else if (std::is_same<PacketHeader, PacketHeaderR2300>::value)
     {
-      std::cerr << "Exception: " << e.what() << std::endl;
-      return HandleInfo();
-    }
-    return hi;
-  }
-  else if (std::is_same<ConnectionType, UDPConnection>::value)
-  {
-    try
-    {
-      HardwareInterface<ConnectionType>::connect();
-    }
-    catch (std::exception &e)
-    {
-      std::cerr << "Exception: " << e.what() << std::endl;
-      return HandleInfo();
-    }
-    return protocol_interface->request_handle_udp(HardwareInterface<ConnectionType>::get_host_ip(),
-                                                  HardwareInterface<ConnectionType>::get_port(), 'C', 0);
-  }
-}
-
-bool init_protocol()
-{
-  auto opi = protocol_interface->get_protocol_info();
-  if (opi.version_major != major_version)
-  {
-    std::cerr << "ERROR: Could not connect to laser range finder!" << std::endl;
-    return false;
-  }
-  if (opi.version_major != major_version)
-  {
-    std::cerr << "ERROR: Wrong protocol version (version_major=" << opi.version_major
-              << ", version_minor=" << opi.version_minor << ")" << std::endl;
-    return false;
-  }
-  protocol_info = opi;
-  parameters = protocol_interface->get_parameter(protocol_interface->list_parameters());
-  watchdog_feed_time = 0;
-  return true;
-}
-
-void init_publishers(ros::NodeHandle nh, std::size_t num_layers)
-{
-  scan_publishers.resize(num_layers);
-  for (int i = 0; i < num_layers; i++)
-  {
-    std::string topic = "scan_" + std::to_string(i);
-    scan_publishers[i] = nh.advertise<sensor_msgs::LaserScan>(topic.c_str(), 100);
-  }
-}
-
-void parser_data()
-{
-}
-
-void fill_scan_data(ScanData &scandata, std::string str)
-{
-  std::uint32_t *data = reinterpret_cast<std::uint32_t *>((char *)str.c_str());
-
-  std::uint32_t distance = (*data & 0x000FFFFF);
-  std::uint32_t amplitude = ((*data & 0xFFF00000) >> 20);
-
-  scandata.distance_data.push_back(distance);
-  scandata.amplitude_data.push_back(amplitude);
-}
-
-int find_packet_start(std::string type, std::basic_string<u_char> str)
-{
-  for (int i = 0; i < str.size() - 4; i++)
-  {
-    if (((unsigned char)str[i]) == 0x5c && ((unsigned char)str[i + 1]) == 0xa2 &&
-        ((unsigned char)str[i + 2]) == type[0] && ((unsigned char)str[i + 3]) == type[1])
-    {
-      return i;
+      return "C1";
     }
   }
-  return -1;
-}
 
-std::size_t get_header_size()
-{
-  return sizeof(PacketHeader);
-}
+  ProtocolType *protocol_interface;
+  PacketHeader *p_header;
 
-// should extend this in R2300 class
-std::string get_packet_type()
-{
-  if (std::is_same<PacketHeader, PacketHeaderR2000>::value)
-  {
-    return "C";
-  }
-  else if (std::is_same<PacketHeader, PacketHeaderR2300>::value)
-  {
-    return "C1";
-  }
-}
+  std::vector<ros::Publisher> scan_publishers;
+  ros::Publisher pcl_publisher;
 
-ProtocolType *protocol_interface;
-PacketHeader *p_header;
+  laser_geometry::LaserProjection projector_;
+  tf::TransformListener tfListener_;
 
-std::vector<ros::Publisher> scan_publishers;
+  HandleInfo handle_info;
+  ProtocolInfo protocol_info;
+  std::map<std::string, std::string> parameters;
 
-HandleInfo handle_info;
-ProtocolInfo protocol_info;
-std::map<std::string, std::string> parameters;
+  int major_version;
+  double watchdog_feed_time;
+  double feed_timeout;
+  std::vector<int> layers;
+  std::pair<float, float> angle_min_max;
 
-int major_version;
-double watchdog_feed_time;
-double feed_timeout;
-std::vector<int> layers;
-std::pair<float, float> angle_min_max;
-
-std::basic_string<u_char> remaining_data;
-}
-;
+  std::basic_string<u_char> remaining_data;
+};
 
 #endif
