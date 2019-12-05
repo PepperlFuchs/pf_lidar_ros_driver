@@ -18,6 +18,7 @@
   <depend>sensor_msgs</depend>
   <depend>dynamic_reconfigure</depend>
   <depend>laser_geometry</depend>
+  <test_depend>rosunit</test_depend>
 
   <export>
   </export>

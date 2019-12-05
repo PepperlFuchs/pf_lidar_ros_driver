@@ -15,208 +15,229 @@
 #ifndef PF_DRIVER_COMMUNICATION_H
 #define PF_DRIVER_COMMUNICATION_H
 
-#include <iostream>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
-#include <mutex>
 #include <condition_variable>
+#include <iostream>
+#include <mutex>
 #include "pf_driver/data_parser.hpp"
 
 class Connection
 {
 public:
-    void start_read(std::size_t n)
-    {
-        async_read(n, &Connection::handle_packet);
-        io_service_thread = boost::thread(boost::bind(&boost::asio::io_service::run, &io_service));
-    }
+  void start_read(std::size_t n)
+  {
+    async_read(n, &Connection::handle_packet);
+    io_service_thread = boost::thread(boost::bind(&boost::asio::io_service::run, &io_service));
+  }
 
-    bool is_connected()
-    {
-        return is_connected_;
-    }
+  bool is_connected()
+  {
+    return is_connected_;
+  }
 
-    bool checkConnection()
+  bool checkConnection()
+  {
+    if (!is_connected())
+      return false;
+    if ((std::time(0) - last_data_time) > 2)
     {
-        if (!is_connected())
-            return false;
-        if ((std::time(0) - last_data_time) > 2)
-        {
-            disconnect();
-            return false;
-        }
-        return true;
+      disconnect();
+      return false;
     }
+    return true;
+  }
 
-    void disconnect()
+  void disconnect()
+  {
+    is_connected_ = false;
+    try
     {
-        is_connected_ = false;
-        try
-        {
-            close();
-            io_service.stop();
-            if (boost::this_thread::get_id() != io_service_thread.get_id())
-                io_service_thread.join();
-        }
-        catch (std::exception &e)
-        {
-            std::cerr << "Exception: " << e.what() << std::endl;
-        }
+      close();
+      io_service.stop();
+      if (boost::this_thread::get_id() != io_service_thread.get_id())
+        io_service_thread.join();
     }
-
-    void set_handle_read(boost::function<void(DataParser *parser, std::basic_string<u_char> str)> h, DataParser *parser)
+    catch (std::exception &e)
     {
-        handle_read = boost::bind(h, parser, boost::placeholders::_1);
+      std::cerr << "Exception: " << e.what() << std::endl;
     }
+  }
 
-    const std::string get_port()
-    {
-        return this->port;
-    }
+  void set_handle_read(boost::function<void(DataParser *parser, std::basic_string<u_char> str)> h, DataParser *parser)
+  {
+    handle_read = boost::bind(h, parser, boost::placeholders::_1);
+  }
 
-    const std::string get_host_ip()
-    {
-        return this->host_address;
-    }
+  const std::string get_port()
+  {
+    return this->port;
+  }
 
-    void set_port(std::string port)
-    {
-        this->port = port;
-    }
+  void set_port(std::string port)
+  {
+    this->port = port;
+  }
 
-    virtual void connect() = 0;
-    virtual void close() = 0;
+  const std::string get_host_ip()
+  {
+    return this->host_ip;
+  }
+
+  ~Connection()
+  {
+    disconnect();
+  }
+
+  virtual bool connect() = 0;
+  virtual void close() = 0;
 
 protected:
-    std::basic_string<u_char> get_buffer_string(std::size_t n)
+  std::basic_string<u_char> get_buffer_string(std::size_t n)
+  {
+    buf.commit(n);
+    std::basic_string<u_char> s(boost::asio::buffers_begin(buf.data()), boost::asio::buffers_end(buf.data()));
+    buf.consume(n);
+    return s;
+  }
+
+  void handle_packet(const boost::system::error_code &ec, std::size_t n)
+  {
+    if (!ec)
     {
-        buf.commit(n);
-        std::basic_string<u_char> s(boost::asio::buffers_begin(buf.data()), boost::asio::buffers_end(buf.data()));
-        buf.consume(n);
-        return s;
+      std::basic_string<u_char> str = get_buffer_string(n);
+      if (str.empty())
+        return;
+      handle_read(str);
+      async_read(1500, &Connection::handle_packet);
     }
-
-    void handle_packet(const boost::system::error_code &ec, std::size_t n)
+    else if (ec != boost::asio::error::eof)
     {
-        if (!ec)
-        {
-            std::basic_string<u_char> str = get_buffer_string(n);
-            if (str.empty())
-                return;
-            handle_read(str);
-            async_read(1500, &Connection::handle_packet);
-        }
-        else if (ec != boost::asio::error::eof)
-        {
-            std::cout << "Error: " << ec << "\n";
-        }
+      std::cout << "Error: " << ec << "\n";
     }
+  }
 
-    boost::thread io_service_thread;
-    boost::asio::io_service io_service;
+  boost::thread io_service_thread;
+  boost::asio::io_service io_service;
 
-    boost::asio::streambuf buf;
+  boost::asio::streambuf buf;
 
-    boost::function<void(std::basic_string<u_char> str)> handle_read;
-    virtual void async_read(std::size_t s, boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> h) = 0;
+  boost::function<void(std::basic_string<u_char> str)> handle_read;
+  virtual void async_read(
+      std::size_t s, boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> h) = 0;
 
-    bool is_connected_;
-    double last_data_time;
-    std::string ip_address, port, host_address;
+  bool is_connected_;
+  double last_data_time;
+  std::string device_ip, port, host_ip;
 };
 
 class TCPConnection : public Connection
 {
 public:
-    TCPConnection(std::string IP, std::string port)
+  TCPConnection(std::string IP, std::string port)
+  {
+    this->device_ip = IP;
+    this->port = port;
+  }
+
+  bool connect()
+  {
+    boost::asio::ip::tcp::resolver resolver(io_service);
+    boost::asio::ip::tcp::resolver::query query(device_ip, port);
+    boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+    boost::asio::ip::tcp::resolver::iterator end;
+
+    tcp_socket = new boost::asio::ip::tcp::socket(io_service);
+    boost::system::error_code error = boost::asio::error::host_not_found;
+
+    // Iterate over endpoints and etablish connection
+    while (error && endpoint_iterator != end)
     {
-        this->ip_address = IP;
-        this->port = port;
+      tcp_socket->close();
+      tcp_socket->connect(*endpoint_iterator++, error);
     }
-
-    void connect()
+    if (error)
     {
-        boost::asio::ip::tcp::resolver resolver(io_service);
-        boost::asio::ip::tcp::resolver::query query(ip_address, port);
-        boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-        boost::asio::ip::tcp::resolver::iterator end;
-
-        tcp_socket = new boost::asio::ip::tcp::socket(io_service);
-        boost::system::error_code error = boost::asio::error::host_not_found;
-
-        // Iterate over endpoints and etablish connection
-        while (error && endpoint_iterator != end)
-        {
-            tcp_socket->close();
-            tcp_socket->connect(*endpoint_iterator++, error);
-        }
-        if (error)
-        {
-            throw boost::system::system_error(error);
-            is_connected_ = false;
-            return;
-        }
-        is_connected_ = true;
+      throw boost::system::system_error(error);
+      is_connected_ = false;
+      return false;
     }
+    is_connected_ = true;
+    return true;
+  }
 
-    void close()
-    {
-        if (tcp_socket)
-            tcp_socket->close();
-    }
+  void close()
+  {
+    if (tcp_socket)
+      tcp_socket->close();
+  }
 
 private:
-    void async_read(std::size_t s, boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> handle_read)
-    {
-        boost::asio::streambuf::mutable_buffers_type bufs = buf.prepare(s);
-        //https://www.boost.org/doc/libs/1_51_0/doc/html/boost_asio/reference/async_read/overload1.html
-        boost::asio::async_read(*tcp_socket, boost::asio::buffer(bufs),
-                                boost::asio::transfer_at_least(1),
-                                boost::bind(handle_read, this,
-                                            boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-    }
+  void
+  async_read(std::size_t s,
+             boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> handle_read)
+  {
+    boost::asio::streambuf::mutable_buffers_type bufs = buf.prepare(s);
+    // https://www.boost.org/doc/libs/1_51_0/doc/html/boost_asio/reference/async_read/overload1.html
+    boost::asio::async_read(
+        *tcp_socket, boost::asio::buffer(bufs), boost::asio::transfer_at_least(1),
+        boost::bind(handle_read, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+  }
 
-    boost::asio::ip::tcp::socket *tcp_socket;
+  boost::asio::ip::tcp::socket *tcp_socket;
 };
 
 class UDPConnection : public Connection
 {
 public:
-    UDPConnection(std::string IP, std::string port)
+  UDPConnection(std::string IP, std::string port)
+  {
+    this->device_ip = IP;
+    this->port = port;
+  }
+  bool connect()
+  {
+    try
     {
-        this->ip_address = IP;
-        this->port = port;
+      udp_socket = new boost::asio::ip::udp::socket(
+          io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), atoi(port.c_str())));
+      udp_endpoint =
+          boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(device_ip), atoi(port.c_str()));
+
+      udp_socket->connect(udp_endpoint);
+
+      port = std::to_string(udp_socket->local_endpoint().port());
+      host_ip = udp_socket->local_endpoint().address().to_string();
     }
-    void connect()
+    catch (const boost::system::system_error &ex)
     {
-        udp_socket = new boost::asio::ip::udp::socket(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), atoi(port.c_str())));
-        udp_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(ip_address), atoi(port.c_str()));
-
-        udp_socket->connect(udp_endpoint);
-
-        port = std::to_string(udp_socket->local_endpoint().port());
-        host_address = udp_socket->local_endpoint().address().to_string();
-
-        is_connected_ = true;
+      std::cerr << "ERROR: " << ex.code() << " " << ex.what() << std::endl;
+      is_connected_ = false;
+      return false;
     }
+    is_connected_ = true;
+    return true;
+  }
 
-    void close()
-    {
-        if (udp_socket)
-            udp_socket->close();
-    }
+  void close()
+  {
+    if (udp_socket)
+      udp_socket->close();
+  }
 
 private:
-    void async_read(std::size_t s, boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> handle_packet)
-    {
-        boost::asio::streambuf::mutable_buffers_type bufs = buf.prepare(s);
-        udp_socket->async_receive_from(boost::asio::buffer(bufs), udp_endpoint,
-                                       boost::bind(handle_packet, this,
-                                                   boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-    }
+  void
+  async_read(std::size_t s,
+             boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> handle_packet)
+  {
+    boost::asio::streambuf::mutable_buffers_type bufs = buf.prepare(s);
+    udp_socket->async_receive_from(boost::asio::buffer(bufs), udp_endpoint,
+                                   boost::bind(handle_packet, this, boost::asio::placeholders::error,
+                                               boost::asio::placeholders::bytes_transferred));
+  }
 
-    boost::asio::ip::udp::socket *udp_socket;
-    boost::asio::ip::udp::endpoint udp_endpoint;
+  boost::asio::ip::udp::socket *udp_socket;
+  boost::asio::ip::udp::endpoint udp_endpoint;
 };
 
 #endif
