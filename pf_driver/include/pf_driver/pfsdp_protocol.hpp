@@ -227,7 +227,7 @@ public:
   template <typename... Ts>
   bool set_parameter(const std::initializer_list<param_type> params)
   {
-    return get_request("set_parameter", { "" }, params);
+    return get_request_bool("set_parameter", { "" }, params);
   }
 
   template <typename... Ts>
@@ -299,6 +299,11 @@ public:
   bool stop_scanoutput(std::string handle)
   {
     return get_request_bool("stop_scanoutput", { "" }, { { "handle", handle } });
+  }
+
+  std::string get_scanoutput_config(std::string param, std::string handle) {
+      auto resp = get_request("get_scanoutput_config", {param}, {KV("handle", handle)});
+      return resp[param];
   }
 
   bool feed_watchdog(std::string handle)

@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
+/*
 // Declare a test
 TEST(HHTPInterface_TestSuite, testPFSDPGET)
 {
@@ -11,3 +12,4 @@ TEST(HHTPInterface_TestSuite, testPFSDPGET)
     //TODO: figure out test cases to improve API
     // EXPECT_EQ(mp["error"])
 }
+*/

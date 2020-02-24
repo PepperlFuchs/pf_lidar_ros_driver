@@ -22,14 +22,17 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(cpprestsdk REQUIRED)
 
 generate_dynamic_reconfigure_options(
-  cfg/settings.cfg
+  cfg/PFDriver.cfg
 )
-
-
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs message_runtime
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs
+)
+
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
 )
 
 add_executable(r2000_node src/r2000_node.cpp)
@@ -56,3 +59,6 @@ if (CATKIN_ENABLE_TESTING)
   catkin_add_gtest(pf_driver_test ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_TEST_SOURCES} tests/main.cpp)
   target_link_libraries(pf_driver_test ${catkin_LIBRARIES} cpprestsdk::cpprest)
 endif()
+
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
