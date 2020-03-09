@@ -215,7 +215,6 @@ public:
           add_pointcloud(cloud, cloud_);
         }
       }
-    }
   }
   pcl_publisher.publish(cloud);
 }
@@ -258,161 +257,162 @@ void reconfig_callback(pf_driver::PFDriverConfig &config, uint32_t level)
         boost::bind(&PF_Device::reconfig_callback, &pf_interface, boost::placeholders::_1, boost::placeholders::_2));
     pf_interface.connect();
 
-    ros::Rate pub_rate(2 * scan_frequency);
-    while (ros::ok())
-    {
-      pf_interface.publish_scan(frame_id);
-      pf_interface.feedWatchdog();
-      ros::spinOnce();
-      pub_rate.sleep();
-    }
-
-    return 0;
+  ros::Rate pub_rate(2 * scan_frequency);
+  while (ros::ok())
+  {
+    pf_interface.publish_scan(frame_id);
+    pf_interface.feedWatchdog();
+    ros::spinOnce();
+    pub_rate.sleep();
   }
+
+  return 0;
+}
 
   void feedWatchdog(bool feed_always = false)
-  {
-    const double current_time = std::time(0);
+{
+  const double current_time = std::time(0);
 
-    if (feed_always || watchdog_feed_time < (current_time - feed_timeout))
-    {
-      if (!protocol_interface->feed_watchdog(handle_info.handle))
-        std::cerr << "ERROR: Feeding watchdog failed!" << std::endl;
-      watchdog_feed_time = current_time;
-    }
+  if (feed_always || watchdog_feed_time < (current_time - feed_timeout))
+  {
+    if (!protocol_interface->feed_watchdog(handle_info.handle))
+      std::cerr << "ERROR: Feeding watchdog failed!" << std::endl;
+    watchdog_feed_time = current_time;
   }
+}
 
 protected:
-  HandleInfo handle_connect()
+HandleInfo handle_connect()
+{
+  if (std::is_same<ConnectionType, TCPConnection>::value)
   {
-    if (std::is_same<ConnectionType, TCPConnection>::value)
+    HandleInfo hi = protocol_interface->request_handle_tcp('C', 0);
+    HardwareInterface<ConnectionType>::set_port(hi.port);
+    try
     {
-      HandleInfo hi = protocol_interface->request_handle_tcp('C', 0);
-      HardwareInterface<ConnectionType>::set_port(hi.port);
-      try
-      {
-        HardwareInterface<ConnectionType>::connect();
-      }
-      catch (std::exception &e)
-      {
-        std::cerr << "Exception: " << e.what() << std::endl;
-        return HandleInfo();
-      }
-      return hi;
+      HardwareInterface<ConnectionType>::connect();
     }
-    else if (std::is_same<ConnectionType, UDPConnection>::value)
+    catch (std::exception &e)
     {
-      try
-      {
-        HardwareInterface<ConnectionType>::connect();
-      }
-      catch (std::exception &e)
-      {
-        std::cerr << "Exception: " << e.what() << std::endl;
-        return HandleInfo();
-      }
-      return protocol_interface->request_handle_udp(HardwareInterface<ConnectionType>::get_host_ip(),
-                                                    HardwareInterface<ConnectionType>::get_port(), 'C', 0);
+      std::cerr << "Exception: " << e.what() << std::endl;
+      return HandleInfo();
     }
+    return hi;
   }
-
-  bool init_protocol()
+  else if (std::is_same<ConnectionType, UDPConnection>::value)
   {
-    auto opi = protocol_interface->get_protocol_info();
-    if (opi.version_major != major_version)
+    try
     {
-      std::cerr << "ERROR: Could not connect to laser range finder!" << std::endl;
-      return false;
+      HardwareInterface<ConnectionType>::connect();
     }
-    if (opi.version_major != major_version)
+    catch (std::exception &e)
     {
-      std::cerr << "ERROR: Wrong protocol version (version_major=" << opi.version_major
-                << ", version_minor=" << opi.version_minor << ")" << std::endl;
-      return false;
+      std::cerr << "Exception: " << e.what() << std::endl;
+      return HandleInfo();
     }
-    protocol_info = opi;
-    parameters = protocol_interface->get_parameter(protocol_interface->list_parameters());
-    watchdog_feed_time = 0;
-    return true;
+    return protocol_interface->request_handle_udp(HardwareInterface<ConnectionType>::get_host_ip(),
+                                                  HardwareInterface<ConnectionType>::get_port(), 'C', 0);
   }
+}
 
-  void init_publishers(ros::NodeHandle nh, std::size_t num_layers)
+bool init_protocol()
+{
+  auto opi = protocol_interface->get_protocol_info();
+  if (opi.version_major != major_version)
   {
-    scan_publishers.resize(num_layers);
-    for (int i = 0; i < num_layers; i++)
-    {
+    std::cerr << "ERROR: Could not connect to laser range finder!" << std::endl;
+    return false;
+  }
+  if (opi.version_major != major_version)
+  {
+    std::cerr << "ERROR: Wrong protocol version (version_major=" << opi.version_major
+              << ", version_minor=" << opi.version_minor << ")" << std::endl;
+    return false;
+  }
+  protocol_info = opi;
+  parameters = protocol_interface->get_parameter(protocol_interface->list_parameters());
+  watchdog_feed_time = 0;
+  return true;
+}
+
+void init_publishers(ros::NodeHandle nh, std::size_t num_layers)
+{
+  scan_publishers.resize(num_layers);
+  for (int i = 0; i < num_layers; i++)
+  {
       std::string topic = "/scan_" + std::to_string(i);
-      scan_publishers[i] = nh.advertise<sensor_msgs::LaserScan>(topic.c_str(), 100);
-    }
+    scan_publishers[i] = nh.advertise<sensor_msgs::LaserScan>(topic.c_str(), 100);
+  }
     pcl_publisher = nh.advertise<sensor_msgs::PointCloud2>("/cloud", 100);
-  }
+}
 
-  void parser_data()
+void parser_data()
+{
+}
+
+void fill_scan_data(ScanData &scandata, std::string str)
+{
+  std::uint32_t *data = reinterpret_cast<std::uint32_t *>((char *)str.c_str());
+
+  std::uint32_t distance = (*data & 0x000FFFFF);
+  std::uint32_t amplitude = ((*data & 0xFFF00000) >> 20);
+
+  scandata.distance_data.push_back(distance);
+  scandata.amplitude_data.push_back(amplitude);
+}
+
+int find_packet_start(std::string type, std::basic_string<u_char> str)
+{
+  for (int i = 0; i < str.size() - 4; i++)
   {
-  }
-
-  void fill_scan_data(ScanData &scandata, std::string str)
-  {
-    std::uint32_t *data = reinterpret_cast<std::uint32_t *>((char *)str.c_str());
-
-    std::uint32_t distance = (*data & 0x000FFFFF);
-    std::uint32_t amplitude = ((*data & 0xFFF00000) >> 20);
-
-    scandata.distance_data.push_back(distance);
-    scandata.amplitude_data.push_back(amplitude);
-  }
-
-  int find_packet_start(std::string type, std::basic_string<u_char> str)
-  {
-    for (int i = 0; i < str.size() - 4; i++)
+    if (((unsigned char)str[i]) == 0x5c && ((unsigned char)str[i + 1]) == 0xa2 &&
+        ((unsigned char)str[i + 2]) == type[0] && ((unsigned char)str[i + 3]) == type[1])
     {
-      if (((unsigned char)str[i]) == 0x5c && ((unsigned char)str[i + 1]) == 0xa2 &&
-          ((unsigned char)str[i + 2]) == type[0] && ((unsigned char)str[i + 3]) == type[1])
-      {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  std::size_t get_header_size()
-  {
-    return sizeof(PacketHeader);
-  }
-
-  // should extend this in R2300 class
-  std::string get_packet_type()
-  {
-    if (std::is_same<PacketHeader, PacketHeaderR2000>::value)
-    {
-      return "C";
-    }
-    else if (std::is_same<PacketHeader, PacketHeaderR2300>::value)
-    {
-      return "C1";
+      return i;
     }
   }
+  return -1;
+}
 
-  ProtocolType *protocol_interface;
-  PacketHeader *p_header;
+std::size_t get_header_size()
+{
+  return sizeof(PacketHeader);
+}
 
-  std::vector<ros::Publisher> scan_publishers;
+// should extend this in R2300 class
+std::string get_packet_type()
+{
+  if (std::is_same<PacketHeader, PacketHeaderR2000>::value)
+  {
+    return "C";
+  }
+  else if (std::is_same<PacketHeader, PacketHeaderR2300>::value)
+  {
+    return "C1";
+  }
+}
+
+ProtocolType *protocol_interface;
+PacketHeader *p_header;
+
+std::vector<ros::Publisher> scan_publishers;
   ros::Publisher pcl_publisher;
 
   laser_geometry::LaserProjection projector_;
   tf::TransformListener tfListener_;
 
-  HandleInfo handle_info;
-  ProtocolInfo protocol_info;
-  std::map<std::string, std::string> parameters;
+HandleInfo handle_info;
+ProtocolInfo protocol_info;
+std::map<std::string, std::string> parameters;
 
-  int major_version;
-  double watchdog_feed_time;
-  double feed_timeout;
-  std::vector<int> layers;
+int major_version;
+double watchdog_feed_time;
+double feed_timeout;
+std::vector<int> layers;
   std::pair<float, float> angle_min_max;
 
-  std::basic_string<u_char> remaining_data;
-};
+std::basic_string<u_char> remaining_data;
+}
+;
 
 #endif

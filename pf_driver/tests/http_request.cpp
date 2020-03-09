@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
+/*
 // Declare a test
 TEST(HHTPInterface_TestSuite, testURIBuilder)
 {
@@ -15,7 +16,9 @@ TEST(HHTPInterface_TestSuite, testURIBuilder)
     
     EXPECT_NE(json_resp[err_http], std::string("OK"));
 }
+*/
 
+/*
 TEST(HHTPInterface_TestSuite, testURIBuilder2)
 {
     HTTPInterface http_interface("10.0.10.76", "cmd");
@@ -30,3 +33,4 @@ TEST(HHTPInterface_TestSuite, testURIBuilder2)
     EXPECT_EQ(json_resp[err_code], std::string("0"));
     EXPECT_EQ(json_resp[err_text], std::string("success"));
 }
+*/

@@ -29,7 +29,7 @@ using namespace web::http::client;  // HTTP client features
 
 using param_type = std::pair<std::string, std::string>;
 
-std::string to_string(web::json::value val)
+inline std::string to_string(web::json::value val)
 {
   if (val.is_integer())
   {
