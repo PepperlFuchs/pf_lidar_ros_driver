@@ -216,11 +216,10 @@ public:
         }
       }
   }
+  pcl_publisher.publish(cloud);
+}
 
-    pcl_publisher.publish(cloud);
-  }
-
-  void reconfig_callback(pf_driver::PFDriverConfig &config, uint32_t level)
+void reconfig_callback(pf_driver::PFDriverConfig &config, uint32_t level)
   {
     ROS_INFO("Reconfigure Request: %d", config.scan_frequency);
     protocol_interface->set_scan_frequency(config.scan_frequency);
