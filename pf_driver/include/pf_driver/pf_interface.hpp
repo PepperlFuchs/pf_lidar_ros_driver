@@ -224,8 +224,80 @@ public:
 
 void reconfig_callback(pf_driver::PFDriverConfig &config, uint32_t level)
   {
-    ROS_INFO("Reconfigure Request: %d", config.scan_frequency);
-    protocol_interface->set_scan_frequency(config.scan_frequency);
+    std::cout << "level: " << level << std::endl;
+    if(level == 1)
+    {
+      protocol_interface->set_parameter({ KV("ip_mode", config.ip_mode) });
+    } else if(level == 2)
+    {
+      protocol_interface->set_parameter({ KV("ip_address", config.ip_address) });
+    } else if(level == 3)
+    {
+      protocol_interface->set_parameter({ KV("subnet_mask", config.subnet_mask) });
+    } else if(level == 4)
+    {
+      protocol_interface->set_parameter({ KV("gateway", config.gateway) });
+    } else if(level == 5)
+    {
+      protocol_interface->set_parameter({ KV("user_tag", config.user_tag) });
+    } else if(level == 6)
+    {
+      protocol_interface->set_parameter({ KV("layer_enable", config.layer_enable) });
+    } else if(level == 7)
+    {
+      protocol_interface->set_parameter({ KV("scan_frequency", config.scan_frequency) });
+    } else if(level == 8)
+    {
+      protocol_interface->set_parameter({ KV("scan_direction", config.scan_direction) });
+    } else if(level == 9)
+    {
+      protocol_interface->set_parameter({ KV("measure_start_angle", config.measure_start_angle) });
+    } else if(level == 10)
+    {
+      protocol_interface->set_parameter({ KV("measure_stop_angle", config.measure_stop_angle) });
+    } else if(level == 11)
+    {
+      protocol_interface->set_parameter({ KV("locator_indication", config.locator_indication) });
+    } else if(level == 12)
+    {
+      protocol_interface->set_parameter({ KV("pilot_laser", config.pilot_laser) });
+    } else if(level == 13)
+    {
+      protocol_interface->set_parameter({ KV("pilot_start_angle", config.pilot_start_angle) });
+    } else if(level == 14)
+    {
+      protocol_interface->set_parameter({ KV("pilot_stop_angle", config.pilot_stop_angle) });
+    } else if(level == 15)
+    {
+      protocol_interface->set_parameter({ KV("operating_mode", config.operating_mode) });
+    } else if(level == 16)
+    {
+      protocol_interface->set_parameter({ KV("address", config.address) });
+    } else if(level == 17)
+    {
+      protocol_interface->set_parameter({ KV("port", config.port) });
+    } else if(level == 18)
+    {
+      protocol_interface->set_parameter({ KV("packet_type", config.packet_type) });
+    } else if(level == 19)
+    {
+      protocol_interface->set_parameter({ KV("packet_crc", config.packet_crc) });
+    } else if(level == 20)
+    {
+      protocol_interface->set_parameter({ KV("watchdog", config.watchdog) });
+    } else if(level == 21)
+    {
+      protocol_interface->set_parameter({ KV("watchdogtimeout", config.watchdogtimeout) });
+    } else if(level == 22)
+    {
+      protocol_interface->set_parameter({ KV("start_angle", config.start_angle) });
+    } else if(level == 23)
+    {
+      protocol_interface->set_parameter({ KV("max_num_points_scan", config.max_num_points_scan) });
+    } else if(level == 24)
+    {
+      protocol_interface->set_parameter({ KV("skip_scans", config.skip_scans) });
+    }
   }
 
   static int main(const std::string &device_name, int argc, char *argv[])
