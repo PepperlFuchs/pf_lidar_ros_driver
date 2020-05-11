@@ -15,6 +15,9 @@
 #include "pf_driver/r2000/data_type_r2000.hpp"
 #include "pf_driver/r2300/data_type_r2300.hpp"
 
+#include "pf_driver/r2000/pfsdp_2000.hpp"
+#include "pf_driver/r2300/pfsdp_2300.hpp"
+
 #include "pf_driver/PFDriverConfig.h"
 
 #include <ros/serialization.h>
