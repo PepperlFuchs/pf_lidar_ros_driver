@@ -81,7 +81,7 @@ public:
 const std::vector<std::string> split(std::string str, const char delim = ';')
 {
   std::vector<std::string> results;
-  boost::split(results, str, [](char c) { return c == ';'; });
+  boost::split(results, str, [delim](char c) { return c == delim; });
   return results;
 }
 
@@ -330,16 +330,19 @@ public:
   // special functions
   virtual std::vector<int> get_layers_enabled()
   {
+    std::cerr << "function not supported" << std::endl;
     return std::vector<int>();
   }
 
   virtual std::pair<float, float> get_angle_min_max(std::string handle)
   {
+    std::cerr << "function not supported" << std::endl;
     return std::pair<float, float>();
   }
 
   virtual std::string get_start_angle_str()
   {
+    std::cerr << "function not supported" << std::endl;
     std::string("");
   }
 };
