@@ -35,21 +35,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(r2000_node src/r2000_node.cpp)
-
-target_link_libraries(r2000_node
   ${catkin_LIBRARIES} cpprestsdk::cpprest
 )
-
-add_dependencies(r2000_node ${PROJECT_NAME}_gencfg)
-
-add_executable(r2300_node src/r2300_node.cpp)
-
-target_link_libraries(r2300_node
-  ${catkin_LIBRARIES} cpprestsdk::cpprest
-)
-
-add_dependencies(r2300_node ${PROJECT_NAME}_gencfg)
 
 if (CATKIN_ENABLE_TESTING)
   set(${PROJECT_NAME}_TEST_SOURCES
@@ -60,7 +47,6 @@ if (CATKIN_ENABLE_TESTING)
   target_link_libraries(pf_driver_test ${catkin_LIBRARIES} cpprestsdk::cpprest)
 endif()
 
-install(TARGETS r2000_node r2300_node
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
