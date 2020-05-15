@@ -35,8 +35,11 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_executable(ros_main src/ros_main.cpp src/pf_interface.cpp)
+target_link_libraries(ros_main
   ${catkin_LIBRARIES} cpprestsdk::cpprest
 )
+add_dependencies(ros_main ${PROJECT_NAME}_gencfg)
 
 if (CATKIN_ENABLE_TESTING)
   set(${PROJECT_NAME}_TEST_SOURCES
@@ -47,6 +50,7 @@ if (CATKIN_ENABLE_TESTING)
   target_link_libraries(pf_driver_test ${catkin_LIBRARIES} cpprestsdk::cpprest)
 endif()
 
+install(TARGETS ros_main ros_main
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
