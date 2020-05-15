@@ -22,7 +22,6 @@
 #include <condition_variable>
 #include <iostream>
 #include <mutex>
-// #include "pf_driver/data_parser.hpp"
 
 class Connection
 {
@@ -34,14 +33,7 @@ public:
   };
   Transport TRANSPORT;
 
-  virtual bool start_read(std::size_t n)
-  {
-    if(!handle_read)
-      return false;
-    async_read(n, &Connection::handle_packet);
-    io_service_thread = boost::thread(boost::bind(&boost::asio::io_service::run, &io_service));
-    return true;
-  }
+  virtual int read(uint8_t* buf, size_t buf_len, size_t& total) = 0;
 
   virtual bool is_connected()
   {
@@ -78,11 +70,6 @@ public:
     return false;
   }
 
-  // void set_handle_read(boost::function<void(DataParser *parser, std::basic_string<u_char> str)> h, DataParser *parser)
-  // {
-  //   handle_read = boost::bind(h, parser, boost::placeholders::_1);
-  // }
-
   virtual const std::string get_port()
   {
     return this->port;
@@ -113,40 +100,8 @@ public:
   virtual void close() = 0;
 
 protected:
-  std::basic_string<u_char> get_buffer_string(std::size_t n)
-  {
-    buf.commit(n);
-    std::basic_string<u_char> s(boost::asio::buffers_begin(buf.data()), boost::asio::buffers_end(buf.data()));
-    buf.consume(n);
-    return s;
-  }
-
-  void handle_packet(const boost::system::error_code &ec, std::size_t n)
-  {
-    if (!ec)
-    {
-      std::cout << "waiting for data..." << std::endl;
-      std::basic_string<u_char> str = get_buffer_string(n);
-      std::cout << "data received: " << str.size() << " " << str.c_str() << std::endl;
-      if (str.empty())
-        return;
-      handle_read(str);
-      async_read(1500, &Connection::handle_packet);
-    }
-    else if (ec != boost::asio::error::eof)
-    {
-      std::cout << "Error: " << ec << "\n";
-    }
-  }
-
   boost::thread io_service_thread;
   boost::asio::io_service io_service;
-
-  boost::asio::streambuf buf;
-
-  boost::function<void(std::basic_string<u_char> str)> handle_read;
-  virtual void async_read(
-      std::size_t s, boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> h) = 0;
 
   std::atomic<bool> is_connected_;
   double last_data_time;
@@ -161,6 +116,7 @@ public:
     this->device_ip = IP;
     // this->port = port;
     this->TRANSPORT = Transport::TCP;
+    is_connected_ = false;
 
   }
 
@@ -201,18 +157,13 @@ public:
       tcp_socket->close();
   }
 
-private:
-  void
-  async_read(std::size_t s,
-             boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> handle_read)
+  virtual int read(uint8_t* buf, size_t buf_len, size_t& total)
   {
-    boost::asio::streambuf::mutable_buffers_type bufs = buf.prepare(s);
-    // https://www.boost.org/doc/libs/1_51_0/doc/html/boost_asio/reference/async_read/overload1.html
-    boost::asio::async_read(
-        *tcp_socket, boost::asio::buffer(bufs), boost::asio::transfer_at_least(1),
-        boost::bind(handle_read, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+    total = tcp_socket->read_some(boost::asio::buffer(buf, 4096));
+    return 1;
   }
 
+private:
   boost::asio::ip::tcp::socket *tcp_socket;
 };
 
@@ -255,18 +206,13 @@ public:
       udp_socket->close();
   }
 
-private:
-  void
-  async_read(std::size_t s,
-             boost::function<void(Connection *conn, const boost::system::error_code &ec, std::size_t n)> handle_packet)
+  virtual int read(uint8_t* buf, size_t buf_len, size_t& total)
   {
-    std::cout << "async read" << std::endl;
-    boost::asio::streambuf::mutable_buffers_type bufs = buf.prepare(s);
-    udp_socket->async_receive_from(boost::asio::buffer(bufs), udp_endpoint,
-                                   boost::bind(handle_packet, this, boost::asio::placeholders::error,
-                                               boost::asio::placeholders::bytes_transferred));
+    // udp_socket->read_some(boost::asio::buffer(buf,buf_len))
+    return 1;
   }
 
+private:
   boost::asio::ip::udp::socket *udp_socket;
   boost::asio::ip::udp::endpoint udp_endpoint;
 };

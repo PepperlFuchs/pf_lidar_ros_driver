@@ -15,12 +15,11 @@ public:
 
     virtual bool start()
     {
+        ROS_INFO("starting writer");
+        std::cout << connection_->is_connected() << std::endl;
         if(connection_ && !connection_->is_connected()) {
             ROS_INFO("Device not connected. Will try to connect now...");
-            if(connection_->connect())
-            {
-                return connection_->start_read(4096);
-            }
+            return connection_->connect();
         }
         return false;
     }
@@ -37,6 +36,14 @@ public:
     {
         //BinParser
         //parser.parse
+        uint8_t buf[4096];
+        size_t read = 0;
+        connection_->read(buf, sizeof(buf), read);
+        if(read > 0)
+        {
+            std::cout << "data read: " << read << std::endl;
+            return true;
+        }
         return false;
     }
 
