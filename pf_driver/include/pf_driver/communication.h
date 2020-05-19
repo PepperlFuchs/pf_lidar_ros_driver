@@ -33,23 +33,11 @@ public:
   };
   Transport TRANSPORT;
 
-  virtual int read(uint8_t* buf, size_t buf_len, size_t& total) = 0;
+  virtual bool read(uint8_t* buf, size_t buf_len, size_t& total) = 0;
 
   virtual bool is_connected()
   {
     return is_connected_;
-  }
-
-  virtual bool checkConnection()
-  {
-    if (!is_connected())
-      return false;
-    if ((std::time(0) - last_data_time) > 2)
-    {
-      disconnect();
-      return false;
-    }
-    return true;
   }
 
   virtual bool disconnect()
@@ -91,10 +79,10 @@ public:
   }
 
 
-  virtual ~Connection()
-  {
-    disconnect();
-  }
+  // virtual ~Connection()
+  // {
+  //   disconnect();
+  // }
 
   virtual bool connect(std::string port = "") = 0;
   virtual void close() = 0;
@@ -111,13 +99,16 @@ protected:
 class TCPConnection : public Connection
 {
 public:
-  TCPConnection(std::string IP)
+  TCPConnection(std::string IP) : tcp_socket(boost::asio::ip::tcp::socket(io_service))
   {
     this->device_ip = IP;
-    // this->port = port;
     this->TRANSPORT = Transport::TCP;
     is_connected_ = false;
+  }
 
+  ~TCPConnection()
+  {
+    disconnect();
   }
 
   bool connect(std::string port)
@@ -127,7 +118,7 @@ public:
     boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
     boost::asio::ip::tcp::resolver::iterator end;
 
-    tcp_socket = new boost::asio::ip::tcp::socket(io_service);
+    // tcp_socket = new boost::asio::ip::tcp::socket(io_service);
     boost::system::error_code error = boost::asio::error::host_not_found;
 
     ROS_INFO("trying to connect");
@@ -135,9 +126,9 @@ public:
     // Iterate over endpoints and etablish connection
     while (error && endpoint_iterator != end)
     {
-      std::cout << "Trying " << endpoint_iterator->endpoint() << "...\n";
-      tcp_socket->close();
-      tcp_socket->connect(*endpoint_iterator++, error);
+      // std::cout << "Trying " << endpoint_iterator->endpoint() << "...\n";
+      tcp_socket.close();
+      tcp_socket.connect(*endpoint_iterator++, error);
     }
     if (error)
     {
@@ -153,18 +144,26 @@ public:
 
   void close()
   {
-    if (tcp_socket)
-      tcp_socket->close();
+    // if (tcp_socket)
+      tcp_socket.close();
   }
 
-  virtual int read(uint8_t* buf, size_t buf_len, size_t& total)
+  virtual bool read(uint8_t* buf, size_t buf_len, size_t& total)
   {
-    total = tcp_socket->read_some(boost::asio::buffer(buf, 4096));
-    return 1;
+    try
+    {
+      total = tcp_socket.read_some(boost::asio::buffer(buf, buf_len));
+    }
+    catch(const std::exception& e)
+    {
+      std::cerr << e.what() << '\n';
+      return false;
+    }
+    return true;
   }
 
 private:
-  boost::asio::ip::tcp::socket *tcp_socket;
+  boost::asio::ip::tcp::socket tcp_socket;
 };
 
 class UDPConnection : public Connection
@@ -175,6 +174,7 @@ public:
     this->device_ip = IP;
     // this->port = port;
     this->TRANSPORT = Transport::UDP;
+    is_connected_ = false;
   }
   bool connect(std::string port)
   {
@@ -206,10 +206,10 @@ public:
       udp_socket->close();
   }
 
-  virtual int read(uint8_t* buf, size_t buf_len, size_t& total)
+  virtual bool read(uint8_t* buf, size_t buf_len, size_t& total)
   {
     // udp_socket->read_some(boost::asio::buffer(buf,buf_len))
-    return 1;
+    return true;
   }
 
 private:

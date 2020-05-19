@@ -11,11 +11,13 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   sensor_msgs
+  message_generation
   dynamic_reconfigure
   laser_geometry
   tf
   pcl_conversions
   pcl_ros
+  roscpp_serialization
 )
 
 find_package(Boost REQUIRED COMPONENTS system)
@@ -25,9 +27,21 @@ generate_dynamic_reconfigure_options(
   cfg/PFDriver.cfg
 )
 
+add_message_files(
+  FILES
+  PFHeader.msg
+  PFR2000Header.msg
+  PFR2300Header.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs message_runtime roscpp_serialization
 )
 
 include_directories(
@@ -35,7 +49,10 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(ros_main src/ros_main.cpp src/pf_interface.cpp)
+add_executable(ros_main src/ros_main.cpp
+                        src/pf_interface.cpp
+                        src/scan_publisher.cpp
+                        src/pf_packet.cpp)
 target_link_libraries(ros_main
   ${catkin_LIBRARIES} cpprestsdk::cpprest
 )

@@ -3,45 +3,21 @@
 #include "pf_driver/pf/pipeline.h"
 #include "pf_driver/pf/pf_packet.h"
 
-class PFPacketReader : public Reader<PFPacket>
+
+class PFPacketReader : public Reader<PFPacket>, public std::enable_shared_from_this<PFPacketReader>
 {
 public:
     virtual void read(std::shared_ptr<PFPacket> packet)
     {
+        packet->read_with(*shared_from_this());
     }
 
-    virtual void start()
+    virtual void read(PFR2000Packet_A &packet) = 0;
+
+    virtual bool start()
     {
     }
-
-    virtual void stop()
+    virtual bool stop()
     {
     }
 };
-
-class PFR2000PacketReader : public Reader<PFR2000Packet>
-{
-public:
-    virtual void read(std::shared_ptr<PFR2000Packet> packet)
-    {
-
-    }
-
-    // virtual void read(std::unique_ptr<PFR2000Packet_A> &packet);
-    // virtual void read(std::unique_ptr<PFR2000Packet_B> &packet);
-    // virtual void read(std::unique_ptr<PFR2000Packet_C> &packet);
-};
-
-class PFR2300PacketReader : public Reader<PFR2300Packet_C1>
-{
-public:
-    //TODO: delete this. just for a test
-    virtual void read(std::shared_ptr<PFR2300Packet_C1> packet)
-    {
-    }
-
-    // virtual void read(std::unique_ptr<PFR2300Packet_C1> &packet)
-    // {
-    // }
-};
-

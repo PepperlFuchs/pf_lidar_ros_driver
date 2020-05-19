@@ -40,10 +40,16 @@ struct HandleInfo
   std::string hostname;
   std::string port;
   std::string handle;
+};
+
+struct ScanConfig
+{
+  bool watchdog;
+  uint watchdogtimeout;
   std::string packet_type;
   int start_angle;
-  bool watchdog_enabled;
-  int watchdog_timeout;
+  uint max_num_points_scan;
+  uint skip_scans;
 };
 
 class KV : public std::pair<std::string, std::string>
@@ -101,6 +107,21 @@ inline std::int64_t to_long(const std::string &s)
   {
     std::cerr << "conversion of data from string failed: " << s << std::endl;
     return std::numeric_limits<std::int64_t>::quiet_NaN();
+  }
+  return int_val;
+}
+
+inline uint16_t to_uint16(const std::string &s)
+{
+  uint16_t int_val = 0;
+  try
+  {
+    int_val = static_cast<uint16_t>(stoi(s));
+  }
+  catch (std::exception &e)
+  {
+    std::cerr << "conversion of data from string failed: " << s << std::endl;
+    return std::numeric_limits<uint16_t>::quiet_NaN();
   }
   return int_val;
 }
@@ -296,23 +317,27 @@ public:
     handle_info.hostname = hostname;
     handle_info.handle = resp["handle"];
     handle_info.port = resp["port"];
-    handle_info.start_angle = to_long(resp["start_angle"]);
-    handle_info.watchdog_enabled = true;
-    handle_info.watchdog_timeout = 60000;
     return handle_info;
   }
 
   virtual HandleInfo request_handle_udp(const std::string host_ip, const std::string port, const char packet_type,
                                 const int start_angle)
   {
-    auto resp = get_request("request_handle_udp", { "handle", "port" , "start_angle" }, { KV("address", host_ip), KV("port", port) });
+    auto resp = get_request("request_handle_udp", { "handle", "port" }, { KV("address", host_ip), KV("port", port) });
     HandleInfo handle_info;
     handle_info.handle = resp["handle"];
     handle_info.port = resp["port"];
-    handle_info.start_angle = to_long(resp["start_angle"]);
-    handle_info.watchdog_enabled = true;
-    handle_info.watchdog_timeout = 60000;
     return handle_info;
+  }
+
+  virtual ScanConfig get_scanoutput_config(std::string handle)
+  {
+    auto resp = get_request("get_scanoutput_config", {"start_angle", "packet_type", "watchdogtimeout"}, { KV("handle", handle) });
+    ScanConfig config;
+    config.packet_type = resp["packet_type"];
+    config.start_angle = to_long(resp["start_angle"]);
+    config.watchdogtimeout = to_long(resp["watchdogtimeout"]);
+    return config;
   }
 
   bool start_scanoutput(std::string handle)

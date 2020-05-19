@@ -9,16 +9,23 @@ template <typename T>
 class PFWriter : public Writer<T>
 {
 public:
-    PFWriter(std::unique_ptr<Connection> &&connection, std::shared_ptr<PFParser<T>> &parser) : connection_(std::move(connection)), parser_(parser)
+    PFWriter(std::unique_ptr<Connection> &&connection, std::shared_ptr<Parser<T>> parser) : connection_(std::move(connection)), parser_(parser)
     {
+    }
+
+    PFWriter(Connection::Transport transport, std::string IP, std::string port,  std::shared_ptr<Parser<T>> parser) : parser_(parser)
+    {
+        if(transport == Connection::Transport::UDP)
+            connection_ = std::make_unique<UDPConnection>(IP);  // need a factory for this?
+        else if(transport == Connection::Transport::TCP)
+            connection_ = std::make_unique<TCPConnection>(IP);
+
+        connection_->set_port(port);
     }
 
     virtual bool start()
     {
-        ROS_INFO("starting writer");
-        std::cout << connection_->is_connected() << std::endl;
         if(connection_ && !connection_->is_connected()) {
-            ROS_INFO("Device not connected. Will try to connect now...");
             return connection_->connect();
         }
         return false;
@@ -34,14 +41,11 @@ public:
 
     virtual bool get(std::vector<std::unique_ptr<T>> &packets)
     {
-        //BinParser
-        //parser.parse
         uint8_t buf[4096];
         size_t read = 0;
-        connection_->read(buf, sizeof(buf), read);
-        if(read > 0)
+        if(connection_->read(buf, sizeof(buf), read))
         {
-            std::cout << "data read: " << read << std::endl;
+            parser_->parse(buf, read, packets);
             return true;
         }
         return false;
@@ -49,5 +53,5 @@ public:
 
 private:
     std::unique_ptr<Connection> connection_;
-    std::shared_ptr<PFParser<T>> parser_;
+    std::shared_ptr<Parser<T>> parser_;
 };

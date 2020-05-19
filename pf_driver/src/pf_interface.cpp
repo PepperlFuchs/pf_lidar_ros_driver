@@ -1,4 +1,5 @@
 #include "pf_driver/pf/pf_interface.h"
+#include "pf_driver/ros/scan_publisher.h"
 
 
 bool PFInterface::init()
@@ -34,6 +35,8 @@ void PFInterface::change_state(PFState state)
         text = "Initialized";
     if(state_ == PFState::RUNNING)
         text = "Running";
+    if(state_ == PFState::SHUTDOWN)
+        text = "Shutdown";
     if(state_ == PFState::ERROR)
         text = "Error";
     ROS_INFO("Device state changed to %s", text.c_str());
@@ -70,38 +73,35 @@ bool PFInterface::handle_version(int major_version, int minor_version)
     return false;
 }
 
-bool PFInterface::connect()
-{
-
-    return true;
-}
-
 bool PFInterface::start_transmission()
 {
     if(state_ != PFState::INIT)
         return false;
 
-    HandleInfo info;
+    if(pipeline_ && pipeline_->is_running())
+        return true;
+
     if(transport_ == Connection::Transport::TCP)
     {
         if(port_.empty())
         {
-            info = protocol_interface_->request_handle_tcp();
-            port_ = info.port;
+            info_ = protocol_interface_->request_handle_tcp();
+            port_ = info_.port;
         }
         else
-            info = protocol_interface_->request_handle_tcp(port_);
+            info_ = protocol_interface_->request_handle_tcp(port_);
     }
     else if(transport_ == Connection::Transport::UDP)
     {
         // info = protocol_interface_->request_handle_udp();
     }
-    ROS_INFO("%s %s", info.handle.c_str(), info.port.c_str());
-    pipeline_ = get_pipeline(info.packet_type);
+    config_ = protocol_interface_->get_scanoutput_config(info_.handle);
+    pipeline_ = get_pipeline(config_.packet_type);
+    pipeline_->set_scanoutput_config(config_);
     if(!pipeline_->start())
         return false;
-
-    protocol_interface_->start_scanoutput(info.handle);
+    std::cout << "pipeline started " << std::endl;
+    protocol_interface_->start_scanoutput(info_.handle);
     change_state(PFState::RUNNING);
     return true;
 }
@@ -109,34 +109,53 @@ bool PFInterface::start_transmission()
 // What happens to the connection_ obj?
 void PFInterface::stop_transmission()
 {
-    pipeline_->stop();
+    if(state_ != PFState::RUNNING)
+        return;
+    pipeline_->terminate();
     pipeline_.reset();
-    change_state(PFState::INIT);
+    protocol_interface_->stop_scanoutput(info_.handle);
+    change_state(PFState::SHUTDOWN);
 }
 
-std::shared_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet_type)
+void PFInterface::terminate()
 {
-    typedef PFPacket Packet;
-    typedef PFPacketReader Reader_;
+    if(!pipeline_)
+        return;
+    pipeline_->terminate();
+    pipeline_.reset();
+}
+
+std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet_type)
+{
+    std::shared_ptr<Parser<PFPacket>> parser;
+    std::shared_ptr<Writer<PFPacket>> writer;
+    std::shared_ptr<Reader<PFPacket>> reader;
     if(product_ == "R2000")
     {
         if(packet_type == "A")
-            typedef PFR2000Packet_A Packet;
+        {
+            parser = std::unique_ptr<Parser<PFPacket>>(new PFR2000_A_Parser);
+        }
         else if(packet_type == "B")
-            typedef PFR2000Packet_B Packet;
+        {
+            parser = std::unique_ptr<Parser<PFPacket>>(new PFR2000_B_Parser);
+        }
         else if(packet_type == "C")
-            typedef PFR2000Packet_C Packet;
-        typedef PFR2000PacketReader Reader_;
+        {
+            parser = std::unique_ptr<Parser<PFPacket>>(new PFR2000_C_Parser);
+        }
     }
     else if(product_ == "R2300")
     {
-        if(packet_type == "C1")
-            typedef PFR2300Packet_C1 Packet;
-        typedef PFR2300PacketReader Reader_;
+
     }
-    auto parser = std::make_shared<PFParser<Packet>>();
-    connection_->set_port(port_);
-    std::shared_ptr<Writer<Packet>> writer = std::make_shared<PFWriter<Packet>>(std::move(connection_), parser);
-    std::shared_ptr<Reader<Packet>> reader = std::make_shared<Reader_>();
-    return std::make_shared<Pipeline<Packet>>(writer, reader);
+    writer = std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(transport_, ip_, port_, parser));
+    reader = std::shared_ptr<Reader<PFPacket>>(new ScanPublisher("/scan", "scanner"));
+    return std::unique_ptr<Pipeline<PFPacket>>(new Pipeline<PFPacket>(writer, reader, std::bind(&PFInterface::on_shutdown, this)));
+}
+
+void PFInterface::on_shutdown()
+{
+    ROS_INFO("Shutting down pipeline!");
+    stop_transmission();
 }
