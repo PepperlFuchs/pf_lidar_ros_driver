@@ -60,6 +60,13 @@ if (CATKIN_ENABLE_TESTING)
   target_link_libraries(pf_driver_test ${catkin_LIBRARIES} cpprestsdk::cpprest)
 endif()
 
+install(TARGETS r2000_node r2300_node
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 install(DIRECTORY include/${PROJECT_NAME}/
         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 

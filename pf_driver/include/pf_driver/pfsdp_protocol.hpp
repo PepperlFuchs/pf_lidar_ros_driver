@@ -81,7 +81,7 @@ public:
 const std::vector<std::string> split(std::string str, const char delim = ';')
 {
   std::vector<std::string> results;
-  boost::split(results, str, [](char c) { return c == ';'; });
+  boost::split(results, str, [delim](char c) { return c == delim; });
   return results;
 }
 
@@ -94,7 +94,7 @@ std::int64_t to_long(const std::string &s)
   }
   catch (std::exception &e)
   {
-    std::cerr << "conversion of data from string failed" << std::endl;
+    std::cerr << "conversion of data from string failed: " << s << std::endl;
     return std::numeric_limits<std::int64_t>::quiet_NaN();
   }
   return int_val;
@@ -243,7 +243,17 @@ public:
     {
       return std::numeric_limits<std::int64_t>::quiet_NaN();
     }
-    return to_long(param);
+    return to_long(resp[param]);
+  }
+
+  float get_parameter_float(const std::string param)
+  {
+    std::map<std::string, std::string> resp = get_parameter(param);
+    if (resp.empty())
+    {
+      return std::numeric_limits<float>::quiet_NaN();
+    }
+    return to_float(resp[param]);
   }
 
   std::string get_parameter_str(const std::string param)
@@ -265,7 +275,7 @@ public:
   HandleInfo request_handle_tcp(const char packet_type, const int start_angle)
   {
     auto resp = get_request("request_handle_tcp", { "handle", "port" },
-                            { KV("packet_type", std::string(1, packet_type)), KV("start_angle", start_angle) });
+                            { KV("packet_type", std::string(1, packet_type)), KV(get_start_angle_str().c_str(), start_angle) });
     HandleInfo handle_info;
     handle_info.hostname = hostname;
     handle_info.handle = resp["handle"];
@@ -311,63 +321,29 @@ public:
     return get_request_bool("feed_watchdog", { "" }, { { "handle", handle } });
   }
 
-  // Protocol for R2300 -- should be a new class
-  std::vector<int> get_layers_enabled()
-  {
-    std::string layers = get_parameter_str("layer_enable");
-    std::vector<std::string> vals = split(layers);
-    std::vector<int> enabled_layers(vals.size(), 0);
-    for (int i = 0; i < vals.size(); i++)
-    {
-      if (vals[i].compare("on") == 0)
-      {
-        enabled_layers[i] = 1;
-      }
-    }
-    return enabled_layers;
-  }
-
-  int get_parameter_i(std::string param)
-  {
-    auto resp = get_parameter(param.c_str());
-    return stoi(resp[param]);
-  }
-
-  float get_parameter_f(std::string param)
-  {
-    auto resp = get_parameter(param.c_str());
-    return stof(resp[param]);
-  }
-
-  std::string get_parameter_s(std::string param)
-  {
-    auto resp = get_parameter(param.c_str());
-    return resp[param];
-  }
-
-  std::int32_t get_start_angle(std::string handle)
-  {
-    std::string angle_str = get_scanoutput_config(std::string("start_angle"), handle);
-    std::int32_t start_angle = stof(angle_str);
-    return start_angle / 10000;
-  }
-
-  std::pair<float, float> get_angle_min_max(std::string handle)
-  {
-    float measure_start_angle = get_parameter_i(std::string("measure_start_angle")) / 10000 * M_PI / 180.0;
-    float measure_stop_angle = get_parameter_i(std::string("measure_stop_angle")) / 10000 * M_PI / 180.0;
-    float start_angle = get_start_angle(handle) * M_PI / 180.0;
-    std::string scan_direction = get_parameter_s(std::string("scan_direction"));
-
-    float min = (measure_start_angle > start_angle) ? measure_start_angle : start_angle;
-    float max = measure_stop_angle;
-    return std::pair<float, float>(min, max);
-  }
-
   bool set_scan_frequency(std::int32_t scan_frequency)
   {
     set_parameter({ KV("scan_frequency", scan_frequency) });
     return true;
+  }
+
+  // special functions
+  virtual std::vector<int> get_layers_enabled()
+  {
+    std::cerr << "function not supported" << std::endl;
+    return std::vector<int>();
+  }
+
+  virtual std::pair<float, float> get_angle_min_max(std::string handle)
+  {
+    std::cerr << "function not supported" << std::endl;
+    return std::pair<float, float>();
+  }
+
+  virtual std::string get_start_angle_str()
+  {
+    std::cerr << "function not supported" << std::endl;
+    std::string("");
   }
 };
 
