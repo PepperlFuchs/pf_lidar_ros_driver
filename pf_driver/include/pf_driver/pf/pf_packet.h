@@ -11,15 +11,17 @@ class PFPacket
 {
 public:
     pf_driver::PFHeader header;
+    std::vector<uint32_t> distance;
 
     virtual size_t get_size()
     {
         return ros::serialization::serializationLength(header);
     }
 
-    virtual void read(ros::serialization::IStream stream)
+    virtual std::tuple<uint16_t, uint32_t, uint16_t> read_header(ros::serialization::IStream& stream)
     {
         ros::serialization::Serializer<pf_driver::PFHeader>::read(stream, header);
+        return std::tuple<uint16_t, uint32_t, uint16_t>(header.header_size, header.packet_size, 0);
     }
 
     bool parse_buf(uint8_t* buf, size_t buf_len);
@@ -34,9 +36,10 @@ public:
         return ros::serialization::serializationLength(header);
     }
 
-    virtual void read(ros::serialization::IStream stream)
+    virtual std::tuple<uint16_t, uint32_t, uint16_t> read_header(ros::serialization::IStream& stream)
     {
         ros::serialization::Serializer<pf_driver::PFR2000Header>::read(stream, header);
+        return std::tuple<uint16_t, uint32_t, uint16_t>(header.header.header_size, header.header.packet_size, header.num_points_packet);
     }
 
     pf_driver::PFR2000Header header;
@@ -45,8 +48,6 @@ public:
 class PFR2000Packet_A : public PFR2000Packet
 {
 public:
-    std::vector<std::uint32_t> distance;        // measured distance (mm)
-
     virtual void read_with(PFPacketReader& reader);
 };
 

@@ -18,6 +18,9 @@ public:
     virtual void set_scanoutput_config(ScanConfig &config)
     {
     }
+    virtual void set_scan_params(ScanParameters &params)
+    {
+    }
     virtual bool start()
     {
     }
@@ -99,6 +102,11 @@ public:
         reader_->set_scanoutput_config(config);
     }
 
+    void set_scan_params(ScanParameters &params)
+    {
+        reader_->set_scan_params(params);
+    }
+
 private:
     moodycamel::BlockingReaderWriterQueue<std::unique_ptr<T>> queue_;   // the queue basically stored scan data
     std::shared_ptr<Reader<T>> reader_;
@@ -134,6 +142,7 @@ private:
         std::unique_ptr<T> packet;
         while(running_)
         {
+            // ROS_INFO("reader loop");
             if (!queue_.wait_dequeue_timed(packet, std::chrono::microseconds(100)))
             {
                 //TODO: reader needs to handle if no packet is received

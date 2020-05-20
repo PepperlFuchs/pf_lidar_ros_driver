@@ -16,25 +16,24 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "pf_driver");
     ros::NodeHandle nh;
 
-    Connection::Transport transport;
+    std::shared_ptr<Connection> connection;
     if(transport_str == "udp")
-        transport = Connection::Transport::UDP;
+        connection = std::make_shared<UDPConnection>(IP);
     else if(transport_str == "tcp")
-        transport = Connection::Transport::TCP;
+        connection = std::make_shared<TCPConnection>(IP);
     else
     {
         ROS_ERROR("Incorrect transport option.");
         return -1;
     }
-    // PFInterface pf_interface(std::move(connection));
-    PFInterface pf_interface(transport, IP);
+    PFInterface pf_interface(connection);
+    // PFInterface pf_interface(transport, IP);
     if(!pf_interface.init())
     {
         ROS_ERROR("Unable to initialize device");
         return -1;
     }
     pf_interface.start_transmission();
-    // std::this_thread::sleep_for(std::chrono::minutes(10));
     ros::spin();
     pf_interface.stop_transmission();
     return 0;

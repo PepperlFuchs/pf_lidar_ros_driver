@@ -52,6 +52,16 @@ struct ScanConfig
   uint skip_scans;
 };
 
+struct ScanParameters
+{
+  double angular_fov;
+  double radial_range_min;
+  double radial_range_max;
+  double angle_min;
+  double angle_max;
+  //layers?
+};
+
 class KV : public std::pair<std::string, std::string>
 {
   template <typename T>
@@ -320,8 +330,7 @@ public:
     return handle_info;
   }
 
-  virtual HandleInfo request_handle_udp(const std::string host_ip, const std::string port, const char packet_type,
-                                const int start_angle)
+  virtual HandleInfo request_handle_udp(const std::string host_ip, const std::string port)
   {
     auto resp = get_request("request_handle_udp", { "handle", "port" }, { KV("address", host_ip), KV("port", port) });
     HandleInfo handle_info;
@@ -332,11 +341,12 @@ public:
 
   virtual ScanConfig get_scanoutput_config(std::string handle)
   {
-    auto resp = get_request("get_scanoutput_config", {"start_angle", "packet_type", "watchdogtimeout"}, { KV("handle", handle) });
+    auto resp = get_request("get_scanoutput_config", {"start_angle", "packet_type", "watchdogtimeout", "skip_scans"}, { KV("handle", handle) });
     ScanConfig config;
     config.packet_type = resp["packet_type"];
     config.start_angle = to_long(resp["start_angle"]);
     config.watchdogtimeout = to_long(resp["watchdogtimeout"]);
+    config.skip_scans = to_long(resp["skip_scans"]);
     return config;
   }
 
@@ -388,6 +398,10 @@ public:
   virtual std::string get_product()
   {
     return std::string("");
+  }
+
+  virtual ScanParameters get_scan_parameters(int start_angle=0)
+  {
   }
 };
 

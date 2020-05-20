@@ -157,7 +157,7 @@ public:
     catch(const std::exception& e)
     {
       std::cerr << e.what() << '\n';
-      return false;
+      return false;  // keep an eye on this
     }
     return true;
   }
@@ -181,7 +181,7 @@ public:
     try
     {
       udp_socket = new boost::asio::ip::udp::socket(
-          io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), atoi(this->port.c_str())));
+          io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0));
       udp_endpoint =
           boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(device_ip), atoi(this->port.c_str()));
 
@@ -208,7 +208,7 @@ public:
 
   virtual bool read(uint8_t* buf, size_t buf_len, size_t& total)
   {
-    // udp_socket->read_some(boost::asio::buffer(buf,buf_len))
+    total = udp_socket->receive(boost::asio::buffer(buf, buf_len));
     return true;
   }
 

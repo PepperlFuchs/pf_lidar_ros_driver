@@ -89,19 +89,32 @@ bool PFInterface::start_transmission()
             port_ = info_.port;
         }
         else
+        {
             info_ = protocol_interface_->request_handle_tcp(port_);
+        }
+        connection_->set_port(port_);
     }
     else if(transport_ == Connection::Transport::UDP)
     {
-        // info = protocol_interface_->request_handle_udp();
+        if(!connection_->connect())
+            return false;
+
+        std::string host_ip = connection_->get_host_ip();
+        port_ = connection_->get_port();
+        info_ = protocol_interface_->request_handle_udp(host_ip, port_);
     }
     config_ = protocol_interface_->get_scanoutput_config(info_.handle);
+    params_ = protocol_interface_->get_scan_parameters(config_.start_angle);
+
     pipeline_ = get_pipeline(config_.packet_type);
     pipeline_->set_scanoutput_config(config_);
+    pipeline_->set_scan_params(params_);
+
     if(!pipeline_->start())
         return false;
-    std::cout << "pipeline started " << std::endl;
+
     protocol_interface_->start_scanoutput(info_.handle);
+    start_watchdog_timer(config_.watchdogtimeout / 1000.0);
     change_state(PFState::RUNNING);
     return true;
 }
@@ -149,9 +162,20 @@ std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet
     {
 
     }
-    writer = std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(transport_, ip_, port_, parser));
+    writer = std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(connection_, parser));
     reader = std::shared_ptr<Reader<PFPacket>>(new ScanPublisher("/scan", "scanner"));
     return std::unique_ptr<Pipeline<PFPacket>>(new Pipeline<PFPacket>(writer, reader, std::bind(&PFInterface::on_shutdown, this)));
+}
+
+void PFInterface::start_watchdog_timer(float duration)
+{
+    int feed_time = std::floor(std::min(duration, 60.0f));
+    watchdog_timer_ = nh_.createTimer(ros::Duration(feed_time), std::bind(&PFInterface::feed_watchdog, this, std::placeholders::_1));
+}
+
+void PFInterface::feed_watchdog(const ros::TimerEvent& e)
+{
+    protocol_interface_->feed_watchdog(info_.handle);
 }
 
 void PFInterface::on_shutdown()

@@ -9,7 +9,7 @@ template <typename T>
 class PFWriter : public Writer<T>
 {
 public:
-    PFWriter(std::unique_ptr<Connection> &&connection, std::shared_ptr<Parser<T>> parser) : connection_(std::move(connection)), parser_(parser)
+    PFWriter(std::shared_ptr<Connection> connection, std::shared_ptr<Parser<T>> parser) : connection_(std::move(connection)), parser_(parser)
     {
     }
 
@@ -25,7 +25,11 @@ public:
 
     virtual bool start()
     {
-        if(connection_ && !connection_->is_connected()) {
+        if(connection_)
+        {
+            if(connection_->is_connected())
+                return true;
+
             return connection_->connect();
         }
         return false;
@@ -52,6 +56,6 @@ public:
     }
 
 private:
-    std::unique_ptr<Connection> connection_;
+    std::shared_ptr<Connection> connection_;
     std::shared_ptr<Parser<T>> parser_;
 };

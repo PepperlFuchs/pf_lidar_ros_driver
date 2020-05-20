@@ -18,7 +18,7 @@ class PFInterface
 {
 
 public:
-    PFInterface(std::unique_ptr<Connection> &&connection) : connection_(std::move(connection)), state_(PFState::UNINIT)
+    PFInterface(std::shared_ptr<Connection> connection) : connection_(connection), state_(PFState::UNINIT)
     {
         if(connection_)
         {
@@ -28,7 +28,7 @@ public:
         protocol_interface_ = std::make_shared<PFSDPBase>(ip_);
     }
 
-    PFInterface(Connection::Transport transport, std::string IP) : state_(PFState::UNINIT)
+    PFInterface(Connection::Transport transport, std::string IP) : ip_(IP), transport_(transport), state_(PFState::UNINIT)
     {
         ip_ = IP;
         transport_ = transport;
@@ -43,8 +43,10 @@ public:
 private:
     using PipelinePtr = std::unique_ptr<Pipeline<PFPacket>>;
 
+    ros::NodeHandle nh_;
     std::string ip_, port_;
-    std::unique_ptr<Connection> connection_;
+    ros::Timer watchdog_timer_;
+    std::shared_ptr<Connection> connection_;
     Connection::Transport transport_;
     std::shared_ptr<PFSDPBase> protocol_interface_;
 
@@ -61,10 +63,14 @@ private:
 
     HandleInfo info_;
     ScanConfig config_;
+    ScanParameters params_;
 
     void change_state(PFState state);
     bool can_change_state(PFState state);
     bool handle_version(int major_version, int minor_version);
+
+    void start_watchdog_timer(float duration);
+    void feed_watchdog(const ros::TimerEvent& e);   //timer based
 
     PipelinePtr pipeline_;
     PipelinePtr get_pipeline(std::string packet_type);
