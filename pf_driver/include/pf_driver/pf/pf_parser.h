@@ -21,13 +21,26 @@ public:
     uint32_t serial_size = packet->get_size();
     if(buf_len < serial_size)
     {
-      ROS_ERROR("Received data smaller than header size");
+      ROS_DEBUG("Received data smaller than header size");
       return false;
     }
-    if(!packet->parse_buf(buf, buf_len))
+
+    int start = packet->find_packet_start(buf, buf_len);
+    if(start == -1)
+    {
+      ROS_DEBUG("No magic number found. Invalid packet.");
+      return false;
+    }
+    size_t remainder = 0;
+    size_t p_size = 0;
+    if(!packet->parse_buf(buf + start, buf_len, remainder, p_size))
       return false;
 
     results.push_back(std::move(packet));
+    if(remainder > serial_size)
+    {
+      return parse(buf + p_size, remainder, results);
+    }
     return true;
   }
 };

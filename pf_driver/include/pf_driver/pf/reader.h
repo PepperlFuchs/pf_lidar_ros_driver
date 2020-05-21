@@ -12,7 +12,7 @@ public:
         packet->read_with(*shared_from_this());
     }
 
-    virtual void read(PFR2000Packet_A &packet) = 0;
+    virtual void read(PFR2000Packet &packet) = 0;
 
     virtual bool start()
     {
