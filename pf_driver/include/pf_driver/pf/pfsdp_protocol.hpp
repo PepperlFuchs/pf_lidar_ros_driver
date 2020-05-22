@@ -50,6 +50,15 @@ struct ScanConfig
   int start_angle;
   uint max_num_points_scan;
   uint skip_scans;
+
+  void print()
+  {
+    std::cout << "watchdogtimeout: " << watchdogtimeout << "\n"
+              << "packet_type: " << packet_type << "\n"
+              << "start_angle: " << start_angle << "\n"
+              << "max_num_points_scan:" << max_num_points_scan << "\n"
+              << "skip_scan: " << skip_scans << std::endl;
+  }
 };
 
 struct ScanParameters
@@ -59,7 +68,20 @@ struct ScanParameters
   double radial_range_max;
   double angle_min;
   double angle_max;
-  //layers?
+  bool layers_enabled[4];
+
+  void print()
+  {
+    std::cout << "angular_fov: " << angular_fov << "\n"
+              << "radial_range_min: " << radial_range_min << "\n"
+              << "radial_range_max: " << radial_range_max << "\n"
+              << "angle_min: " << angle_min << "\n"
+              << "angle_max: " << angle_max << "\n"
+              << "layers enabled: ";
+    for(auto &layer : layers_enabled)
+      std::cout << layer << " ";
+    std::cout << std::endl;
+  }
 };
 
 class KV : public std::pair<std::string, std::string>
@@ -346,6 +368,7 @@ public:
     config.packet_type = resp["packet_type"];
     config.start_angle = to_long(resp["start_angle"]);
     config.watchdogtimeout = to_long(resp["watchdogtimeout"]);
+    config.watchdog = (resp["watchdog"] == "off") ? false : true;
     config.skip_scans = to_long(resp["skip_scans"]);
     return config;
   }
@@ -387,12 +410,6 @@ public:
   {
     std::cerr << "function not supported" << std::endl;
     return std::pair<float, float>();
-  }
-
-  virtual std::string get_start_angle_str()
-  {
-    std::cerr << "function not supported" << std::endl;
-    std::string("");
   }
 
   virtual std::string get_product()

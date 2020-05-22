@@ -11,7 +11,7 @@ bool PFInterface::init()
         ROS_ERROR("Unable to communicate with device. Please check the IP address");
         return false;
     }
-    // ROS_INFO("Info: %i %i %s %s", opi.version_major, opi.version_minor, opi.protocol_name.c_str(), opi.product.c_str());
+    ROS_INFO("Info: %i %i %s", opi.version_major, opi.version_minor, opi.protocol_name.c_str());
 
     if(opi.protocol_name != "pfsdp")
         return false;
@@ -49,19 +49,16 @@ bool PFInterface::can_change_state(PFState state)
 
 bool PFInterface::handle_version(int major_version, int minor_version)
 {
-    // std::cout << product_name << " " << product_name.find("R2000") << std::endl;
-    std::string product_name = "product", expected = "expected";
     if(major_version == 1 && minor_version == 3)
     {
         protocol_interface_ = std::make_shared<PFSDP_2000>(ip_);
         expected = "R2000";
     }
-    else if(major_version == 11 && minor_version == 31)
+    else if(major_version == 0 && minor_version == 5)
     {
         protocol_interface_ = std::make_shared<PFSDP_2300>(ip_);
         expected = "R2300";
     }
-
     product_name = protocol_interface_->get_product();
     if(product_name.find(expected) != std::string::npos)
     {
@@ -106,6 +103,9 @@ bool PFInterface::start_transmission()
     config_ = protocol_interface_->get_scanoutput_config(info_.handle);
     params_ = protocol_interface_->get_scan_parameters(config_.start_angle);
 
+    config_.print();
+    params_.print();
+
     pipeline_ = get_pipeline(config_.packet_type);
     pipeline_->set_scanoutput_config(config_);
     pipeline_->set_scan_params(params_);
@@ -114,7 +114,9 @@ bool PFInterface::start_transmission()
         return false;
 
     protocol_interface_->start_scanoutput(info_.handle);
-    start_watchdog_timer(config_.watchdogtimeout / 1000.0);
+    if(config_.watchdog)
+        start_watchdog_timer(config_.watchdogtimeout / 1000.0);
+
     change_state(PFState::RUNNING);
     return true;
 }
@@ -160,7 +162,10 @@ std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet
     }
     else if(product_ == "R2300")
     {
-
+        if(packet_type == "C1")
+        {
+            parser = std::unique_ptr<Parser<PFPacket>>(new PFR2300_C1_Parser);
+        }
     }
     writer = std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(connection_, parser));
     reader = std::shared_ptr<Reader<PFPacket>>(new ScanPublisher("/scan", "scanner"));

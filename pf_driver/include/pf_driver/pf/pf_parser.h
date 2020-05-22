@@ -48,3 +48,5 @@ public:
 typedef PFParser<PFR2000Packet_A> PFR2000_A_Parser;
 typedef PFParser<PFR2000Packet_B> PFR2000_B_Parser;
 typedef PFParser<PFR2000Packet_C> PFR2000_C_Parser;
+
+typedef PFParser<PFR2300Packet_C1> PFR2300_C1_Parser;
