@@ -6,7 +6,7 @@ class PFSDP_2300 : public PFSDPBase
 {
 
 public:
-  PFSDP_2300(const utility::string_t &host) : PFSDPBase(host)
+  PFSDP_2300(const std::string &host) : PFSDPBase(host)
   {
   }
 
@@ -32,7 +32,7 @@ public:
   }
 
 private:
-  void get_layers_enabled(bool *enabled)
+  void get_layers_enabled(std::array<bool, 4> enabled)
   {
     std::string layers = get_parameter_str("layer_enable");
     std::vector<std::string> vals = split(layers);

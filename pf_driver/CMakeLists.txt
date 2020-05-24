@@ -3,10 +3,6 @@ project(pf_driver)
 
 add_compile_options(-std=c++14)
 
-## Currently a bug with cpprestsdk
-## https://github.com/microsoft/cpprestsdk/issues/686#issuecomment-440622042
-set(cpprestsdk_DIR /usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}/cmake/)
-
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
@@ -20,8 +16,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp_serialization
 )
 
-find_package(Boost REQUIRED COMPONENTS system)
-find_package(cpprestsdk REQUIRED)
+find_package(Boost REQUIRED COMPONENTS  thread system)
+find_package(jsoncpp REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CURLPP REQUIRED curlpp)
 
 generate_dynamic_reconfigure_options(
   cfg/PFDriver.cfg
@@ -54,18 +52,18 @@ add_executable(ros_main src/ros_main.cpp
                         src/scan_publisher.cpp
                         src/pf_packet.cpp)
 target_link_libraries(ros_main
-  ${catkin_LIBRARIES} cpprestsdk::cpprest
+  ${catkin_LIBRARIES} curlpp curl jsoncpp
 )
 add_dependencies(ros_main ${PROJECT_NAME}_gencfg)
 
-if (CATKIN_ENABLE_TESTING)
-  set(${PROJECT_NAME}_TEST_SOURCES
-    tests/http_request.cpp
-    tests/pfsdp_protocol.cpp)
+#if (CATKIN_ENABLE_TESTING)
+#  set(${PROJECT_NAME}_TEST_SOURCES
+#    tests/http_request.cpp
+#    tests/pfsdp_protocol.cpp)
 
-  catkin_add_gtest(pf_driver_test ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_TEST_SOURCES} tests/main.cpp)
-  target_link_libraries(pf_driver_test ${catkin_LIBRARIES} cpprestsdk::cpprest)
-endif()
+#  catkin_add_gtest(pf_driver_test ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_TEST_SOURCES} tests/main.cpp)
+#  target_link_libraries(pf_driver_test ${catkin_LIBRARIES} cpprestsdk::cpprest)
+#endif()
 
 install(TARGETS ros_main ros_main
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

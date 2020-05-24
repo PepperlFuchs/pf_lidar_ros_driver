@@ -46,7 +46,7 @@ struct ScanConfig
 {
   bool watchdog;
   uint watchdogtimeout;
-  std::string packet_type;
+  std::string packet_type = "";
   int start_angle;
   uint max_num_points_scan;
   uint skip_scans;
@@ -69,7 +69,7 @@ struct ScanParameters
   double radial_range_max;
   double angle_min;
   double angle_max;
-  bool layers_enabled[4];
+  std::array<bool, 4> layers_enabled = {false, false, false, false};
 
   void print()
   {
@@ -248,7 +248,7 @@ private:
   }
 
 public:
-  PFSDPBase(const utility::string_t &host) : hostname(host), http_interface(new HTTPInterface(host, "cmd"))
+  PFSDPBase(const std::string &host) : hostname(host), http_interface(new HTTPInterface(host, "cmd"))
   {
   }
 

@@ -16,100 +16,76 @@
 #define PF_DRIVER_HTTP_HELPER_H
 
 #define _TURN_OFF_PLATFORM_STRING
-#include <cpprest/http_client.h>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <typeinfo>
 
-using namespace utility;            // Common utilities like string conversions
-using namespace web;                // Common features like URIs.
-using namespace web::http;          // Common HTTP functionality
-using namespace web::http::client;  // HTTP client features
+//---CURL----//
+
+#include <cstdlib>
+#include <cerrno>
+#include <sstream>
+
+#include <curlpp/cURLpp.hpp>
+#include <curlpp/Easy.hpp>
+#include <curlpp/Options.hpp>
+#include <curlpp/Exception.hpp>
+#include <json/json.h>
 
 using param_type = std::pair<std::string, std::string>;
 
-inline std::string to_string(web::json::value val)
+class CurlResource
 {
-  if (val.is_integer())
-  {
-    return std::to_string(val.as_integer());
-  }
-  if (val.is_double())
-  {
-    return std::to_string(val.as_double());
-  }
-  if (val.is_string())
-  {
-    return val.as_string();
-  }
-  if (val.is_array())
-  {
-    auto arr = val.as_array();
-    std::string s = "";
-    for (size_t i = 0; i < arr.size() - 1; i++)
-    {
-      s += to_string(arr[i]) + ";";
-    }
-    s += to_string(arr.at(arr.size() - 1));
-    return s;
-  }
-  return std::string();
-}
-
-class Resource
-{
-  void set_host(const utility::string_t &host)
-  {
-    builder.set_host(host);
-  }
-
-  void set_scheme(const utility::string_t &scheme)
-  {
-    builder.set_scheme(scheme);
-  }
-
-  const std::string uri;
-  uri_builder builder;
-
 public:
-  Resource(const utility::string_t &host)
-  {
-    set_scheme("http");
-    set_host(host);
-  }
-
-  Resource append_query(const std::initializer_list<param_type> &list, bool do_encoding = false)
-  {
-    for (const auto &p : list)
+    CurlResource(std::string host) : url_("")
     {
-      builder.append_query(p.first, p.second, do_encoding);
+        url_ = "http://" + host;
+        header_.push_back("Content-Type: application/json"); 
+        request_.setOpt(new curlpp::options::HttpHeader(header_));
+        request_.setOpt(curlpp::options::WriteStream(&response_));
     }
-    return *this;
-  }
 
-  Resource set_path(const utility::string_t &path)
-  {
-    builder.set_path(path);
-    return *this;
-  }
+    void append_path(const std::string &path)
+    {
+        url_ += "/" + path;
+    }
 
-  Resource append_path(const utility::string_t &path)
-  {
-    builder.append_path(path);
-    return *this;
-  }
+    void append_query(const std::initializer_list<param_type> &list, bool do_encoding = false)
+    {
+        url_ += "?"; 
+        for (const auto &p : list)
+        {
+            url_ += p.first + "=" + p.second + "&";
+        }
+    }
 
-  std::string to_string()
-  {
-    return builder.to_string();
-  }
+    void get(Json::Value &json_resp)
+    {
+        request_.setOpt(curlpp::options::Url(url_)); 
+        request_.perform();
+
+        Json::Reader reader;
+        reader.parse(response_, json_resp);
+    }
+
+    void print()
+    {
+        std::cout << url_ << std::endl;
+    }
+
+private:
+    std::string url_;
+    curlpp::Cleanup cleaner;
+    curlpp::Easy request_;
+    std::list<std::string> header_;
+    std::stringstream response_;
 };
 
 class HTTPInterface
 {
 public:
-  HTTPInterface(const utility::string_t &host, const utility::string_t &path = "") : host(host), base_path(path)
+  HTTPInterface(const std::string &host, const std::string &path = "") : host(host), base_path(path)
   {
   }
 
@@ -117,20 +93,26 @@ public:
   get(const std::vector<std::string> &json_keys, const std::string command,
       const std::initializer_list<param_type> &list = std::initializer_list<param_type>())
   {
-    const std::string uri = Resource(host).set_path(base_path).append_path(command).append_query(list).to_string();
+    CurlResource res(host);
+    res.append_path(base_path);
+    res.append_path(command);
+    res.append_query(list);
+    res.print();
 
-    http_client client(uri);
+    Json::Value json_resp;
     std::map<std::string, std::string> json_kv;
-    json::value json_resp;
-    http_response response;
+
     try
     {
-      response = client.request(methods::GET).get();
-      response.headers().set_content_type("application/json");
-      json_resp = response.extract_json().get();
+      res.get(json_resp);
       json_kv[std::string("error_http")] = std::string("OK");
     }
-    catch (const std::exception &e)
+    catch(curlpp::RuntimeError & e)
+    {
+      json_kv[std::string("error_http")] = std::string(e.what());
+      return json_kv;
+    }
+    catch(curlpp::LogicError & e)
     {
       json_kv[std::string("error_http")] = std::string(e.what());
       return json_kv;
@@ -140,7 +122,7 @@ public:
     {
       try
       {
-        json_kv[key] = to_string(json_resp.at(key));
+        json_kv[key] = json_resp[key].asString();
       }
       catch (std::exception &e)
       {
@@ -151,8 +133,8 @@ public:
   }
 
 private:
-  const utility::string_t host;
-  const utility::string_t base_path;
+  const std::string host;
+  const std::string base_path;
 };
 
 #endif

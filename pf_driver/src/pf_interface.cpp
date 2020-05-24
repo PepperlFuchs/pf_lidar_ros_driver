@@ -11,7 +11,7 @@ bool PFInterface::init()
         ROS_ERROR("Unable to communicate with device. Please check the IP address");
         return false;
     }
-    ROS_INFO("Info: %i %i %s", opi.version_major, opi.version_minor, opi.protocol_name.c_str());
+    // ROS_INFO("Info: %i %i %s", opi.version_major, opi.version_minor, opi.protocol_name.c_str());
 
     if(opi.protocol_name != "pfsdp")
         return false;
@@ -113,6 +113,8 @@ bool PFInterface::start_transmission()
 
     if(!pipeline_->start())
         return false;
+
+    
 
     protocol_interface_->start_scanoutput(info_.handle);
     if(config_.watchdog)

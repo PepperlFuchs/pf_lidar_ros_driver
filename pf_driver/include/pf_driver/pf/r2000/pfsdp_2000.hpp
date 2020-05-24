@@ -6,7 +6,7 @@ class PFSDP_2000 : public PFSDPBase
 {
 
 public:
-  PFSDP_2000(const utility::string_t &host) : PFSDPBase(host)
+  PFSDP_2000(const std::string &host) : PFSDPBase(host)
   {
   }
 
