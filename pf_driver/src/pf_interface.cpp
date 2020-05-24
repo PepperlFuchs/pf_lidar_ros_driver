@@ -49,6 +49,7 @@ bool PFInterface::can_change_state(PFState state)
 
 bool PFInterface::handle_version(int major_version, int minor_version)
 {
+    std::string product_name = "product", expected = "expected";
     if(major_version == 1 && minor_version == 3)
     {
         protocol_interface_ = std::make_shared<PFSDP_2000>(ip_);

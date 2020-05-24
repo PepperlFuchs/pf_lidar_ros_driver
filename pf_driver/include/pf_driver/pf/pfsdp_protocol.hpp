@@ -53,7 +53,8 @@ struct ScanConfig
 
   void print()
   {
-    std::cout << "watchdogtimeout: " << watchdogtimeout << "\n"
+    std::cout << "Scan output config:\n"
+              << "watchdogtimeout: " << watchdogtimeout << "\n"
               << "packet_type: " << packet_type << "\n"
               << "start_angle: " << start_angle << "\n"
               << "max_num_points_scan:" << max_num_points_scan << "\n"
@@ -72,7 +73,8 @@ struct ScanParameters
 
   void print()
   {
-    std::cout << "angular_fov: " << angular_fov << "\n"
+    std::cout << "Scan parameters:\n"
+              << "angular_fov: " << angular_fov << "\n"
               << "radial_range_min: " << radial_range_min << "\n"
               << "radial_range_max: " << radial_range_max << "\n"
               << "angle_min: " << angle_min << "\n"
