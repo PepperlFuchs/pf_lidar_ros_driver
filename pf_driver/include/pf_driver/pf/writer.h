@@ -9,53 +9,46 @@ template <typename T>
 class PFWriter : public Writer<T>
 {
 public:
-    PFWriter(std::shared_ptr<Connection> connection, std::shared_ptr<Parser<T>> parser) : connection_(std::move(connection)), parser_(parser)
+    PFWriter(std::unique_ptr<Transport> &&transport, std::shared_ptr<Parser<T>> parser) : transport_(std::move(transport)), parser_(parser)
     {
-    }
-
-    PFWriter(Connection::Transport transport, std::string IP, std::string port,  std::shared_ptr<Parser<T>> parser) : parser_(parser)
-    {
-        if(transport == Connection::Transport::UDP)
-            connection_ = std::make_unique<UDPConnection>(IP);  // need a factory for this?
-        else if(transport == Connection::Transport::TCP)
-            connection_ = std::make_unique<TCPConnection>(IP);
-
-        connection_->set_port(port);
     }
 
     virtual bool start()
     {
-        if(connection_)
+        if(transport_)
         {
-            if(connection_->is_connected())
+            std::cout << "writer is connecting.." << transport_->is_connected() <<  std::endl;
+            if(transport_->is_connected())
                 return true;
 
-            return connection_->connect();
+            
+            return transport_->connect();
         }
         return false;
     }
 
     virtual bool stop()
     {
-        if(connection_ && connection_->is_connected()) {
-            return connection_->disconnect();
+        if(transport_ && transport_->is_connected()) {
+            return transport_->disconnect();
         }
         return false;
     }
 
     virtual bool get(std::vector<std::unique_ptr<T>> &packets)
     {
-        uint8_t buf[4096];
+        // uint8_t buf[4096];
+        boost::array<uint8_t, 4096> buf;
         size_t read = 0;
-        if(connection_->read(buf, sizeof(buf), read))
+        if(transport_->read(buf, read))
         {
-            parser_->parse(buf, read, packets);
+            parser_->parse(buf.data(), read, packets);
             return true;
         }
         return false;
     }
 
 private:
-    std::shared_ptr<Connection> connection_;
+    std::unique_ptr<Transport> transport_;;
     std::shared_ptr<Parser<T>> parser_;
 };

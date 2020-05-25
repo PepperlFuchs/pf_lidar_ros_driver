@@ -11,7 +11,7 @@ class ScanPublisher : public PFPacketReader
 public:
     ScanPublisher(std::string scan_topic, std::string frame_id) : scan_publisher_(nh_.advertise<sensor_msgs::LaserScan>(scan_topic, 1)), header_publisher_(nh_.advertise<pf_driver::PFR2000Header>("/r2000_header", 1)), frame_id_(frame_id), queue_{100}, prev_num_packet_(0) 
     {
-        config_.packet_type = "";
+        params_ = {};
     }
 
     virtual void read(PFR2000Packet &packet);
@@ -40,12 +40,11 @@ public:
     virtual void set_scan_params(ScanParameters &params)
     {
         std::lock_guard<std::mutex> lock(config_mutex_);
-        params.print();
-        // params_.angular_fov = params.angular_fov;
-        // params_.radial_range_min = params.radial_range_min;
-        // params_.radial_range_max = params.radial_range_max;
-        // params_.angle_min = params.angle_min;
-        // params_.angle_max = params.angle_max;
+        params_.angular_fov = params.angular_fov;
+        params_.radial_range_min = params.radial_range_min;
+        params_.radial_range_max = params.radial_range_max;
+        // params_.angle_min = 0;
+        // params_.angle_max = 0;
         // params_.layers_enabled = params.layers_enabled;
     }
 

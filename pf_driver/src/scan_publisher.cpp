@@ -14,15 +14,15 @@ void ScanPublisher::read(PFR2300Packet &packet)
 
 void ScanPublisher::run_publisher()
 {
-    while(ros::ok())
-    {
-        sensor_msgs::LaserScanPtr msg;
-        if(!queue_.try_dequeue(msg))
-            continue;
-        if(!msg)
-            continue;
-        publish_scan(msg);
-    }
+    // while(ros::ok())
+    // {
+    //     sensor_msgs::LaserScanPtr msg;
+    //     if(!queue_.try_dequeue(msg))
+    //         continue;
+    //     if(!msg)
+    //         continue;
+    //     publish_scan(msg);
+    // }
 }
 
 void ScanPublisher::publish_scan(sensor_msgs::LaserScanPtr msg)
@@ -79,6 +79,7 @@ void ScanPublisher::to_msg_queue(T &packet)
     if(msg->header.seq != packet.header.header.scan_number)
         return;
     int idx = packet.header.first_index;
+    std::cout << msg->header.seq << " " << packet.header.header.scan_number << std::endl;
     for(int i = 0; i < packet.header.num_points_packet; i++)
     {
         float data;

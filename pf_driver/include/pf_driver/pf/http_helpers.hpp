@@ -58,6 +58,7 @@ public:
         {
             url_ += p.first + "=" + p.second + "&";
         }
+        url_.pop_back();
     }
 
     void get(Json::Value &json_resp)

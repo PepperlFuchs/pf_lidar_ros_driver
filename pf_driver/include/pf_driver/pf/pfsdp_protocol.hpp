@@ -51,15 +51,15 @@ struct ScanConfig
   uint max_num_points_scan;
   uint skip_scans;
 
-  void print()
-  {
-    std::cout << "Scan output config:\n"
-              << "watchdogtimeout: " << watchdogtimeout << "\n"
-              << "packet_type: " << packet_type << "\n"
-              << "start_angle: " << start_angle << "\n"
-              << "max_num_points_scan:" << max_num_points_scan << "\n"
-              << "skip_scan: " << skip_scans << std::endl;
-  }
+  // void print()
+  // {
+  //   std::cout << "Scan output config:\n"
+  //             << "watchdogtimeout: " << watchdogtimeout << "\n"
+  //             << "packet_type: " << packet_type << "\n"
+  //             << "start_angle: " << start_angle << "\n"
+  //             << "max_num_points_scan:" << max_num_points_scan << "\n"
+  //             << "skip_scan: " << skip_scans << std::endl;
+  // }
 };
 
 struct ScanParameters
@@ -71,19 +71,19 @@ struct ScanParameters
   double angle_max;
   std::array<bool, 4> layers_enabled = {false, false, false, false};
 
-  void print()
-  {
-    std::cout << "Scan parameters:\n"
-              << "angular_fov: " << angular_fov << "\n"
-              << "radial_range_min: " << radial_range_min << "\n"
-              << "radial_range_max: " << radial_range_max << "\n"
-              << "angle_min: " << angle_min << "\n"
-              << "angle_max: " << angle_max << "\n"
-              << "layers enabled: ";
-    for(auto &layer : layers_enabled)
-      std::cout << layer << " ";
-    std::cout << std::endl;
-  }
+  // void print()
+  // {
+  //   std::cout << "Scan parameters:\n"
+  //             << "angular_fov: " << angular_fov << "\n"
+  //             << "radial_range_min: " << radial_range_min << "\n"
+  //             << "radial_range_max: " << radial_range_max << "\n"
+  //             << "angle_min: " << angle_min << "\n"
+  //             << "angle_max: " << angle_max << "\n"
+  //             << "layers enabled: ";
+  //   for(auto &layer : layers_enabled)
+  //     std::cout << layer << " ";
+  //   std::cout << std::endl;
+  // }
 };
 
 class KV : public std::pair<std::string, std::string>

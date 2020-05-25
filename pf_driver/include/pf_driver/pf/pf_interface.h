@@ -18,20 +18,13 @@ class PFInterface
 {
 
 public:
-    PFInterface(std::shared_ptr<Connection> connection) : connection_(connection), state_(PFState::UNINIT)
+    PFInterface(std::unique_ptr<Transport> &&transport) : transport_(std::move(transport)), state_(PFState::UNINIT)
     {
-        if(connection_)
+        if(transport_)
         {
-            ip_ = connection_->get_device_ip();
-            transport_ = connection_->TRANSPORT;   
+            ip_ = transport_->get_device_ip();
+            transport_type_ = transport_->get_type();   
         }
-        protocol_interface_ = std::make_shared<PFSDPBase>(ip_);
-    }
-
-    PFInterface(Connection::Transport transport, std::string IP) : ip_(IP), transport_(transport), state_(PFState::UNINIT)
-    {
-        ip_ = IP;
-        transport_ = transport;
         protocol_interface_ = std::make_shared<PFSDPBase>(ip_);
     }
 
@@ -46,8 +39,8 @@ private:
     ros::NodeHandle nh_;
     std::string ip_, port_;
     ros::Timer watchdog_timer_;
-    std::shared_ptr<Connection> connection_;
-    Connection::Transport transport_;
+    std::unique_ptr<Transport> transport_;
+    transport_type transport_type_;
     std::shared_ptr<PFSDPBase> protocol_interface_;
 
     enum class PFState

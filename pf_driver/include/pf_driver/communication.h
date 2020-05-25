@@ -17,204 +17,184 @@
 
 #pragma once
 
-#include <boost/asio.hpp>
-#include <boost/thread.hpp>
-#include <condition_variable>
 #include <iostream>
-#include <mutex>
+#include <thread>
+#include <boost/thread.hpp>
+#include <boost/array.hpp>
+#include <boost/asio.hpp>
 
-class Connection
+using boost::asio::ip::tcp;
+using boost::asio::ip::udp;
+
+enum transport_type
+{
+  tcp,
+  udp
+};
+
+class Transport
 {
 public:
-  enum class Transport
+  virtual bool connect() = 0;
+  virtual bool disconnect() = 0;
+  virtual bool read(boost::array<uint8_t, 4096> &buf, size_t &len) = 0;
+
+  Transport(std::string address, transport_type typ) : address_(address), type_(typ), is_connected_(false) {}
+
+  void set_port(std::string port)
   {
-    TCP,
-    UDP
-  };
-  Transport TRANSPORT;
+    port_ = std::move(port);
+  }
 
-  virtual bool read(uint8_t* buf, size_t buf_len, size_t& total) = 0;
+  std::string get_port()
+  {
+    return port_;
+  }
 
-  virtual bool is_connected()
+  std::string get_host_ip()
+  {
+    return host_ip_;
+  }
+
+  std::string get_device_ip()
+  {
+    return address_;
+  }
+
+  transport_type get_type()
+  {
+    return type_;
+  }
+
+  bool is_connected()
   {
     return is_connected_;
   }
 
-  virtual bool disconnect()
-  {
-    is_connected_ = false;
-    try
-    {
-      close();
-      io_service.stop();
-      if (boost::this_thread::get_id() != io_service_thread.get_id())
-        io_service_thread.join();
-        return true;
-    }
-    catch (std::exception &e)
-    {
-      std::cerr << "Exception: " << e.what() << std::endl;
-    }
-    return false;
-  }
-
-  virtual const std::string get_port()
-  {
-    return this->port;
-  }
-
-  virtual void set_port(std::string port)
-  {
-    this->port = port;
-  }
-
-  virtual const std::string get_host_ip()
-  {
-    return this->host_ip;
-  }
-
-  virtual const std::string get_device_ip()
-  {
-    return this->device_ip;
-  }
-
-
-  // virtual ~Connection()
-  // {
-  //   disconnect();
-  // }
-
-  virtual bool connect(std::string port = "") = 0;
-  virtual void close() = 0;
-
 protected:
-  boost::thread io_service_thread;
-  boost::asio::io_service io_service;
-
-  std::atomic<bool> is_connected_;
-  double last_data_time;
-  std::string device_ip, port, host_ip;
+  std::string address_;
+  std::string host_ip_;
+  std::string port_;
+  bool is_connected_;
+  transport_type type_;
+  boost::asio::io_service io_service_;
+  boost::thread io_service_thread_;
 };
 
-class TCPConnection : public Connection
+class TCPTransport : public Transport
 {
 public:
-  TCPConnection(std::string IP) : tcp_socket(boost::asio::ip::tcp::socket(io_service))
-  {
-    this->device_ip = IP;
-    this->TRANSPORT = Transport::TCP;
-    is_connected_ = false;
-  }
+    TCPTransport(std::string address) : Transport(address, transport_type::tcp), socket_(io_service_) 
+    {
+      io_service_thread_ = boost::thread(boost::bind(&boost::asio::io_service::run, &io_service_));
+    }
 
-  ~TCPConnection()
+    ~TCPTransport()
+    {
+      disconnect();
+    }
+
+    virtual bool connect()
+    {
+      try
+      {
+        std::cout << "io_service " << io_service_.stopped() << std::endl;
+        tcp::resolver resolver(io_service_);
+        tcp::resolver::query query(address_, port_);
+        tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+        tcp::resolver::iterator end;
+
+        boost::system::error_code error = boost::asio::error::host_not_found;
+        while (error && endpoint_iterator != end)
+        {
+          socket_.close();
+          socket_.connect(*endpoint_iterator++, error);
+        }
+        if (error)
+        {
+          throw boost::system::system_error(error);
+        }
+      }
+      catch (std::exception& e)
+      {
+        std::cerr << e.what() << std::endl;
+        return false;
+      }
+      is_connected_ = true;
+      return true;
+    }
+
+    virtual bool disconnect()
+    {
+      std::cout << "disconnecting..." << std::endl;
+      socket_.close();
+      return true;
+    }
+
+    virtual bool read(boost::array<uint8_t, 4096> &buf, size_t &len)
+    {
+      boost::system::error_code error;
+      len = socket_.read_some(boost::asio::buffer(buf), error);
+      if (error == boost::asio::error::eof)
+        return false; // Connection closed cleanly by peer.
+      else if (error)
+        return false;
+      return true;
+    }
+
+private:
+    tcp::socket socket_;
+};
+
+class UDPTransport : public Transport
+{
+public:
+  UDPTransport(std::string address) : Transport(address, transport_type::tcp), socket_(io_service_) {}
+
+  ~UDPTransport()
   {
     disconnect();
   }
 
-  bool connect(std::string port)
+  virtual bool connect()
   {
-    boost::asio::ip::tcp::resolver resolver(io_service);
-    boost::asio::ip::tcp::resolver::query query(device_ip, this->port);
-    boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-    boost::asio::ip::tcp::resolver::iterator end;
+    udp::resolver resolver(io_service_);
+    udp::resolver::query query(udp::v4(), address_);
+    udp::endpoint receiver_endpoint = *resolver.resolve(query);
 
-    // tcp_socket = new boost::asio::ip::tcp::socket(io_service);
-    boost::system::error_code error = boost::asio::error::host_not_found;
+    socket_.open(udp::v4());
+    port_ = std::to_string(socket_.local_endpoint().port());
+    host_ip_ = socket_.local_endpoint().address().to_string();
 
-    ROS_INFO("trying to connect");
+    std::cout << host_ip_ << " " << port_ << std::endl;
 
-    // Iterate over endpoints and etablish connection
-    while (error && endpoint_iterator != end)
-    {
-      // std::cout << "Trying " << endpoint_iterator->endpoint() << "...\n";
-      tcp_socket.close();
-      tcp_socket.connect(*endpoint_iterator++, error);
-    }
-    if (error)
-    {
-      ROS_ERROR("Connection error: %s", error.message().c_str());
-      is_connected_ = false;
-      return false;
-    }
+    boost::array<char, 1> send_buf  = { 0 };
+    socket_.send_to(boost::asio::buffer(send_buf), receiver_endpoint);
 
-    is_connected_ = true;
-    // this->port = port;
-    return true;
-  }
-
-  void close()
-  {
-    // if (tcp_socket)
-      tcp_socket.close();
-  }
-
-  virtual bool read(uint8_t* buf, size_t buf_len, size_t& total)
-  {
-    try
-    {
-      total = tcp_socket.read_some(boost::asio::buffer(buf, buf_len));
-    }
-    catch(const std::exception& e)
-    {
-      std::cerr << e.what() << '\n';
-      return false;  // keep an eye on this
-    }
-    return true;
-  }
-
-private:
-  boost::asio::ip::tcp::socket tcp_socket;
-};
-
-class UDPConnection : public Connection
-{
-public:
-  UDPConnection(std::string IP)
-  {
-    this->device_ip = IP;
-    // this->port = port;
-    this->TRANSPORT = Transport::UDP;
-    is_connected_ = false;
-  }
-  bool connect(std::string port)
-  {
-    try
-    {
-      udp_socket = new boost::asio::ip::udp::socket(
-          io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0));
-      udp_endpoint =
-          boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(device_ip), atoi(this->port.c_str()));
-
-      udp_socket->connect(udp_endpoint);
-
-      this->port = std::to_string(udp_socket->local_endpoint().port());
-      host_ip = udp_socket->local_endpoint().address().to_string();
-    }
-    catch (const boost::system::system_error &ex)
-    {
-      std::cerr << "ERROR: " << ex.code() << " " << ex.what() << std::endl;
-      is_connected_ = false;
-      return false;
-    }
     is_connected_ = true;
     return true;
   }
 
-  void close()
+  virtual bool disconnect()
   {
-    if (udp_socket)
-      udp_socket->close();
+    std::cout << "disconnecting..." << std::endl;
+    socket_.close();
   }
 
-  virtual bool read(uint8_t* buf, size_t buf_len, size_t& total)
+  virtual bool read(boost::array<uint8_t, 4096> &buf, size_t &len)
   {
-    total = udp_socket->receive(boost::asio::buffer(buf, buf_len));
+    boost::system::error_code error;
+    udp::endpoint sender_endpoint;
+    len = socket_.receive_from(boost::asio::buffer(buf), sender_endpoint);
+    if (error == boost::asio::error::eof)
+      return false; // Connection closed cleanly by peer.
+    else if (error)
+      return false;
     return true;
   }
 
 private:
-  boost::asio::ip::udp::socket *udp_socket;
-  boost::asio::ip::udp::endpoint udp_endpoint;
+  udp::socket socket_;
 };
 
 #endif

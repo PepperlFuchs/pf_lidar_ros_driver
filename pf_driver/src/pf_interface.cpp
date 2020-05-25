@@ -79,7 +79,7 @@ bool PFInterface::start_transmission()
     if(pipeline_ && pipeline_->is_running())
         return true;
 
-    if(transport_ == Connection::Transport::TCP)
+    if(transport_type_ == transport_type::tcp)
     {
         if(port_.empty())
         {
@@ -90,22 +90,26 @@ bool PFInterface::start_transmission()
         {
             info_ = protocol_interface_->request_handle_tcp(port_);
         }
-        connection_->set_port(port_);
+        transport_->set_port(port_);
+        transport_->connect();
     }
-    else if(transport_ == Connection::Transport::UDP)
+    else if(transport_type_ == transport_type::udp)
     {
-        if(!connection_->connect())
+        if(!transport_->connect())
             return false;
 
-        std::string host_ip = connection_->get_host_ip();
-        port_ = connection_->get_port();
+        std::string host_ip = transport_->get_host_ip();
+        port_ = transport_->get_port();
         info_ = protocol_interface_->request_handle_udp(host_ip, port_);
     }
+    if(info_.handle.empty())
+        return false;
+
     config_ = protocol_interface_->get_scanoutput_config(info_.handle);
     params_ = protocol_interface_->get_scan_parameters(config_.start_angle);
 
-    config_.print();
-    params_.print();
+    // config_.print();
+    // params_.print();
 
     pipeline_ = get_pipeline(config_.packet_type);
     pipeline_->set_scanoutput_config(config_);
@@ -113,8 +117,6 @@ bool PFInterface::start_transmission()
 
     if(!pipeline_->start())
         return false;
-
-    
 
     protocol_interface_->start_scanoutput(info_.handle);
     if(config_.watchdog)
@@ -170,7 +172,7 @@ std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet
             parser = std::unique_ptr<Parser<PFPacket>>(new PFR2300_C1_Parser);
         }
     }
-    writer = std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(connection_, parser));
+    writer = std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(std::move(transport_), parser));
     reader = std::shared_ptr<Reader<PFPacket>>(new ScanPublisher("/scan", "scanner"));
     return std::unique_ptr<Pipeline<PFPacket>>(new Pipeline<PFPacket>(writer, reader, std::bind(&PFInterface::on_shutdown, this)));
 }
