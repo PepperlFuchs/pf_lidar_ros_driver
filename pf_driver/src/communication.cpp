@@ -50,18 +50,12 @@ bool TCPTransport::read(boost::array<uint8_t, 4096> &buf, size_t &len)
 
 bool UDPTransport::connect()
 {
-    udp::resolver resolver(*io_service_);
-    udp::resolver::query query(udp::v4(), address_);
-    udp::endpoint receiver_endpoint = *resolver.resolve(query);
-
-    socket_->open(udp::v4());
+    udp::endpoint udp_endpoint = udp::endpoint(boost::asio::ip::address::from_string(address_), 0);
+    socket_->connect(udp_endpoint);
     port_ = std::to_string(socket_->local_endpoint().port());
     host_ip_ = socket_->local_endpoint().address().to_string();
 
     std::cout << host_ip_ << " " << port_ << std::endl;
-
-    boost::array<char, 1> send_buf  = { 0 };
-    socket_->send_to(boost::asio::buffer(send_buf), receiver_endpoint);
 
     is_connected_ = true;
     return true;

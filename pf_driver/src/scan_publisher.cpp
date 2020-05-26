@@ -21,21 +21,8 @@ void ScanPublisher::read(PFR2000Packet_C &packet)
 
 void ScanPublisher::read(PFR2300Packet_C1 &packet)
 {
-    // header_publisher_.publish(packet.header);
+    header_publisher_.publish(packet.header);
     to_msg_queue<PFR2300Packet_C1>(packet);
-}
-
-void ScanPublisher::run_publisher()
-{
-    // while(ros::ok())
-    // {
-    //     sensor_msgs::LaserScanPtr msg;
-    //     if(!queue_.try_dequeue(msg))
-    //         continue;
-    //     if(!msg)
-    //         continue;
-    //     publish_scan(msg);
-    // }
 }
 
 void ScanPublisher::publish_scan(sensor_msgs::LaserScanPtr msg)

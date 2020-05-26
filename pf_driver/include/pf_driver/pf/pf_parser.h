@@ -26,7 +26,6 @@ public:
     }
 
     int start = packet->find_packet_start(buf, buf_len);
-    std::cout << "start: " << start << std::endl;
     if(start == -1)
     {
       ROS_DEBUG("No magic number found. Invalid packet.");

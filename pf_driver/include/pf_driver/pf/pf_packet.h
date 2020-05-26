@@ -59,15 +59,7 @@ protected:
         c[1] = 0x00;
     }
 
-    virtual void read_data(uint8_t *buf, size_t num)
-    {
-        Data *data = reinterpret_cast<Data*>(buf);
-        for(int i = 0; i < num; i++)
-        {
-            distance.push_back(data[i].distance);
-        }
-    }
-
+    virtual void read_data(uint8_t *buf, size_t num);
     virtual void read_with(PFPacketReader& reader);
 };
 
@@ -88,15 +80,7 @@ protected:
         c[1] = 0x00;
     }
 
-    virtual void read_data(uint8_t *buf, size_t num)
-    {
-        // for(int i = 0; i < num; i++)
-        // {
-        //     distance.push_back(data[i].distance);
-        //     amplitude.push_back(data[i].amplitude);
-        // }
-    }
-
+    virtual void read_data(uint8_t *buf, size_t num);
     virtual void read_with(PFPacketReader& reader);
 };
 
@@ -116,16 +100,7 @@ protected:
         c[1] = 0x00;
     }
 
-    virtual void read_data(uint8_t *buf, size_t num)
-    {
-        // for(int i = 0; i < num; i++)
-        // {
-        //     uint32_t d = data[i].dist_amp;
-        //     distance.push_back((d & 0x000FFFFF));
-        //     amplitude.push_back(((d & 0xFFFFF000) >> 20));
-        // }
-    }
-
+    virtual void read_data(uint8_t *buf, size_t num);
     virtual void read_with(PFPacketReader& reader);
 };
 
@@ -162,15 +137,6 @@ protected:
         c[1] = 0x31;
     }
 
-    virtual void read_data(uint8_t *buf, size_t num)
-    {
-        // for(int i = 0; i < num; i++)
-        // {
-        //     uint32_t d = data[i].dist_amp;
-        //     distance.push_back((d & 0x000FFFFF));
-        //     amplitude.push_back(((d & 0xFFFFF000) >> 20));
-        // }
-    }
-
+    virtual void read_data(uint8_t *buf, size_t num);
     virtual void read_with(PFPacketReader& reader);
 };

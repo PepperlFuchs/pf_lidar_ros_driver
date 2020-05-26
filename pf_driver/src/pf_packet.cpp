@@ -48,9 +48,28 @@ void PFR2000Packet_A::read_with(PFPacketReader& reader)
     reader.read(*this);
 }
 
+void PFR2000Packet_A::read_data(uint8_t *buf, size_t num)
+{
+    Data *data = reinterpret_cast<Data*>(buf);
+    for(int i = 0; i < num; i++)
+    {
+        distance.push_back(data[i].distance);
+    }
+}
+
 void PFR2000Packet_B::read_with(PFPacketReader& reader)
 {
     reader.read(*this);
+}
+
+void PFR2000Packet_B::read_data(uint8_t *buf, size_t num)
+{
+    Data *data = reinterpret_cast<Data*>(buf);
+    // for(int i = 0; i < num; i++)
+    // {
+    //     distance.push_back(data[i].distance);
+    //     amplitude.push_back(data[i].amplitude);
+    // }
 }
 
 void PFR2000Packet_C::read_with(PFPacketReader& reader)
@@ -58,7 +77,29 @@ void PFR2000Packet_C::read_with(PFPacketReader& reader)
     reader.read(*this);
 }
 
+void PFR2000Packet_C::read_data(uint8_t *buf, size_t num)
+{
+    Data *data = reinterpret_cast<Data*>(buf);
+    // for(int i = 0; i < num; i++)
+    // {
+    //     uint32_t d = data[i].dist_amp;
+    //     distance.push_back((d & 0x000FFFFF));
+    //     amplitude.push_back(((d & 0xFFFFF000) >> 20));
+    // }
+}
+
 void PFR2300Packet_C1::read_with(PFPacketReader& reader)
 {
     reader.read(*this);
+}
+
+void PFR2300Packet_C1::read_data(uint8_t *buf, size_t num)
+{
+    Data *data = reinterpret_cast<Data*>(buf);
+    for(int i = 0; i < num; i++)
+    {
+        uint32_t d = data[i].dist_amp;
+        distance.push_back((d & 0x000FFFFF));
+        amplitude.push_back(((d & 0xFFFFF000) >> 20));
+    }
 }

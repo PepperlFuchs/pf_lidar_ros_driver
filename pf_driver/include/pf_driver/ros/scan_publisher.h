@@ -9,10 +9,8 @@
 class ScanPublisher : public PFPacketReader
 {
 public:
-    ScanPublisher(std::string scan_topic, std::string frame_id) : scan_publisher_(nh_.advertise<sensor_msgs::LaserScan>(scan_topic, 1)), header_publisher_(nh_.advertise<pf_driver::PFR2000Header>("/r2000_header", 1)), frame_id_(frame_id)
+    ScanPublisher(std::string scan_topic, std::string frame_id) : scan_publisher_(nh_.advertise<sensor_msgs::LaserScan>(scan_topic, 1)), header_publisher_(nh_.advertise<pf_driver::PFR2300Header>("/r2300_header", 1)), frame_id_(frame_id)
     {
-        // config_ = std::make_unique<ScanConfig>();
-        // params_ = std::make_unique<ScanParameters>();
     }
 
     virtual void read(PFR2000Packet_A &packet);
@@ -22,7 +20,8 @@ public:
 
     virtual bool start()
     {
-        pub_thread_ = std::thread(&ScanPublisher::run_publisher, this);
+        // pub_thread_ = std::thread(&ScanPublisher::run_publisher, this);
+        // TODO: start publisher here depending on header
         return true;
     }
 
@@ -63,7 +62,6 @@ private:
     std::string frame_id_;
     ros::Publisher scan_publisher_;
     ros::Publisher header_publisher_;
-    // moodycamel::BlockingReaderWriterQueue<sensor_msgs::LaserScanPtr> queue_;
     std::deque<sensor_msgs::LaserScanPtr> d_queue_;
     std::mutex q_mutex_;
 
@@ -76,6 +74,5 @@ private:
 
     template <typename T>
     void to_msg_queue(T &packet);
-    void run_publisher();
     void publish_scan(sensor_msgs::LaserScanPtr msg);
 };

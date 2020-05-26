@@ -105,10 +105,10 @@ private:
 class UDPTransport : public Transport
 {
 public:
-  UDPTransport(std::string address) : Transport(address, transport_type::tcp) 
+  UDPTransport(std::string address) : Transport(address, transport_type::udp) 
   {
     io_service_ = std::make_shared<boost::asio::io_service>();
-    socket_ = std::make_unique<udp::socket>(*io_service_);
+    socket_ = std::make_unique<udp::socket>(*io_service_, udp::endpoint(udp::v4(), 0));
   }
 
   ~UDPTransport()
