@@ -50,7 +50,8 @@ include_directories(
 add_executable(ros_main src/ros_main.cpp
                         src/pf_interface.cpp
                         src/scan_publisher.cpp
-                        src/pf_packet.cpp)
+                        src/pf_packet.cpp
+                        src/communication.cpp)
 target_link_libraries(ros_main
   ${catkin_LIBRARIES} curlpp curl jsoncpp
 )

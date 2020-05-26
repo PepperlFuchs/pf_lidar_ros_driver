@@ -69,7 +69,7 @@ struct ScanParameters
   double radial_range_max;
   double angle_min;
   double angle_max;
-  std::array<bool, 4> layers_enabled = {false, false, false, false};
+  std::array<bool, 4> layers_enabled {false, false, false, false};
 
   // void print()
   // {
@@ -377,7 +377,8 @@ public:
 
   bool start_scanoutput(std::string handle)
   {
-    return get_request_bool("start_scanoutput", { "" }, { { "handle", handle } });
+    get_request("start_scanoutput", { "" }, { { "handle", handle } });
+    return true;
   }
 
   bool stop_scanoutput(std::string handle)

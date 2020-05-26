@@ -20,11 +20,7 @@ bool PFPacket::parse_buf(uint8_t* buf, size_t buf_len, size_t &remainder, size_t
     if((num > (data_size / sizeof(uint32_t))) || (num == 0))
         return false;
 
-    distance.resize(num);
-    Data* data = reinterpret_cast<Data*>(&buf[h_size]);
-
-    // std::copy(data, data + num, distance.begin());
-    read_data(data, num);
+    read_data(&buf[h_size], num);
     remainder = buf_len - p_size;
     packet_size = p_size;
     return true;
@@ -47,12 +43,22 @@ int PFPacket::find_packet_start(uint8_t* buf, size_t buf_len)
     return -1;
 }
 
-void PFR2000Packet::read_with(PFPacketReader& reader)
+void PFR2000Packet_A::read_with(PFPacketReader& reader)
 {
     reader.read(*this);
 }
 
-void PFR2300Packet::read_with(PFPacketReader& reader)
+void PFR2000Packet_B::read_with(PFPacketReader& reader)
+{
+    reader.read(*this);
+}
+
+void PFR2000Packet_C::read_with(PFPacketReader& reader)
+{
+    reader.read(*this);
+}
+
+void PFR2300Packet_C1::read_with(PFPacketReader& reader)
 {
     reader.read(*this);
 }

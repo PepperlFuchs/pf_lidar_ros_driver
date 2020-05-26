@@ -12,8 +12,10 @@ public:
         packet->read_with(*shared_from_this());
     }
 
-    virtual void read(PFR2000Packet &packet) = 0;
-    virtual void read(PFR2300Packet &packet) = 0;
+    virtual void read(PFR2000Packet_A &packet) = 0;
+    virtual void read(PFR2000Packet_B &packet) = 0;
+    virtual void read(PFR2000Packet_C &packet) = 0;
+    virtual void read(PFR2300Packet_C1 &packet) = 0;
 
     virtual bool start()
     {
