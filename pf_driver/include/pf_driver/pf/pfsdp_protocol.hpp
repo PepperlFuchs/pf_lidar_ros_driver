@@ -19,6 +19,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include "pf_driver/pf/http_helpers.hpp"
+#include "pf_driver/PFDriverConfig.h"
 
 struct ProtocolInfo
 {
@@ -396,31 +397,16 @@ public:
     return get_request_bool("feed_watchdog", { "" }, { { "handle", handle } });
   }
 
-  bool set_scan_frequency(std::int32_t scan_frequency)
-  {
-    set_parameter({ KV("scan_frequency", scan_frequency) });
-    return true;
-  }
-
-  // special functions
-  virtual std::vector<int> get_layers_enabled()
-  {
-    std::cerr << "function not supported" << std::endl;
-    return std::vector<int>();
-  }
-
-  virtual std::pair<float, float> get_angle_min_max(std::string handle)
-  {
-    std::cerr << "function not supported" << std::endl;
-    return std::pair<float, float>();
-  }
-
   virtual std::string get_product()
   {
     return std::string("");
   }
 
   virtual ScanParameters get_scan_parameters(int start_angle=0)
+  {
+  }
+
+  virtual void handle_reconfig(pf_driver::PFDriverConfig &config, uint32_t level)
   {
   }
 };

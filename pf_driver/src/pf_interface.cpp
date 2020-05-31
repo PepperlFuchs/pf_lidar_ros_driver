@@ -164,6 +164,7 @@ std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet
         {
             parser = std::unique_ptr<Parser<PFPacket>>(new PFR2000_C_Parser);
         }
+        reader = std::shared_ptr<Reader<PFPacket>>(new ScanPublisherR2000("/scan", "scanner"));
     }
     else if(product_ == "R2300")
     {
@@ -171,9 +172,9 @@ std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet
         {
             parser = std::unique_ptr<Parser<PFPacket>>(new PFR2300_C1_Parser);
         }
+        reader = std::shared_ptr<Reader<PFPacket>>(new ScanPublisherR2300("/cloud", "scanner"));
     }
     writer = std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(std::move(transport_), parser));
-    reader = std::shared_ptr<Reader<PFPacket>>(new ScanPublisher("/scan", "scanner"));
     return std::unique_ptr<Pipeline<PFPacket>>(new Pipeline<PFPacket>(writer, reader, std::bind(&PFInterface::on_shutdown, this)));
 }
 
@@ -193,3 +194,13 @@ void PFInterface::on_shutdown()
     ROS_INFO("Shutting down pipeline!");
     stop_transmission();
 }
+
+void PFInterface::reconfig_callback(pf_driver::PFDriverConfig &config, uint32_t level)
+  {
+    if(state_ != PFState::RUNNING)
+        return;
+    config_ = protocol_interface_->get_scanoutput_config(info_.handle);
+    params_ = protocol_interface_->get_scan_parameters(config_.start_angle);
+    pipeline_->set_scanoutput_config(config_);
+    pipeline_->set_scan_params(params_);
+  }

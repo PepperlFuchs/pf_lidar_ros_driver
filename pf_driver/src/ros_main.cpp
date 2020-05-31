@@ -35,7 +35,11 @@ int main(int argc, char *argv[])
         ROS_ERROR("Unable to initialize device");
         return -1;
     }
-    pf_interface.start_transmission();
+    if(!pf_interface.start_transmission())
+    {
+        ROS_ERROR("Unable to start scan");
+        return -1;
+    }
     ros::spin();
     pf_interface.stop_transmission();
     return 0;

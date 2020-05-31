@@ -43,7 +43,7 @@ template <typename T>
 class Pipeline
 {
 public:
-    Pipeline(std::shared_ptr<Writer<T>> writer, std::shared_ptr<Reader<T>> reader, std::function<void ()> func) : writer_(writer), reader_(reader), shutdown(func), running_(false), shutdown_(false), queue_ {100}
+    Pipeline(std::shared_ptr<Writer<T>> writer, std::shared_ptr<Reader<T>> reader, std::function<void ()> func) : writer_(writer), reader_(reader), shutdown(func), running_(false), shutdown_(false), queue_ {20}
     {
     }
 
@@ -143,7 +143,7 @@ private:
         while(running_)
         {
             // ROS_INFO("reader loop");
-            if (!queue_.wait_dequeue_timed(packet, std::chrono::microseconds(100)))
+            if (!queue_.try_dequeue(packet))
             {
                 //TODO: reader needs to handle if no packet is received
                 continue;

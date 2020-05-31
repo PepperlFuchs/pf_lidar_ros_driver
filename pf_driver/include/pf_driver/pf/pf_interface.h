@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include <future>
+#include <dynamic_reconfigure/server.h>
 
 #include "pf_driver/pf/pf_parser.h"
 #include "pf_driver/pf/writer.h"
@@ -13,6 +14,7 @@
 #include "pf_driver/communication.h"
 #include "pf_driver/pf/r2000/pfsdp_2000.hpp"
 #include "pf_driver/pf/r2300/pfsdp_2300.hpp"
+#include "pf_driver/PFDriverConfig.h"
 
 class PFInterface
 {
@@ -26,6 +28,9 @@ public:
             transport_type_ = transport_->get_type();   
         }
         protocol_interface_ = std::make_shared<PFSDPBase>(ip_);
+
+        dynamic_reconfigure::Server<pf_driver::PFDriverConfig> param_server;
+        param_server.setCallback(boost::bind(&PFInterface::reconfig_callback, this, boost::placeholders::_1, boost::placeholders::_2));
     }
 
     bool init();
@@ -64,6 +69,7 @@ private:
 
     void start_watchdog_timer(float duration);
     void feed_watchdog(const ros::TimerEvent& e);   //timer based
+    void reconfig_callback(pf_driver::PFDriverConfig &config, uint32_t level);
 
     PipelinePtr pipeline_;
     PipelinePtr get_pipeline(std::string packet_type);
