@@ -15,15 +15,21 @@
 #ifndef PF_DRIVER_PFSDP_PROTOCOL_H
 #define PF_DRIVER_PFSDP_PROTOCOL_H
 
+#pragma once
+
 #include <boost/algorithm/string.hpp>
-#include "pf_driver/http_helpers.hpp"
+#include "pf_driver/pf/http_helpers.hpp"
+#include "pf_driver/PFDriverConfig.h"
 
 struct ProtocolInfo
 {
+  bool isError = false;
   std::string protocol_name;          // protocol name, defaults to "pfsdp"
   int version_major;                  // major version of protocol
   int version_minor;                  // minor version of protocol
   std::vector<std::string> commands;  // list of available commands
+                                      // Since R2300 may not give correct error reports
+                                      // it is safer to keep the list of commands 
 };
 
 struct HandleInfo
@@ -35,11 +41,53 @@ struct HandleInfo
   std::string hostname;
   std::string port;
   std::string handle;
-  char packet_type;
-  int start_angle;
-  bool watchdog_enabled;
-  int watchdog_timeout;
 };
+
+struct ScanConfig
+{
+  bool watchdog = false;
+  uint watchdogtimeout = 0;
+  std::string packet_type = "";
+  int start_angle = 0;
+  uint max_num_points_scan = 0;
+  uint skip_scans = 0;
+
+  // void print()
+  // {
+  //   std::cout << "Scan output config:\n"
+  //             << "watchdogtimeout: " << watchdogtimeout << "\n"
+  //             << "packet_type: " << packet_type << "\n"
+  //             << "start_angle: " << start_angle << "\n"
+  //             << "max_num_points_scan:" << max_num_points_scan << "\n"
+  //             << "skip_scan: " << skip_scans << std::endl;
+  // }
+};
+
+#pragma pack(push, sp, 1)
+struct ScanParameters
+{
+  double angular_fov = 0.0;
+  double radial_range_min = 0.0;
+  double radial_range_max = 0.0;
+  double angle_min = 0.0;
+  double angle_max = 0.0;
+  std::array<bool, 4> layers_enabled {false, false, false, false};
+
+  // void print()
+  // {
+  //   std::cout << "Scan parameters:\n"
+  //             << "angular_fov: " << angular_fov << "\n"
+  //             << "radial_range_min: " << radial_range_min << "\n"
+  //             << "radial_range_max: " << radial_range_max << "\n"
+  //             << "angle_min: " << angle_min << "\n"
+  //             << "angle_max: " << angle_max << "\n"
+  //             << "layers enabled: ";
+  //   for(auto &layer : layers_enabled)
+  //     std::cout << layer << " ";
+  //   std::cout << std::endl;
+  // }
+};
+#pragma pack(pop, sp)
 
 class KV : public std::pair<std::string, std::string>
 {
@@ -78,14 +126,14 @@ public:
   }
 };
 
-const std::vector<std::string> split(std::string str, const char delim = ';')
+inline const std::vector<std::string> split(std::string str, const char delim = ';')
 {
   std::vector<std::string> results;
   boost::split(results, str, [delim](char c) { return c == delim; });
   return results;
 }
 
-std::int64_t to_long(const std::string &s)
+inline std::int64_t to_long(const std::string &s)
 {
   std::int64_t int_val = 0;
   try
@@ -100,7 +148,22 @@ std::int64_t to_long(const std::string &s)
   return int_val;
 }
 
-float to_float(const std::string &s)
+inline uint16_t to_uint16(const std::string &s)
+{
+  uint16_t int_val = 0;
+  try
+  {
+    int_val = static_cast<uint16_t>(stoi(s));
+  }
+  catch (std::exception &e)
+  {
+    std::cerr << "conversion of data from string failed: " << s << std::endl;
+    return std::numeric_limits<uint16_t>::quiet_NaN();
+  }
+  return int_val;
+}
+
+inline float to_float(const std::string &s)
 {
   float float_val = 0;
   try
@@ -109,7 +172,7 @@ float to_float(const std::string &s)
   }
   catch (std::exception &e)
   {
-    std::cerr << "conversion of data from string failed" << std::endl;
+    std::cerr << "conversion of data from string failed " << s << std::endl;
     return std::numeric_limits<float>::quiet_NaN();
   }
   return float_val;
@@ -187,8 +250,12 @@ private:
     return true;
   }
 
+protected:
+  ScanConfig config;
+  ScanParameters params;
+
 public:
-  PFSDPBase(const utility::string_t &host) : hostname(host), http_interface(new HTTPInterface(host, "cmd"))
+  PFSDPBase(const std::string &host) : hostname(host), http_interface(new HTTPInterface(host, "cmd"))
   {
   }
 
@@ -216,11 +283,18 @@ public:
 
   ProtocolInfo get_protocol_info()
   {
-    auto resp = get_request("get_protocol_info", { "protocol_name", "version_major", "version_minor", "commands" });
     ProtocolInfo opi;
+    auto resp = get_request("get_protocol_info", { "protocol_name", "version_major", "version_minor", "commands" });
+    if(resp.empty())
+    {
+      opi.isError = true;
+      return opi;
+    }
+
     opi.version_major = atoi(resp["version_major"].c_str());
     opi.version_minor = atoi(resp["version_minor"].c_str());
     opi.protocol_name = resp["protocol_name"];
+
     return opi;
   }
 
@@ -272,38 +346,45 @@ public:
     return get_request_bool("reset_parameter", { "" }, { KV("list", ts...) });
   }
 
-  HandleInfo request_handle_tcp(const char packet_type, const int start_angle)
+  HandleInfo request_handle_tcp(const std::string port = "")
   {
-    auto resp = get_request("request_handle_tcp", { "handle", "port" },
-                            { KV("packet_type", std::string(1, packet_type)), KV(get_start_angle_str().c_str(), start_angle) });
+    std::map<std::string, std::string> resp;
+    if(!port.empty())
+      resp = get_request("request_handle_tcp", { "handle", "port"}, { KV("port", port) });
+    else 
+      resp = get_request("request_handle_tcp", { "handle", "port"});
+
     HandleInfo handle_info;
     handle_info.hostname = hostname;
     handle_info.handle = resp["handle"];
     handle_info.port = resp["port"];
-    handle_info.packet_type = packet_type;
-    handle_info.start_angle = start_angle;
-    handle_info.watchdog_enabled = true;
-    handle_info.watchdog_timeout = 60000;
     return handle_info;
   }
 
-  HandleInfo request_handle_udp(const std::string host_ip, const std::string port, const char packet_type,
-                                const int start_angle)
+  virtual HandleInfo request_handle_udp(const std::string host_ip, const std::string port)
   {
     auto resp = get_request("request_handle_udp", { "handle", "port" }, { KV("address", host_ip), KV("port", port) });
     HandleInfo handle_info;
     handle_info.handle = resp["handle"];
     handle_info.port = resp["port"];
-    handle_info.packet_type = packet_type;
-    handle_info.start_angle = start_angle;
-    handle_info.watchdog_enabled = true;
-    handle_info.watchdog_timeout = 60000;
     return handle_info;
+  }
+
+  virtual ScanConfig get_scanoutput_config(std::string handle)
+  {
+    auto resp = get_request("get_scanoutput_config", {"start_angle", "packet_type", "watchdogtimeout", "skip_scans"}, { KV("handle", handle) });
+    config.packet_type = resp["packet_type"];
+    config.start_angle = to_long(resp["start_angle"]);
+    config.watchdogtimeout = to_long(resp["watchdogtimeout"]);
+    config.watchdog = (resp["watchdog"] == "off") ? false : true;
+    config.skip_scans = to_long(resp["skip_scans"]);
+    return config;
   }
 
   bool start_scanoutput(std::string handle)
   {
-    return get_request_bool("start_scanoutput", { "" }, { { "handle", handle } });
+    get_request("start_scanoutput", { "" }, { { "handle", handle } });
+    return true;
   }
 
   bool stop_scanoutput(std::string handle)
@@ -321,29 +402,17 @@ public:
     return get_request_bool("feed_watchdog", { "" }, { { "handle", handle } });
   }
 
-  bool set_scan_frequency(std::int32_t scan_frequency)
+  virtual std::string get_product()
   {
-    set_parameter({ KV("scan_frequency", scan_frequency) });
-    return true;
+    return std::string("");
   }
 
-  // special functions
-  virtual std::vector<int> get_layers_enabled()
+  virtual ScanParameters get_scan_parameters(int start_angle=0)
   {
-    std::cerr << "function not supported" << std::endl;
-    return std::vector<int>();
   }
 
-  virtual std::pair<float, float> get_angle_min_max(std::string handle)
+  virtual void handle_reconfig(pf_driver::PFDriverConfig &config, uint32_t level)
   {
-    std::cerr << "function not supported" << std::endl;
-    return std::pair<float, float>();
-  }
-
-  virtual std::string get_start_angle_str()
-  {
-    std::cerr << "function not supported" << std::endl;
-    std::string("");
   }
 };
 

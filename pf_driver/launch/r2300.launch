@@ -1,17 +1,14 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="frame_id" default="/scan"/>
+  <arg name="transport" default="udp"/>
   <arg name="scanner_ip" default="10.0.10.76"/>
-  <arg name="major_version" default="0"/>
-  <arg name="scan_frequency" default="100"/>
-  <arg name="samples_per_scan" default="500"/>
 
-  <!-- R2300 Driver -->
-  <node pkg="pf_driver" type="r2300_node" name="r2300_node" output="screen">
-    <param name="scanner_ip" value="$(arg scanner_ip)"/>
-    <param name="major_version" value="$(arg major_version)"/>
-    <param name="frame_id" value="$(arg frame_id)"/>
-    <param name="scan_frequency" value="$(arg scan_frequency)"/>
-    <param name="samples_per_scan" value="$(arg samples_per_scan)"/>
-  </node>
+  <!-- R2000 Driver -->
+  <node pkg="pf_driver" type="ros_main" name="r2000_node" args="$(arg transport) $(arg scanner_ip) 0" output="screen"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="ring1" args="0 0 0 0 0.0785 0 /base_link /scanner_1 10" />
+	<node pkg="tf" type="static_transform_publisher" name="ring2" args="0 0 0 0 0.0262 0 /base_link /scanner_2 10" />
+	<node pkg="tf" type="static_transform_publisher" name="ring3" args="0 0 0 0 -0.0785 0 /base_link /scanner_3 10" />
+	<node pkg="tf" type="static_transform_publisher" name="ring4" args="0 0 0 0 -0.0262 0 /base_link /scanner_4 10" />
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find pf_driver)/rviz/r2300.rviz" />
 </launch>
