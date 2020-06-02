@@ -107,7 +107,7 @@ public:
   }
 
 private:
-  void get_layers_enabled(std::array<bool, 4> enabled)
+  void get_layers_enabled(uint16_t &enabled)
   {
     std::string layers = get_parameter_str("layer_enable");
     std::vector<std::string> vals = split(layers);
@@ -116,7 +116,7 @@ private:
     {
       if (vals[i].compare("on") == 0)
       {
-        enabled[i] = true;
+        enabled += pow(2, i);
       }
     }
   }

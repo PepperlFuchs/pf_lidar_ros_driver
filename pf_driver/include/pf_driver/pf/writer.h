@@ -17,7 +17,6 @@ public:
     {
         if(transport_)
         {
-            std::cout << "writer is connecting.." << transport_->is_connected() <<  std::endl;
             if(transport_->is_connected())
                 return true;
 

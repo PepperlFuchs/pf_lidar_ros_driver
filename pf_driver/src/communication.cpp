@@ -55,8 +55,6 @@ bool UDPTransport::connect()
     port_ = std::to_string(socket_->local_endpoint().port());
     host_ip_ = socket_->local_endpoint().address().to_string();
 
-    std::cout << host_ip_ << " " << port_ << std::endl;
-
     is_connected_ = true;
     return true;
 }

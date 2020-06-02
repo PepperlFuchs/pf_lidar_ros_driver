@@ -15,6 +15,8 @@
 #ifndef PF_DRIVER_HTTP_HELPER_H
 #define PF_DRIVER_HTTP_HELPER_H
 
+#pragma once
+
 #define _TURN_OFF_PLATFORM_STRING
 #include <iostream>
 #include <memory>
@@ -34,6 +36,17 @@
 #include <json/json.h>
 
 using param_type = std::pair<std::string, std::string>;
+
+inline std::string from_array(Json::Value &val)
+{
+  std::string s = "";
+  for (int i = 0; i < val.size() - 1; i++)
+  {
+    s += val[i].asString() + ";";
+  }
+  s += val[val.size() - 1].asString();
+  return s;
+}
 
 class CurlResource
 {
@@ -98,7 +111,6 @@ public:
     res.append_path(base_path);
     res.append_path(command);
     res.append_query(list);
-    res.print();
 
     Json::Value json_resp;
     std::map<std::string, std::string> json_kv;
@@ -123,10 +135,14 @@ public:
     {
       try
       {
-        json_kv[key] = json_resp[key].asString();
+        if(json_resp[key].isArray())
+          json_kv[key] = from_array(json_resp[key]);
+        else
+          json_kv[key] = json_resp[key].asString();
       }
       catch (std::exception &e)
       {
+
         json_kv[key] = "--COULD NOT RETRIEVE VALUE--";
       }
     }
