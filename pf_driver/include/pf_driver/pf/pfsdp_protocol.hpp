@@ -45,12 +45,12 @@ struct HandleInfo
 
 struct ScanConfig
 {
-  bool watchdog;
-  uint watchdogtimeout;
+  bool watchdog = false;
+  uint watchdogtimeout = 0;
   std::string packet_type = "";
-  int start_angle;
-  uint max_num_points_scan;
-  uint skip_scans;
+  int start_angle = 0;
+  uint max_num_points_scan = 0;
+  uint skip_scans = 0;
 
   // void print()
   // {
@@ -63,13 +63,14 @@ struct ScanConfig
   // }
 };
 
+#pragma pack(push, sp, 1)
 struct ScanParameters
 {
-  double angular_fov;
-  double radial_range_min;
-  double radial_range_max;
-  double angle_min;
-  double angle_max;
+  double angular_fov = 0.0;
+  double radial_range_min = 0.0;
+  double radial_range_max = 0.0;
+  double angle_min = 0.0;
+  double angle_max = 0.0;
   std::array<bool, 4> layers_enabled {false, false, false, false};
 
   // void print()
@@ -86,6 +87,7 @@ struct ScanParameters
   //   std::cout << std::endl;
   // }
 };
+#pragma pack(pop, sp)
 
 class KV : public std::pair<std::string, std::string>
 {
@@ -248,6 +250,10 @@ private:
     return true;
   }
 
+protected:
+  ScanConfig config;
+  ScanParameters params;
+
 public:
   PFSDPBase(const std::string &host) : hostname(host), http_interface(new HTTPInterface(host, "cmd"))
   {
@@ -367,7 +373,6 @@ public:
   virtual ScanConfig get_scanoutput_config(std::string handle)
   {
     auto resp = get_request("get_scanoutput_config", {"start_angle", "packet_type", "watchdogtimeout", "skip_scans"}, { KV("handle", handle) });
-    ScanConfig config;
     config.packet_type = resp["packet_type"];
     config.start_angle = to_long(resp["start_angle"]);
     config.watchdogtimeout = to_long(resp["watchdogtimeout"]);

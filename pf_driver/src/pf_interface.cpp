@@ -196,11 +196,12 @@ void PFInterface::on_shutdown()
 }
 
 void PFInterface::reconfig_callback(pf_driver::PFDriverConfig &config, uint32_t level)
-  {
+{
     if(state_ != PFState::RUNNING)
         return;
+    protocol_interface_->handle_reconfig(config, level);
     config_ = protocol_interface_->get_scanoutput_config(info_.handle);
     params_ = protocol_interface_->get_scan_parameters(config_.start_angle);
     pipeline_->set_scanoutput_config(config_);
     pipeline_->set_scan_params(params_);
-  }
+}

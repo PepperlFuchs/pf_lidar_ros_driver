@@ -15,10 +15,10 @@ class Reader
 {
 public:
     virtual void read(std::shared_ptr<T> packet) = 0;
-    virtual void set_scanoutput_config(ScanConfig &config)
+    virtual void set_scanoutput_config(ScanConfig config)
     {
     }
-    virtual void set_scan_params(ScanParameters &params)
+    virtual void set_scan_params(ScanParameters params)
     {
     }
     virtual bool start()

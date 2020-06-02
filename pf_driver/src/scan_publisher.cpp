@@ -22,10 +22,10 @@ void ScanPublisher::read(PFR2000Packet_C &packet)
 void ScanPublisher::read(PFR2300Packet_C1 &packet)
 {
     header_publisher_.publish(packet.header);
-    to_msg_queue<PFR2300Packet_C1>(packet);
+    to_msg_queue<PFR2300Packet_C1>(packet, packet.header.layer_index);
 }
 
-void ScanPublisher::publish_scan(sensor_msgs::LaserScanPtr msg)
+void ScanPublisher::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
 {
     ros::Time t = ros::Time::now();
     msg->header.stamp = t;
@@ -36,7 +36,7 @@ void ScanPublisher::publish_scan(sensor_msgs::LaserScanPtr msg)
 // Skipped scans?
 // Device errors?
 template <typename T>
-void ScanPublisher::to_msg_queue(T &packet)
+void ScanPublisher::to_msg_queue(T &packet, uint16_t layer_idx)
 {
     if(!check_status(packet.header.status_flags))
         return;
@@ -48,15 +48,8 @@ void ScanPublisher::to_msg_queue(T &packet)
         d_queue_.pop_front();
     if(packet.header.header.packet_number == 1)
     {
-        msg = d_queue_.front();
-        if(msg)
-        {
-            publish_scan(msg);
-            d_queue_.pop_front();
-        }
-
         msg.reset(new sensor_msgs::LaserScan());
-        msg->header.frame_id = frame_id_;
+        msg->header.frame_id.assign(frame_id_);
         msg->header.seq = packet.header.header.scan_number;
         msg->scan_time = 1000.0 / packet.header.scan_frequency;
         msg->angle_increment = packet.header.angular_increment / 10000.0 * (M_PI / 180.0);
@@ -81,6 +74,7 @@ void ScanPublisher::to_msg_queue(T &packet)
     if(msg->header.seq != packet.header.header.scan_number)
         return;
     int idx = packet.header.first_index;
+
     for(int i = 0; i < packet.header.num_points_packet; i++)
     {
         float data;
@@ -90,6 +84,15 @@ void ScanPublisher::to_msg_queue(T &packet)
             data = packet.distance[i] / 1000.0;
         msg->ranges[idx + i] = std::move(data);
     }
+    if(packet.header.num_points_scan == (idx + packet.header.num_points_packet))
+    {
+        msg = d_queue_.front();
+        if(msg)
+        {
+            handle_scan(msg, layer_idx);
+            d_queue_.pop_front();
+        }
+    }
 }
 
 // check the status bits here with a switch-case
@@ -98,4 +101,66 @@ bool ScanPublisher::check_status(uint32_t status_flags)
 {
     // if(packet.header.header.scan_number > packet.)
     return true;
+}
+
+void ScanPublisherR2300::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
+{
+    publish_scan(msg, layer_idx);
+    sensor_msgs::PointCloud2 c;
+    tf::TransformListener tfListener_;
+    if (tfListener_.waitForTransform(msg->header.frame_id, "/base_link",
+                                       msg->header.stamp +
+                                       ros::Duration().fromSec(msg->ranges.size() * msg->time_increment),
+                                       ros::Duration(1.0)))
+    {
+        projector_.transformLaserScanToPointCloud("/base_link", *msg, c, tfListener_);
+        // if (cloud_->data.empty())
+        // {
+        //     copy_pointcloud(*cloud_, c);
+        // }
+        // else
+        // {
+        //     add_pointcloud(*cloud_, c);
+        // }
+        pcl_publisher_.publish(c);
+    }
+    
+    // cloud_.reset(new sensor_msgs::PointCloud2());
+}
+
+void ScanPublisherR2300::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t idx)
+{
+    ros::Time t = ros::Time::now();
+    msg->header.stamp = t;
+    msg->header.frame_id = frame_ids_.at(idx);
+    scan_publishers_.at(idx).publish(msg);
+}
+
+void ScanPublisherR2300::copy_pointcloud(sensor_msgs::PointCloud2 &c1, sensor_msgs::PointCloud2 c2)
+{
+    c1.height = c2.height;
+    c1.width = c2.width;
+    c1.is_bigendian = c2.is_bigendian;
+    c1.point_step = c2.point_step;
+    c1.row_step = c2.row_step;
+
+    c1.fields = std::move(c2.fields);
+    c1.data = std::move(c2.data);
+}
+
+void ScanPublisherR2300::add_pointcloud(sensor_msgs::PointCloud2 &c1, sensor_msgs::PointCloud2 c2)
+{
+    pcl::PCLPointCloud2 p1, p2;
+    pcl_conversions::toPCL(c1, p1);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr p1_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+    // handle when point cloud is empty
+    pcl::fromPCLPointCloud2(p1, *p1_cloud);
+
+    pcl_conversions::toPCL(c2, p2);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr p2_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::fromPCLPointCloud2(p2, *p2_cloud);
+
+    *p1_cloud += *p2_cloud;
+    pcl::toROSMsg(*p1_cloud.get(), c1);
 }

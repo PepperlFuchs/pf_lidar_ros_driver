@@ -16,7 +16,7 @@
   <exec_depend>libpcl-all</exec_depend>
   <depend>roscpp</depend>
   <depend>libjsoncpp-dev</depend>
-  <depend>libcurlpp-dev</depend>
+  <depend>curlpp-dev</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>dynamic_reconfigure</depend>

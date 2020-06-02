@@ -46,12 +46,12 @@ public:
 class PFR2000Packet_A : public PFR2000Packet
 {
 protected:
-    #pragma pack(push, 1)
+    #pragma pack(push, pfA, 1)
     struct Data
     {
         uint32_t distance;
     };
-    #pragma unpack(pop 1)
+    #pragma pack(pop, pfA)
 
     virtual void get_type(char *c)
     {
@@ -66,13 +66,13 @@ protected:
 class PFR2000Packet_B : public PFR2000Packet
 {
 protected:
-    #pragma pack(push, 1)
+    #pragma pack(push, pfB, 1)
     struct Data
     {
         uint32_t distance;
         uint16_t amplitude;
     };
-    #pragma unpack(pop 1)
+    #pragma pack(pop, pfB)
 
     virtual void get_type(char *c)
     {
@@ -87,12 +87,12 @@ protected:
 class PFR2000Packet_C : public PFR2000Packet
 {
 protected:
-    #pragma pack(push, 1)
+    #pragma pack(push, pfC, 1)
     struct Data
     {
         uint32_t dist_amp;
     };
-    #pragma unpack(pop 1)
+    #pragma pack(pop, pfC)
 
     virtual void get_type(char *c)
     {
@@ -124,12 +124,12 @@ public:
 class PFR2300Packet_C1 : public PFR2300Packet
 {
 protected:
-    #pragma pack(push, 1)
+    #pragma pack(push, pfC1, 1)
     struct Data
     {
         uint32_t dist_amp;
     };
-    #pragma unpack(pop 1)
+    #pragma pack(pop, pfC1)
 
     virtual void get_type(char *c)
     {
