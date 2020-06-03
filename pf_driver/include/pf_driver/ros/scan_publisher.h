@@ -22,21 +22,17 @@ public:
 
     virtual bool start()
     {
-        // pub_thread_ = std::thread(&ScanPublisher::run_publisher, this);
-        // TODO: start publisher here depending on header
         return true;
     }
 
     virtual bool stop()
     {
-        pub_thread_.join();
         return true;
     }
 
     virtual void set_scanoutput_config(ScanConfig config)
     {
         std::lock_guard<std::mutex> lock(config_mutex_);
-        // config_ = config;
         config_.start_angle = config.start_angle;
         config_.max_num_points_scan = config.max_num_points_scan;
         config_.skip_scans = config.skip_scans;
@@ -55,11 +51,7 @@ protected:
     ros::Publisher header_publisher_;
     std::deque<sensor_msgs::LaserScanPtr> d_queue_;
     std::mutex q_mutex_;
-    std::vector<ros::Publisher> scan_publishers_;
-    std::vector<std::string> frame_ids_;
-    // tf::TransformListener tfListener_;
 
-    std::thread pub_thread_;
     std::mutex config_mutex_;
     ScanConfig config_;
     ScanParameters params_;
@@ -92,9 +84,8 @@ private:
 class ScanPublisherR2300 : public ScanPublisher
 {
 public:
-    ScanPublisherR2300(std::string scan_topic, std::string frame_id)
+    ScanPublisherR2300(std::string scan_topic, std::string frame_id) : tfListener_(nh_), layers_(0)
     {
-        // scan_publishers_.resize(4);
         for (int i = 0; i < 4; i++)
         {
             std::string topic = scan_topic + "_" + std::to_string(i + 1);
@@ -102,17 +93,20 @@ public:
             scan_publishers_.push_back(nh_.advertise<sensor_msgs::LaserScan>(topic.c_str(), 100));
             frame_ids_.push_back(id);
         }
-        // cloud_.reset(new sensor_msgs::PointCloud2());
+        cloud_.reset(new sensor_msgs::PointCloud2());
         pcl_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>(scan_topic, 1);
         header_publisher_ = nh_.advertise<pf_driver::PFR2300Header>("/r2300_header", 1);
         frame_id_.assign(frame_id);
     }
 
 private:
-    // sensor_msgs::PointCloud2Ptr cloud_;
-    // tf::TransformListener tfListener_;
+    sensor_msgs::PointCloud2Ptr cloud_;
+    tf::TransformListener tfListener_;
     laser_geometry::LaserProjection projector_;
     ros::Publisher pcl_publisher_;
+    std::vector<ros::Publisher> scan_publishers_;
+    std::vector<std::string> frame_ids_;
+    uint16_t layers_;
 
     virtual void publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx);
     virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx);

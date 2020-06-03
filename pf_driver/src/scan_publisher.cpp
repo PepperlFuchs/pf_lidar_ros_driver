@@ -107,25 +107,28 @@ void ScanPublisherR2300::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t lay
 {
     publish_scan(msg, layer_idx);
     sensor_msgs::PointCloud2 c;
-    tf::TransformListener tfListener_;
     if (tfListener_.waitForTransform(msg->header.frame_id, "/base_link",
                                        msg->header.stamp +
                                        ros::Duration().fromSec(msg->ranges.size() * msg->time_increment),
                                        ros::Duration(1.0)))
     {
         projector_.transformLaserScanToPointCloud("/base_link", *msg, c, tfListener_);
-        // if (cloud_->data.empty())
-        // {
-        //     copy_pointcloud(*cloud_, c);
-        // }
-        // else
-        // {
-        //     add_pointcloud(*cloud_, c);
-        // }
-        pcl_publisher_.publish(c);
+        if (cloud_->data.empty())
+        {
+            copy_pointcloud(*cloud_, c);
+        }
+        else
+        {
+            add_pointcloud(*cloud_, c);
+        }
+        layers_ += pow(2, layer_idx - 1);
+        if(layers_ >= params_.layers_enabled)
+        {
+            pcl_publisher_.publish(cloud_);
+            layers_ = 0;
+            cloud_.reset(new sensor_msgs::PointCloud2());
+        }
     }
-    
-    // cloud_.reset(new sensor_msgs::PointCloud2());
 }
 
 void ScanPublisherR2300::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t idx)
@@ -138,6 +141,7 @@ void ScanPublisherR2300::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t id
 
 void ScanPublisherR2300::copy_pointcloud(sensor_msgs::PointCloud2 &c1, sensor_msgs::PointCloud2 c2)
 {
+    c1.header.frame_id = c2.header.frame_id;
     c1.height = c2.height;
     c1.width = c2.width;
     c1.is_bigendian = c2.is_bigendian;

@@ -71,7 +71,7 @@ struct ScanParameters
   double radial_range_max = 0.0;
   double angle_min = 0.0;
   double angle_max = 0.0;
-  std::array<bool, 4> layers_enabled {false, false, false, false};
+  uint16_t layers_enabled = 0;
 
   // void print()
   // {
