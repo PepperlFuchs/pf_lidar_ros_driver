@@ -44,7 +44,7 @@ void ScanPublisher::to_msg_queue(T &packet, uint16_t layer_idx)
     sensor_msgs::LaserScanPtr msg;
     if(d_queue_.empty())
         d_queue_.emplace_back();
-    else if(d_queue_.size() > 100)
+    else if(d_queue_.size() > 5)
         d_queue_.pop_front();
     if(packet.header.header.packet_number == 1)
     {
@@ -86,11 +86,10 @@ void ScanPublisher::to_msg_queue(T &packet, uint16_t layer_idx)
     }
     if(packet.header.num_points_scan == (idx + packet.header.num_points_packet))
     {
-        msg = d_queue_.front();
         if(msg)
         {
             handle_scan(msg, layer_idx);
-            d_queue_.pop_front();
+            d_queue_.pop_back();
         }
     }
 }
