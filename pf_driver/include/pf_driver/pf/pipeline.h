@@ -43,7 +43,7 @@ template <typename T>
 class Pipeline
 {
 public:
-    Pipeline(std::shared_ptr<Writer<T>> writer, std::shared_ptr<Reader<T>> reader, std::function<void ()> func) : writer_(writer), reader_(reader), shutdown(func), running_(false), shutdown_(false), queue_ {20}
+    Pipeline(std::shared_ptr<Writer<T>> writer, std::shared_ptr<Reader<T>> reader, std::function<void ()> func) : writer_(writer), reader_(reader), shutdown(func), running_(false), shutdown_(false), queue_ {100}
     {
     }
 
@@ -130,6 +130,7 @@ private:
                 if(!queue_.try_enqueue(std::move(p)))
                     ROS_DEBUG("Queue overflow!");
             }
+            packets.clear();
         }
         writer_->stop();
         running_ = false;
