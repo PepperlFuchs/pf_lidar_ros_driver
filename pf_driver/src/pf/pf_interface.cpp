@@ -50,6 +50,8 @@ bool PFInterface::can_change_state(PFState state)
 bool PFInterface::handle_version(int major_version, int minor_version)
 {
     std::string product_name = "product";
+    if(expected_device_ == "R2000")
+    else if(expected_device_ == "R2300")
     product_name = protocol_interface_->get_product();
     if(product_name.find(expected_device_) != std::string::npos)
     {
