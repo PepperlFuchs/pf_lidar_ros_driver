@@ -20,7 +20,7 @@ class PFInterface
 {
 
 public:
-    PFInterface(std::unique_ptr<Transport> &&transport) : transport_(std::move(transport)), state_(PFState::UNINIT)
+    PFInterface(std::unique_ptr<Transport> &&transport, std::string device) : transport_(std::move(transport)), state_(PFState::UNINIT), expected_device_(device)
     {
         if(transport_)
         {
@@ -58,6 +58,7 @@ private:
     };
     PFState state_;
     std::string product_;
+    std::string expected_device_;
 
     HandleInfo info_;
     ScanConfig config_;
