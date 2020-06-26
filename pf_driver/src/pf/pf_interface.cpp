@@ -49,22 +49,12 @@ bool PFInterface::can_change_state(PFState state)
 
 bool PFInterface::handle_version(int major_version, int minor_version)
 {
-    std::string product_name = "product", expected = "expected";
-    if(major_version == 1 && minor_version == 3)
-    {
-        protocol_interface_ = std::make_shared<PFSDP_2000>(ip_);
-        expected = "R2000";
-    }
-    else if(major_version == 0 && minor_version == 5)
-    {
-        protocol_interface_ = std::make_shared<PFSDP_2300>(ip_);
-        expected = "R2300";
-    }
+    std::string product_name = "product";
     product_name = protocol_interface_->get_product();
-    if(product_name.find(expected) != std::string::npos)
+    if(product_name.find(expected_device_) != std::string::npos)
     {
         ROS_INFO("Device found: %s", product_name.c_str());
-        product_ = expected;
+        product_ = expected_device_;
         return true;
     }
     ROS_ERROR("Device unsupported");

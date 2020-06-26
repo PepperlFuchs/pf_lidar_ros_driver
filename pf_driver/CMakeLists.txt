@@ -47,10 +47,10 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(ros_main src/ros_main.cpp
-                        src/pf_interface.cpp
-                        src/scan_publisher.cpp
-                        src/pf_packet.cpp
+add_executable(ros_main src/ros/ros_main.cpp
+                        src/ros/scan_publisher.cpp
+                        src/pf/pf_interface.cpp
+                        src/pf/pf_packet.cpp
                         src/communication.cpp)
 target_link_libraries(ros_main
   ${catkin_LIBRARIES} curlpp curl jsoncpp

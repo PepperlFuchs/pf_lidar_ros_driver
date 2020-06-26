@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
     std::string transport_str = argv[1];
     std::string IP = argv[2];
     std::string port = argv[3];
+    std::string device = argv[4];
 
     ros::init(argc, argv, "pf_driver");
     ros::NodeHandle nh;
@@ -28,7 +29,7 @@ int main(int argc, char *argv[])
         ROS_ERROR("Incorrect transport option.");
         return -1;
     }
-    PFInterface pf_interface(std::move(transport));
+    PFInterface pf_interface(std::move(transport), device);
     // PFInterface pf_interface(transport, IP);
     if(!pf_interface.init())
     {

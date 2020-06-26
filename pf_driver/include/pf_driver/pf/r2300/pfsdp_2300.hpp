@@ -12,7 +12,7 @@ public:
 
   virtual std::string get_product()
   {
-    return get_parameter_str("part");
+    return get_parameter_str("product");
   }
 
   virtual ScanParameters get_scan_parameters(int start_angle)
