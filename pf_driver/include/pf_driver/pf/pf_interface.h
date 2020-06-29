@@ -29,8 +29,7 @@ public:
         }
         protocol_interface_ = std::make_shared<PFSDPBase>(ip_);
 
-        dynamic_reconfigure::Server<pf_driver::PFDriverConfig> param_server;
-        param_server.setCallback(boost::bind(&PFInterface::reconfig_callback, this, boost::placeholders::_1, boost::placeholders::_2));
+        param_server_.setCallback(boost::bind(&PFInterface::reconfig_callback, this, boost::placeholders::_1, boost::placeholders::_2));
     }
 
     bool init();
@@ -47,6 +46,7 @@ private:
     std::unique_ptr<Transport> transport_;
     transport_type transport_type_;
     std::shared_ptr<PFSDPBase> protocol_interface_;
+    dynamic_reconfigure::Server<pf_driver::PFDriverConfig> param_server_;
 
     enum class PFState
     {

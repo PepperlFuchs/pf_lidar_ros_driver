@@ -2,7 +2,7 @@
 <launch>
   <arg name="transport" default="udp"/>
   <arg name="scanner_ip" default="169.254.253.4"/>
-  <arg name="device" default="R2000">
+  <arg name="device" default="R2000"/>
 
   <!-- R2000 Driver -->
   <node pkg="pf_driver" type="ros_main" name="r2000_node" args="$(arg transport) $(arg scanner_ip) 0 $(arg device)" output="screen"/>
