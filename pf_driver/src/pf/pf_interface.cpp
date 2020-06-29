@@ -51,7 +51,13 @@ bool PFInterface::handle_version(int major_version, int minor_version)
 {
     std::string product_name = "product";
     if(expected_device_ == "R2000")
+    {
+        protocol_interface_ = std::make_shared<PFSDP_2000>(ip_);
+    }
     else if(expected_device_ == "R2300")
+    {
+        protocol_interface_ = std::make_shared<PFSDP_2300>(ip_);
+    }
     product_name = protocol_interface_->get_product();
     if(product_name.find(expected_device_) != std::string::npos)
     {
