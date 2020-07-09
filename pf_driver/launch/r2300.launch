@@ -5,7 +5,7 @@
   <arg name="device" default="R2300"/>
 
   <!-- R2000 Driver -->
-  <node pkg="pf_driver" type="ros_main" name="r2000_node" args="$(arg transport) $(arg scanner_ip) 0 $(arg device)" output="screen"/>
+  <node pkg="pf_driver" type="ros_main" name="r2300_node" args="$(arg transport) $(arg scanner_ip) 0 $(arg device)" output="screen"/>
 
   <node pkg="tf" type="static_transform_publisher" name="ring1" args="0 0 0 0 0.0785 0 /base_link /scanner_1 10" />
 	<node pkg="tf" type="static_transform_publisher" name="ring2" args="0 0 0 0 0.0262 0 /base_link /scanner_2 10" />

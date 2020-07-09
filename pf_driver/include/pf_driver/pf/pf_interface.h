@@ -14,7 +14,8 @@
 #include "pf_driver/communication.h"
 #include "pf_driver/pf/r2000/pfsdp_2000.hpp"
 #include "pf_driver/pf/r2300/pfsdp_2300.hpp"
-#include "pf_driver/PFDriverConfig.h"
+#include "pf_driver/PFDriverR2000Config.h"
+#include "pf_driver/PFDriverR2300Config.h"
 
 class PFInterface
 {
@@ -29,7 +30,8 @@ public:
         }
         protocol_interface_ = std::make_shared<PFSDPBase>(ip_);
 
-        param_server_.setCallback(boost::bind(&PFInterface::reconfig_callback, this, boost::placeholders::_1, boost::placeholders::_2));
+        param_server_R2000_.setCallback(boost::bind(&PFInterface::reconfig_callback_r2000, this, boost::placeholders::_1, boost::placeholders::_2));
+        param_server_R2300_.setCallback(boost::bind(&PFInterface::reconfig_callback_r2300, this, boost::placeholders::_1, boost::placeholders::_2));
     }
 
     bool init();
@@ -46,7 +48,8 @@ private:
     std::unique_ptr<Transport> transport_;
     transport_type transport_type_;
     std::shared_ptr<PFSDPBase> protocol_interface_;
-    dynamic_reconfigure::Server<pf_driver::PFDriverConfig> param_server_;
+    dynamic_reconfigure::Server<pf_driver::PFDriverR2000Config> param_server_R2000_;
+    dynamic_reconfigure::Server<pf_driver::PFDriverR2300Config> param_server_R2300_;
 
     enum class PFState
     {
@@ -70,7 +73,8 @@ private:
 
     void start_watchdog_timer(float duration);
     void feed_watchdog(const ros::TimerEvent& e);   //timer based
-    void reconfig_callback(pf_driver::PFDriverConfig &config, uint32_t level);
+    void reconfig_callback_r2000(pf_driver::PFDriverR2000Config &config, uint32_t level);
+    void reconfig_callback_r2300(pf_driver::PFDriverR2300Config &config, uint32_t level);
 
     PipelinePtr pipeline_;
     PipelinePtr get_pipeline(std::string packet_type);
