@@ -29,7 +29,7 @@ public:
     return params;
   }
 
-  virtual void handle_reconfig(pf_driver::PFDriverConfig &config, uint32_t level)
+  virtual void handle_reconfig(pf_driver::PFDriverR2300Config &config, uint32_t level)
   {
     if(level == 1)
     {

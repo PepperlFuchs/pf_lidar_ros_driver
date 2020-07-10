@@ -19,7 +19,8 @@
 
 #include <boost/algorithm/string.hpp>
 #include "pf_driver/pf/http_helpers.hpp"
-#include "pf_driver/PFDriverConfig.h"
+#include "pf_driver/PFDriverR2000Config.h"
+#include "pf_driver/PFDriverR2300Config.h"
 
 struct ProtocolInfo
 {
@@ -411,7 +412,11 @@ public:
   {
   }
 
-  virtual void handle_reconfig(pf_driver::PFDriverConfig &config, uint32_t level)
+  virtual void handle_reconfig(pf_driver::PFDriverR2000Config &config, uint32_t level)
+  {
+  }
+
+  virtual void handle_reconfig(pf_driver::PFDriverR2300Config &config, uint32_t level)
   {
   }
 };

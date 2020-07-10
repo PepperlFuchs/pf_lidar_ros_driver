@@ -22,7 +22,8 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(CURLPP REQUIRED curlpp)
 
 generate_dynamic_reconfigure_options(
-  cfg/PFDriver.cfg
+  cfg/PFDriverR2000.cfg
+  cfg/PFDriverR2300.cfg
 )
 
 add_message_files(
