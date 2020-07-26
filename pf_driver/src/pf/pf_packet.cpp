@@ -52,7 +52,6 @@ void PFR2000Packet_A::read_data(uint8_t *buf, size_t num)
 {
     Data *data = reinterpret_cast<Data*>(buf);
     distance.resize(num);
-    amplitude.resize(num);
     for(int i = 0; i < num; i++)
     {
         distance[i] = data[i].distance;
