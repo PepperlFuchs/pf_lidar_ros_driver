@@ -14,12 +14,9 @@ bool PFPacket::parse_buf(uint8_t* buf, size_t buf_len, size_t &remainder, size_t
     std::tie(h_size, p_size, num) = read_header(stream);
 
     auto data_size = p_size - h_size;
-    if((buf_len - SIZE) < data_size)
+    if(buf_len < p_size)
         return false;
     
-    if((num > (data_size / sizeof(uint32_t))) || (num == 0))
-        return false;
-
     read_data(&buf[h_size], num);
     remainder = buf_len - p_size;
     packet_size = p_size;
