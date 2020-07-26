@@ -187,8 +187,12 @@ private:
   std::string hostname;
 
   const std::map<std::string, std::string>
+  get_request(const std::string command, std::vector<std::string> json_keys, const std::initializer_list<param_type> query) {
+    return get_request(command, json_keys, param_map_type(query.begin(), query.end()));
+  }
+  const std::map<std::string, std::string>
   get_request(const std::string command, std::vector<std::string> json_keys = std::vector<std::string>(),
-              std::initializer_list<param_type> query = std::initializer_list<param_type>())
+              const param_map_type query = param_map_type())
   {
     const std::string err_code = "error_code";
     const std::string err_text = "error_text";
@@ -349,11 +353,10 @@ public:
 
   HandleInfo request_handle_tcp(const std::string port = "")
   {
-    std::map<std::string, std::string> resp;
+    param_map_type query;
     if(!port.empty())
-      resp = get_request("request_handle_tcp", { "handle", "port"}, { KV("port", port) });
-    else 
-      resp = get_request("request_handle_tcp", { "handle", "port"});
+      query["port"] = port;
+    auto resp = get_request("request_handle_tcp", { "handle", "port" }, query);
 
     HandleInfo handle_info;
     handle_info.hostname = hostname;
@@ -364,7 +367,9 @@ public:
 
   virtual HandleInfo request_handle_udp(const std::string host_ip, const std::string port)
   {
-    auto resp = get_request("request_handle_udp", { "handle", "port" }, { KV("address", host_ip), KV("port", port) });
+    param_map_type query = { KV("address", host_ip), KV("port", port) };
+    auto resp = get_request("request_handle_udp", { "handle", "port" }, query);
+
     HandleInfo handle_info;
     handle_info.handle = resp["handle"];
     handle_info.port = resp["port"];

@@ -36,6 +36,7 @@
 #include <json/json.h>
 
 using param_type = std::pair<std::string, std::string>;
+using param_map_type = std::map<std::string, std::string>;
 
 inline std::string from_array(Json::Value &val)
 {
@@ -68,6 +69,16 @@ public:
     {
         url_ += "?"; 
         for (const auto &p : list)
+        {
+            url_ += p.first + "=" + p.second + "&";
+        }
+        url_.pop_back();
+    }
+
+    void append_query(const param_map_type &params, bool do_encoding = false)
+    {
+        url_ += "?";
+        for (const auto &p : params)
         {
             url_ += p.first + "=" + p.second + "&";
         }
@@ -111,7 +122,24 @@ public:
     res.append_path(base_path);
     res.append_path(command);
     res.append_query(list);
+    return get_(json_keys, res);
+  }
 
+  const std::map<std::string, std::string>
+  get(const std::vector<std::string> &json_keys, const std::string command,
+      const param_map_type &params = param_map_type())
+  {
+    CurlResource res(host);
+    res.append_path(base_path);
+    res.append_path(command);
+    res.append_query(params);
+    return get_(json_keys, res);
+  }
+
+private:
+  const std::map<std::string, std::string>
+  get_(const std::vector<std::string> &json_keys, CurlResource &res)
+  {
     Json::Value json_resp;
     std::map<std::string, std::string> json_kv;
 
@@ -149,7 +177,6 @@ public:
     return json_kv;
   }
 
-private:
   const std::string host;
   const std::string base_path;
 };
