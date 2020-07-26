@@ -36,12 +36,21 @@ public:
 
     virtual bool get(std::vector<std::unique_ptr<T>> &packets)
     {
-        // uint8_t buf[4096];
         boost::array<uint8_t, 4096> buf;
         size_t read = 0;
+        size_t used = 0;
         if(transport_->read(buf, read))
         {
-            parser_->parse(buf.data(), read, packets);
+            persistent_buffer_.insert(persistent_buffer_.end(), buf.begin(), buf.begin() + read);
+            parser_->parse(persistent_buffer_.data(), persistent_buffer_.size(), packets, used);
+
+            if(used)
+            {
+                if(used == persistent_buffer_.size())
+                    persistent_buffer_.clear();
+                else
+                    persistent_buffer_.erase(persistent_buffer_.begin(), persistent_buffer_.begin()+used);
+            }
             return true;
         }
         return false;
@@ -50,4 +59,5 @@ public:
 private:
     std::unique_ptr<Transport> transport_;;
     std::shared_ptr<Parser<T>> parser_;
+    std::vector<uint8_t> persistent_buffer_;
 };
