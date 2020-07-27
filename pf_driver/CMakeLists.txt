@@ -57,6 +57,7 @@ target_link_libraries(ros_main
   ${catkin_LIBRARIES} curlpp curl jsoncpp
 )
 add_dependencies(ros_main ${PROJECT_NAME}_gencfg)
+add_dependencies(ros_main ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 #if (CATKIN_ENABLE_TESTING)
 #  set(${PROJECT_NAME}_TEST_SOURCES
