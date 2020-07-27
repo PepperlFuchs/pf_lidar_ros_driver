@@ -30,8 +30,6 @@ public:
         }
         protocol_interface_ = std::make_shared<PFSDPBase>(ip_);
 
-        param_server_R2000_.setCallback(boost::bind(&PFInterface::reconfig_callback_r2000, this, boost::placeholders::_1, boost::placeholders::_2));
-        param_server_R2300_.setCallback(boost::bind(&PFInterface::reconfig_callback_r2300, this, boost::placeholders::_1, boost::placeholders::_2));
     }
 
     bool init();
@@ -48,8 +46,8 @@ private:
     std::unique_ptr<Transport> transport_;
     transport_type transport_type_;
     std::shared_ptr<PFSDPBase> protocol_interface_;
-    dynamic_reconfigure::Server<pf_driver::PFDriverR2000Config> param_server_R2000_;
-    dynamic_reconfigure::Server<pf_driver::PFDriverR2300Config> param_server_R2300_;
+    std::unique_ptr<dynamic_reconfigure::Server<pf_driver::PFDriverR2000Config> > param_server_R2000_;
+    std::unique_ptr<dynamic_reconfigure::Server<pf_driver::PFDriverR2300Config> > param_server_R2300_;
 
     enum class PFState
     {
@@ -70,6 +68,7 @@ private:
     void change_state(PFState state);
     bool can_change_state(PFState state);
     bool handle_version(int major_version, int minor_version);
+    void setup_param_server();
 
     void start_watchdog_timer(float duration);
     void feed_watchdog(const ros::TimerEvent& e);   //timer based
