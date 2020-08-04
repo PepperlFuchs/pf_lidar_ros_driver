@@ -76,33 +76,6 @@ public:
     } else if(level == 15)
     {
       set_parameter({ KV("operating_mode", config.operating_mode) });
-    } else if(level == 16)
-    {
-      set_parameter({ KV("address", config.address) });
-    } else if(level == 17)
-    {
-      set_parameter({ KV("port", config.port) });
-    } else if(level == 18)
-    {
-      set_parameter({ KV("packet_type", config.packet_type) });
-    } else if(level == 19)
-    {
-      set_parameter({ KV("packet_crc", config.packet_crc) });
-    } else if(level == 20)
-    {
-      set_parameter({ KV("watchdog", config.watchdog) });
-    } else if(level == 21)
-    {
-      set_parameter({ KV("watchdogtimeout", config.watchdogtimeout) });
-    } else if(level == 22)
-    {
-      set_parameter({ KV("start_angle", config.start_angle) });
-    } else if(level == 23)
-    {
-      set_parameter({ KV("max_num_points_scan", config.max_num_points_scan) });
-    } else if(level == 24)
-    {
-      set_parameter({ KV("skip_scans", config.skip_scans) });
     }
   }
 

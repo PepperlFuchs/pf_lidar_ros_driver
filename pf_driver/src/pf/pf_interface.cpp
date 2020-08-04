@@ -195,14 +195,53 @@ void PFInterface::on_shutdown()
 
 void PFInterface::reconfig_callback_r2000(pf_driver::PFDriverR2000Config &config, uint32_t level)
 {
+
+      bool watchdog = false;
+  uint watchdogtimeout = 0;
+  std::string packet_type = "";
+  int start_angle = 0;
+  uint max_num_points_scan = 0;
+  uint skip_scans = 0;
     if(product_ != "R2000")
         return;
     if(state_ != PFState::RUNNING)
         return;
-    protocol_interface_->handle_reconfig(config, level);
+    // Do we want to change the address and port at run-time?
+    // if(level == 16){
+    //   set_parameter({ KV("address", config.address) });
+    // } else if(level == 17)
+    // {
+    //   set_parameter({ KV("port", config.port) });
+    // }
+    if(level == 18)
+    {
+        config_.packet_type = config.packet_type;
+    } else if(level == 19)
+    {
+        // this param doesn't exist for R2000
+        // set_parameter({ KV("packet_crc", config.packet_crc) });
+    } else if(level == 20)
+    {
+        config_.watchdog = (config.watchdog == "on") ? true : false;
+    } else if(level == 21)
+    {
+        config_.watchdogtimeout = config.watchdogtimeout;
+    } else if(level == 22)
+    {
+        config_.start_angle = config.start_angle;
+    } else if(level == 23)
+    {
+        config_.max_num_points_scan = config.max_num_points_scan;
+    } else if(level == 24)
+    {
+        config_.skip_scans = config.skip_scans;
+    } else
+    {
+        protocol_interface_->handle_reconfig(config, level);
+    }
+    pipeline_->set_scanoutput_config(config_);
     config_ = protocol_interface_->get_scanoutput_config(info_.handle);
     params_ = protocol_interface_->get_scan_parameters(config_.start_angle);
-    pipeline_->set_scanoutput_config(config_);
     pipeline_->set_scan_params(params_);
 }
 
@@ -212,9 +251,41 @@ void PFInterface::reconfig_callback_r2300(pf_driver::PFDriverR2300Config &config
         return;
     if(state_ != PFState::RUNNING)
         return;
-    protocol_interface_->handle_reconfig(config, level);
+    // Do we want to change the address and port at run-time?
+    // if(level == 16){
+    //   set_parameter({ KV("address", config.address) });
+    // } else if(level == 17)
+    // {
+    //   set_parameter({ KV("port", config.port) });
+    // }
+    if(level == 18)
+    {
+        config_.packet_type = config.packet_type;
+    } else if(level == 19)
+    {
+        // currently always none for R2300
+        // config_.packet_crc = config.packet_crc;
+    } else if(level == 20)
+    {
+        config_.watchdog = (config.watchdog == "on") ? true : false;
+    } else if(level == 21)
+    {
+        config_.watchdogtimeout = config.watchdogtimeout;
+    } else if(level == 22)
+    {
+        config_.start_angle = config.start_angle;
+    } else if(level == 23)
+    {
+        config_.max_num_points_scan = config.max_num_points_scan;
+    } else if(level == 24)
+    {
+        config_.skip_scans = config.skip_scans;
+    } else
+    {
+        protocol_interface_->handle_reconfig(config, level);
+    }
+    pipeline_->set_scanoutput_config(config_);
     config_ = protocol_interface_->get_scanoutput_config(info_.handle);
     params_ = protocol_interface_->get_scan_parameters(config_.start_angle);
-    pipeline_->set_scanoutput_config(config_);
     pipeline_->set_scan_params(params_);
 }
