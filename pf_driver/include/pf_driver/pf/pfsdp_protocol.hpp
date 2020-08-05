@@ -351,11 +351,13 @@ public:
     return get_request_bool("reset_parameter", { "" }, { KV("list", ts...) });
   }
 
-  HandleInfo request_handle_tcp(const std::string port = "")
+  HandleInfo request_handle_tcp(const std::string port = "", const std::string packet_type = "")
   {
     param_map_type query;
     if(!port.empty())
       query["port"] = port;
+    if(!packet_type.empty())
+      query["packet_type"] = packet_type;
     auto resp = get_request("request_handle_tcp", { "handle", "port" }, query);
 
     HandleInfo handle_info;
@@ -365,9 +367,11 @@ public:
     return handle_info;
   }
 
-  virtual HandleInfo request_handle_udp(const std::string host_ip, const std::string port)
+  virtual HandleInfo request_handle_udp(const std::string host_ip, const std::string port, const std::string packet_type = "")
   {
     param_map_type query = { KV("address", host_ip), KV("port", port) };
+    if(!packet_type.empty())
+      query["packet_type"] = packet_type;
     auto resp = get_request("request_handle_udp", { "handle", "port" }, query);
 
     HandleInfo handle_info;
