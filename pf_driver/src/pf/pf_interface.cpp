@@ -17,6 +17,7 @@ bool PFInterface::init()
         return false;
     if(!handle_version(opi.version_major, opi.version_minor))
         return false;
+    setup_param_server();
 
     change_state(PFState::INIT);
     return true;
@@ -67,6 +68,20 @@ bool PFInterface::handle_version(int major_version, int minor_version)
     }
     ROS_ERROR("Device unsupported");
     return false;
+}
+
+void PFInterface::setup_param_server()
+{
+    if(expected_device_ == "R2000")
+    {
+        param_server_R2000_ = std::make_unique<dynamic_reconfigure::Server<pf_driver::PFDriverR2000Config> >();
+        param_server_R2000_->setCallback(boost::bind(&PFInterface::reconfig_callback_r2000, this, boost::placeholders::_1, boost::placeholders::_2));
+    }
+    else
+    {
+        param_server_R2300_ = std::make_unique<dynamic_reconfigure::Server<pf_driver::PFDriverR2300Config> >();
+        param_server_R2300_->setCallback(boost::bind(&PFInterface::reconfig_callback_r2300, this, boost::placeholders::_1, boost::placeholders::_2));
+    }
 }
 
 bool PFInterface::start_transmission()
