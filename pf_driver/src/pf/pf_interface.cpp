@@ -92,17 +92,12 @@ bool PFInterface::start_transmission()
     if(pipeline_ && pipeline_->is_running())
         return true;
 
+    std::string pkt_type = (expected_device_ == "R2000") ? "C" : "";
     if(transport_type_ == transport_type::tcp)
     {
+        info_ = protocol_interface_->request_handle_tcp(port_, pkt_type);
         if(port_.empty())
-        {
-            info_ = protocol_interface_->request_handle_tcp();
             port_ = info_.port;
-        }
-        else
-        {
-            info_ = protocol_interface_->request_handle_tcp(port_);
-        }
         transport_->set_port(port_);
         transport_->connect();
     }
@@ -113,7 +108,7 @@ bool PFInterface::start_transmission()
 
         std::string host_ip = transport_->get_host_ip();
         port_ = transport_->get_port();
-        info_ = protocol_interface_->request_handle_udp(host_ip, port_);
+        info_ = protocol_interface_->request_handle_udp(host_ip, port_, pkt_type);
     }
     if(info_.handle.empty())
         return false;
@@ -165,6 +160,7 @@ std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet
     std::shared_ptr<Reader<PFPacket>> reader;
     if(product_ == "R2000")
     {
+        ROS_DEBUG("PacketType is: %s", packet_type.c_str());
         if(packet_type == "A")
         {
             parser = std::unique_ptr<Parser<PFPacket>>(new PFR2000_A_Parser);

@@ -64,6 +64,8 @@ void ScanPublisher::to_msg_queue(T &packet, uint16_t layer_idx)
         }
 
         msg->ranges.resize(packet.header.num_points_scan);
+        if(!packet.amplitude.empty())
+            msg->intensities.resize(packet.header.num_points_scan);
         d_queue_.push_back(msg);
     }
     msg = d_queue_.back();
@@ -83,6 +85,8 @@ void ScanPublisher::to_msg_queue(T &packet, uint16_t layer_idx)
         else
             data = packet.distance[i] / 1000.0;
         msg->ranges[idx + i] = std::move(data);
+        if(!packet.amplitude.empty() && packet.amplitude[i] >= 32)
+            msg->intensities[idx + i] = packet.amplitude[i];
     }
     if(packet.header.num_points_scan == (idx + packet.header.num_points_packet))
     {

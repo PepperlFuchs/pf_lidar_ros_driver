@@ -7,41 +7,51 @@ template <typename T>
 class Parser
 {
 public:
-  virtual bool parse(uint8_t* buf, size_t buf_len, std::vector<std::unique_ptr<T>>& results) = 0;
+  virtual bool parse(uint8_t* buf, size_t buf_len, std::vector<std::unique_ptr<T>>& results, size_t & used) = 0;
 };
 
 template <typename T>
 class PFParser : public Parser<PFPacket>
 {
 public:
-  virtual bool parse(uint8_t* buf, size_t buf_len, std::vector<std::unique_ptr<PFPacket>>& results)
+  virtual bool parse(uint8_t* buf, size_t buf_len, std::vector<std::unique_ptr<PFPacket>>& results, size_t & used)
   {
     std::unique_ptr<T> packet = std::make_unique<T>();
-
     uint32_t serial_size = packet->get_size();
-    if(buf_len < serial_size)
+    uint8_t* orig_buf = buf;
+    int count = 0;
+    used = 0;
+
+    while(buf_len >= serial_size)
     {
-      ROS_ERROR("Received data smaller than header size");
-      return false;
+
+      int start = packet->find_packet_start(buf, buf_len);
+      if(start == -1)
+      {
+        ROS_DEBUG("No magic number found. Invalid packet.");
+        break;
+      }
+      buf += start;
+      buf_len -= start;
+      if(buf_len < serial_size)
+        break;
+      size_t remainder = 0;
+      size_t p_size = 0;
+      if(!packet->parse_buf(buf, buf_len, remainder, p_size))
+        break;
+      results.push_back(std::move(packet));
+      ++count;
+
+      buf += p_size;
+      buf_len -= p_size;
+      used = buf - orig_buf;
+      packet = std::make_unique<T>();
     }
 
-    int start = packet->find_packet_start(buf, buf_len);
-    if(start == -1)
-    {
-      ROS_DEBUG("No magic number found. Invalid packet.");
-      return false;
-    }
-    size_t remainder = 0;
-    size_t p_size = 0;
-    if(!packet->parse_buf(buf + start, buf_len, remainder, p_size))
-      return false;
+    if(count == 0)
+      ROS_DEBUG("Received data smaller than header size");
 
-    results.push_back(std::move(packet));
-    if(remainder > serial_size)
-    {
-      return parse(buf + p_size, remainder, results);
-    }
-    return true;
+    return count > 0;
   }
 };
 

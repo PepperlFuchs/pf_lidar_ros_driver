@@ -14,12 +14,9 @@ bool PFPacket::parse_buf(uint8_t* buf, size_t buf_len, size_t &remainder, size_t
     std::tie(h_size, p_size, num) = read_header(stream);
 
     auto data_size = p_size - h_size;
-    if((buf_len - SIZE) < data_size)
+    if(buf_len < p_size)
         return false;
     
-    if((num > (data_size / sizeof(uint32_t))) || (num == 0))
-        return false;
-
     read_data(&buf[h_size], num);
     remainder = buf_len - p_size;
     packet_size = p_size;
@@ -52,7 +49,6 @@ void PFR2000Packet_A::read_data(uint8_t *buf, size_t num)
 {
     Data *data = reinterpret_cast<Data*>(buf);
     distance.resize(num);
-    amplitude.resize(num);
     for(int i = 0; i < num; i++)
     {
         distance[i] = data[i].distance;
@@ -67,11 +63,13 @@ void PFR2000Packet_B::read_with(PFPacketReader& reader)
 void PFR2000Packet_B::read_data(uint8_t *buf, size_t num)
 {
     Data *data = reinterpret_cast<Data*>(buf);
-    // for(int i = 0; i < num; i++)
-    // {
-    //     distance.push_back(data[i].distance);
-    //     amplitude.push_back(data[i].amplitude);
-    // }
+    distance.resize(num);
+    amplitude.resize(num);
+    for(int i = 0; i < num; i++)
+    {
+        distance[i] = data[i].distance;
+        amplitude[i] = data[i].amplitude;
+    }
 }
 
 void PFR2000Packet_C::read_with(PFPacketReader& reader)
