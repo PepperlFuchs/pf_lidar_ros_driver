@@ -28,7 +28,7 @@ void ScanPublisher::read(PFR2300Packet_C1 &packet)
 void ScanPublisher::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
 {
     ros::Time t = ros::Time::now();
-    msg->header.stamp = t;
+    msg->header.stamp = t + ros::Duration(config_.time_offset);
     scan_publisher_.publish(std::move(msg));
 }
 
@@ -137,7 +137,7 @@ void ScanPublisherR2300::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t lay
 void ScanPublisherR2300::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t idx)
 {
     ros::Time t = ros::Time::now();
-    msg->header.stamp = t;
+    msg->header.stamp = t + ros::Duration(config_.time_offset);
     msg->header.frame_id = frame_ids_.at(idx);
     scan_publishers_.at(idx).publish(msg);
 }
