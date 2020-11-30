@@ -36,6 +36,7 @@ public:
         config_.start_angle = config.start_angle;
         config_.max_num_points_scan = config.max_num_points_scan;
         config_.skip_scans = config.skip_scans;
+        config_.time_offset = config.time_offset;
     }
     
     virtual void set_scan_params(ScanParameters params)
