@@ -115,7 +115,8 @@ void ScanPublisherR2300::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t lay
                                        ros::Duration().fromSec(msg->ranges.size() * msg->time_increment),
                                        ros::Duration(1.0)))
     {
-        projector_.transformLaserScanToPointCloud("/base_link", *msg, c, tfListener_);
+        int channelOptions = laser_geometry::channel_option::Intensity;
+        projector_.transformLaserScanToPointCloud("/base_link", *msg, c, tfListener_, -1.0, channelOptions);
         if (cloud_->data.empty())
         {
             copy_pointcloud(*cloud_, c);
@@ -159,13 +160,13 @@ void ScanPublisherR2300::add_pointcloud(sensor_msgs::PointCloud2 &c1, sensor_msg
 {
     pcl::PCLPointCloud2 p1, p2;
     pcl_conversions::toPCL(c1, p1);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr p1_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZI>::Ptr p1_cloud(new pcl::PointCloud<pcl::PointXYZI>);
 
     // handle when point cloud is empty
     pcl::fromPCLPointCloud2(p1, *p1_cloud);
 
     pcl_conversions::toPCL(c2, p2);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr p2_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZI>::Ptr p2_cloud(new pcl::PointCloud<pcl::PointXYZI>);
     pcl::fromPCLPointCloud2(p2, *p2_cloud);
 
     *p1_cloud += *p2_cloud;
