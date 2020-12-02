@@ -1,3 +1,8 @@
+#include <algorithm>
+#include <memory>
+#include <string>
+#include <utility>
+
 #include "pf_driver/pf/pf_interface.h"
 #include "pf_driver/ros/scan_publisher.h"
 

@@ -1,4 +1,7 @@
 #include <exception>
+#include <limits>
+#include <utility>
+
 #include "pf_driver/ros/scan_publisher.h"
 
 void ScanPublisher::read(PFR2000Packet_A& packet)

@@ -25,6 +25,7 @@
   <depend>pcl_ros</depend>
   <depend>roscpp_serialization</depend>
   <test_depend>rosunit</test_depend>
+  <build_depend>roslint</build_depend>
 
   <export>
   </export>

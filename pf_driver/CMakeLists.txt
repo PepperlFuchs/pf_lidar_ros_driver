@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   pcl_ros
   roscpp_serialization
+  roslint
 )
 
 find_package(Boost REQUIRED COMPONENTS  thread system)
@@ -60,6 +61,12 @@ target_link_libraries(ros_main
 )
 add_dependencies(ros_main ${PROJECT_NAME}_gencfg)
 add_dependencies(ros_main ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
+roslint_cpp(src/ros/ros_main.cpp
+            src/ros/scan_publisher.cpp
+            src/pf/pf_interface.cpp
+            src/pf/pf_packet.cpp
+            src/communication.cpp)
 
 #if (CATKIN_ENABLE_TESTING)
 #  set(${PROJECT_NAME}_TEST_SOURCES
