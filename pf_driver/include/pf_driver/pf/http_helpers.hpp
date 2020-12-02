@@ -38,7 +38,7 @@
 using param_type = std::pair<std::string, std::string>;
 using param_map_type = std::map<std::string, std::string>;
 
-inline std::string from_array(Json::Value &val)
+inline std::string from_array(Json::Value& val)
 {
   std::string s = "";
   for (int i = 0; i < val.size() - 1; i++)
@@ -52,71 +52,71 @@ inline std::string from_array(Json::Value &val)
 class CurlResource
 {
 public:
-    CurlResource(std::string host) : url_("")
-    {
-        url_ = "http://" + host;
-        header_.push_back("Content-Type: application/json"); 
-        request_.setOpt(new curlpp::options::HttpHeader(header_));
-        request_.setOpt(curlpp::options::WriteStream(&response_));
-    }
+  CurlResource(std::string host) : url_("")
+  {
+    url_ = "http://" + host;
+    header_.push_back("Content-Type: application/json");
+    request_.setOpt(new curlpp::options::HttpHeader(header_));
+    request_.setOpt(curlpp::options::WriteStream(&response_));
+  }
 
-    void append_path(const std::string &path)
-    {
-        url_ += "/" + path;
-    }
+  void append_path(const std::string& path)
+  {
+    url_ += "/" + path;
+  }
 
-    void append_query(const std::initializer_list<param_type> &list, bool do_encoding = false)
+  void append_query(const std::initializer_list<param_type>& list, bool do_encoding = false)
+  {
+    url_ += "?";
+    for (const auto& p : list)
     {
-        url_ += "?"; 
-        for (const auto &p : list)
-        {
-            url_ += p.first + "=" + p.second + "&";
-        }
-        url_.pop_back();
+      url_ += p.first + "=" + p.second + "&";
     }
+    url_.pop_back();
+  }
 
-    void append_query(const param_map_type &params, bool do_encoding = false)
+  void append_query(const param_map_type& params, bool do_encoding = false)
+  {
+    url_ += "?";
+    for (const auto& p : params)
     {
-        url_ += "?";
-        for (const auto &p : params)
-        {
-            url_ += p.first + "=" + p.second + "&";
-        }
-        url_.pop_back();
+      url_ += p.first + "=" + p.second + "&";
     }
+    url_.pop_back();
+  }
 
-    void get(Json::Value &json_resp)
-    {
-        request_.setOpt(curlpp::options::Url(url_)); 
-        request_.perform();
+  void get(Json::Value& json_resp)
+  {
+    request_.setOpt(curlpp::options::Url(url_));
+    request_.perform();
 
-        Json::Reader reader;
-        reader.parse(response_, json_resp);
-    }
+    Json::Reader reader;
+    reader.parse(response_, json_resp);
+  }
 
-    void print()
-    {
-        std::cout << url_ << std::endl;
-    }
+  void print()
+  {
+    std::cout << url_ << std::endl;
+  }
 
 private:
-    std::string url_;
-    curlpp::Cleanup cleaner;
-    curlpp::Easy request_;
-    std::list<std::string> header_;
-    std::stringstream response_;
+  std::string url_;
+  curlpp::Cleanup cleaner;
+  curlpp::Easy request_;
+  std::list<std::string> header_;
+  std::stringstream response_;
 };
 
 class HTTPInterface
 {
 public:
-  HTTPInterface(const std::string &host, const std::string &path = "") : host(host), base_path(path)
+  HTTPInterface(const std::string& host, const std::string& path = "") : host(host), base_path(path)
   {
   }
 
   const std::map<std::string, std::string>
-  get(const std::vector<std::string> &json_keys, const std::string command,
-      const std::initializer_list<param_type> &list = std::initializer_list<param_type>())
+  get(const std::vector<std::string>& json_keys, const std::string command,
+      const std::initializer_list<param_type>& list = std::initializer_list<param_type>())
   {
     CurlResource res(host);
     res.append_path(base_path);
@@ -125,9 +125,8 @@ public:
     return get_(json_keys, res);
   }
 
-  const std::map<std::string, std::string>
-  get(const std::vector<std::string> &json_keys, const std::string command,
-      const param_map_type &params = param_map_type())
+  const std::map<std::string, std::string> get(const std::vector<std::string>& json_keys, const std::string command,
+                                               const param_map_type& params = param_map_type())
   {
     CurlResource res(host);
     res.append_path(base_path);
@@ -137,8 +136,7 @@ public:
   }
 
 private:
-  const std::map<std::string, std::string>
-  get_(const std::vector<std::string> &json_keys, CurlResource &res)
+  const std::map<std::string, std::string> get_(const std::vector<std::string>& json_keys, CurlResource& res)
   {
     Json::Value json_resp;
     std::map<std::string, std::string> json_kv;
@@ -148,12 +146,12 @@ private:
       res.get(json_resp);
       json_kv[std::string("error_http")] = std::string("OK");
     }
-    catch(curlpp::RuntimeError & e)
+    catch (curlpp::RuntimeError& e)
     {
       json_kv[std::string("error_http")] = std::string(e.what());
       return json_kv;
     }
-    catch(curlpp::LogicError & e)
+    catch (curlpp::LogicError& e)
     {
       json_kv[std::string("error_http")] = std::string(e.what());
       return json_kv;
@@ -163,14 +161,13 @@ private:
     {
       try
       {
-        if(json_resp[key].isArray())
+        if (json_resp[key].isArray())
           json_kv[key] = from_array(json_resp[key]);
         else
           json_kv[key] = json_resp[key].asString();
       }
-      catch (std::exception &e)
+      catch (std::exception& e)
       {
-
         json_kv[key] = "--COULD NOT RETRIEVE VALUE--";
       }
     }
