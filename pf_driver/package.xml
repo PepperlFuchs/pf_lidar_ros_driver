@@ -12,20 +12,22 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>libpcl-all-dev</build_depend>
   <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
+  <build_depend>roslint</build_depend>
   <exec_depend>libpcl-all</exec_depend>
-  <depend>roscpp</depend>
-  <depend>libjsoncpp-dev</depend>
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>rviz</exec_depend>
   <depend>curlpp-dev</depend>
-  <depend>std_msgs</depend>
-  <depend>sensor_msgs</depend>
   <depend>dynamic_reconfigure</depend>
   <depend>laser_geometry</depend>
+  <depend>libjsoncpp-dev</depend>
   <depend>pcl_conversions</depend>
   <depend>pcl_ros</depend>
+  <depend>roscpp</depend>
   <depend>roscpp_serialization</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>tf</depend>
   <test_depend>rosunit</test_depend>
-  <build_depend>roslint</build_depend>
 
   <export>
   </export>

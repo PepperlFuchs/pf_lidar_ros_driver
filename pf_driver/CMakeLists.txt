@@ -4,17 +4,17 @@ project(pf_driver)
 add_compile_options(-std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  std_msgs
-  sensor_msgs
-  message_generation
   dynamic_reconfigure
   laser_geometry
-  tf
+  message_generation
   pcl_conversions
   pcl_ros
+  roscpp
   roscpp_serialization
   roslint
+  sensor_msgs
+  std_msgs
+  tf
 )
 
 find_package(Boost REQUIRED COMPONENTS  thread system)
@@ -42,7 +42,7 @@ generate_messages(
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs message_runtime roscpp_serialization
+  CATKIN_DEPENDS dynamic_reconfigure message_runtime roscpp roscpp_serialization sensor_msgs std_msgs tf
 )
 
 include_directories(
@@ -51,11 +51,12 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(ros_main src/ros/ros_main.cpp
-                        src/ros/scan_publisher.cpp
+add_executable(ros_main src/communication.cpp
                         src/pf/pf_interface.cpp
                         src/pf/pf_packet.cpp
-                        src/communication.cpp)
+                        src/ros/ros_main.cpp
+                        src/ros/scan_publisher.cpp
+                        )
 target_link_libraries(ros_main
   ${catkin_LIBRARIES} curlpp curl jsoncpp
 )
