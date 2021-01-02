@@ -419,6 +419,7 @@ public:
 
   virtual ScanParameters get_scan_parameters(int start_angle=0)
   {
+    return ScanParameters();
   }
 
   virtual void handle_reconfig(pf_driver::PFDriverR2000Config &config, uint32_t level)
