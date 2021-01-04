@@ -26,7 +26,9 @@ public:
         if(transport_)
         {
             ip_ = transport_->get_device_ip();
-            transport_type_ = transport_->get_type();   
+            transport_type_ = transport_->get_type();
+            max_num_points_scan_ = transport_->get_max_num_points_scan();
+            start_angle_ = transport_->get_start_angle();
         }
         protocol_interface_ = std::make_shared<PFSDPBase>(ip_);
 
@@ -42,6 +44,7 @@ private:
 
     ros::NodeHandle nh_;
     std::string ip_, port_;
+    std::string start_angle_, max_num_points_scan_;
     ros::Timer watchdog_timer_;
     std::unique_ptr<Transport> transport_;
     transport_type transport_type_;
