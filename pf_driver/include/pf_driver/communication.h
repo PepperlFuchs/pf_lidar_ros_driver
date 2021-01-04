@@ -86,6 +86,8 @@ protected:
   std::string address_;
   std::string host_ip_;
   std::string port_;
+  std::string start_angle_arg_;
+  std::string max_num_points_scan_arg_;
   bool is_connected_;
   transport_type type_;
   std::shared_ptr<boost::asio::io_service> io_service_;
@@ -117,6 +119,12 @@ class UDPTransport : public Transport
 {
 public:
   UDPTransport(std::string address) : Transport(address, transport_type::udp) 
+  {
+    io_service_ = std::make_shared<boost::asio::io_service>();
+    socket_ = std::make_unique<udp::socket>(*io_service_, udp::endpoint(udp::v4(), 0));
+  }
+
+  UDPTransport(std::string address, std::string start_angle, std::string max_num_points_scan) : Transport(address, transport_type::udp, start_angle, max_num_points_scan) 
   {
     io_service_ = std::make_shared<boost::asio::io_service>();
     socket_ = std::make_unique<udp::socket>(*io_service_, udp::endpoint(udp::v4(), 0));
