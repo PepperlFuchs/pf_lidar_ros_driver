@@ -117,7 +117,7 @@ bool PFInterface::start_transmission()
 
     config_ = protocol_interface_->get_scanoutput_config(info_.handle);
     params_ = protocol_interface_->get_scan_parameters(config_.start_angle);
-
+    ROS_INFO("Handle: %s, start_angle: %.1f, max_num_points_scan: %d",info_.handle.c_str(),(config_.start_angle/10000.0), config_.max_num_points_scan);
     // config_.print();
     // params_.print();
 
