@@ -19,8 +19,10 @@ public:
 
     virtual bool start()
     {
+        return false;
     }
     virtual bool stop()
     {
+        return false;
     }
 };

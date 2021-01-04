@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Boost REQUIRED COMPONENTS  thread system)
 find_package(jsoncpp REQUIRED)
+get_target_property(jsoncpp_INCLUDE_DIRS jsoncpp_lib INTERFACE_INCLUDE_DIRECTORIES)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(CURLPP REQUIRED curlpp)
 
@@ -45,6 +46,7 @@ catkin_package(
 
 include_directories(
   include
+  ${jsoncpp_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
