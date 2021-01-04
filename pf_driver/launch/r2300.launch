@@ -3,9 +3,11 @@
   <arg name="transport" default="udp"/>
   <arg name="scanner_ip" default="10.0.10.76"/>
   <arg name="device" default="R2300"/>
+  <arg name="start_angle" default="-180"/>
+  <arg name="max_num_points_scan" default="0"/>	
 
   <!-- R2000 Driver -->
-  <node pkg="pf_driver" type="ros_main" name="r2300_node" args="$(arg transport) $(arg scanner_ip) 0 $(arg device)" output="screen"/>
+  <node pkg="pf_driver" type="ros_main" name="r2300_node" args="$(arg transport) $(arg scanner_ip) 0 $(arg device) $(arg start_angle) $(arg max_num_points_scan)" output="screen"/>
 
   <node pkg="tf" type="static_transform_publisher" name="ring1" args="0 0 0 0 0.0785 0 /base_link /scanner_1 10" />
 	<node pkg="tf" type="static_transform_publisher" name="ring2" args="0 0 0 0 0.0262 0 /base_link /scanner_2 10" />
