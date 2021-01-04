@@ -108,7 +108,9 @@ bool PFInterface::start_transmission()
 
         std::string host_ip = transport_->get_host_ip();
         port_ = transport_->get_port();
-        info_ = protocol_interface_->request_handle_udp(host_ip, port_, pkt_type);
+        double start_angleX10000 = strtod(start_angle_.c_str(),NULL)*10000;
+        std::string start_angleX10000Str = std::to_string((int)round(start_angleX10000));
+        info_ = protocol_interface_->request_handle_udp(host_ip, port_, start_angleX10000Str, max_num_points_scan_, pkt_type);
     }
     if(info_.handle.empty())
         return false;
