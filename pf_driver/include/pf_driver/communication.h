@@ -62,6 +62,16 @@ public:
     return address_;
   }
 
+  std::string get_start_angle()
+  {
+    return start_angle_arg_;
+  }
+
+  std::string get_max_num_points_scan()
+  {
+    return max_num_points_scan_arg_;
+  }
+
   transport_type get_type()
   {
     return type_;
