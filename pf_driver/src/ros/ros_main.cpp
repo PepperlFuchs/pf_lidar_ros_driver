@@ -15,13 +15,15 @@ int main(int argc, char *argv[])
     std::string IP = argv[2];
     std::string port = argv[3];
     std::string device = argv[4];
+    std::string start_angle_arg = argv[5];
+    std::string max_num_points_scan_arg = argv[6];
 
     ros::init(argc, argv, "pf_driver");
     ros::NodeHandle nh;
 
     std::unique_ptr<Transport> transport;
     if(transport_str == "udp")
-        transport = std::make_unique<UDPTransport>(IP);
+        transport = std::make_unique<UDPTransport>(IP,start_angle_arg,max_num_points_scan_arg);
     else if(transport_str == "tcp")
         transport = std::make_unique<TCPTransport>(IP);
     else
