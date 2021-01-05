@@ -396,7 +396,13 @@ public:
     config.max_num_points_scan = to_long(resp["max_num_points_scan"]);
     return config;
   }
-
+  
+  bool set_scanoutput_config(std::string handle, ScanConfig config)
+  {
+    param_map_type query = { KV("handle", handle), KV("start_angle", config.start_angle), KV("max_num_points_scan",config.max_num_points_scan) };
+    auto resp = get_request("set_scanoutput_config", {""},query );
+    return true;
+  }
   bool start_scanoutput(std::string handle)
   {
     get_request("start_scanoutput", { "" }, { { "handle", handle } });
