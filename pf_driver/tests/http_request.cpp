@@ -13,7 +13,7 @@ TEST(HHTPInterface_TestSuite, testURIBuilder)
     const std::string err_http = "error_http";
     std::vector<std::string> err = { err_code, err_text };
     std::map<std::string, std::string> json_resp = http_interface.get(err, "get_protocol_info");
-    
+
     EXPECT_NE(json_resp[err_http], std::string("OK"));
 }
 */
@@ -28,7 +28,7 @@ TEST(HHTPInterface_TestSuite, testURIBuilder2)
     const std::string err_http = "error_http";
     std::vector<std::string> err = { err_code, err_text };
     std::map<std::string, std::string> json_resp = http_interface.get(err, "get_protocol_info");
-    
+
     EXPECT_EQ(json_resp[err_http], std::string("OK"));
     EXPECT_EQ(json_resp[err_code], std::string("0"));
     EXPECT_EQ(json_resp[err_text], std::string("success"));

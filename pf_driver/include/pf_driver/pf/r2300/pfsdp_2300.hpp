@@ -4,9 +4,8 @@
 
 class PFSDP_2300 : public PFSDPBase
 {
-
 public:
-  PFSDP_2300(const std::string &host) : PFSDPBase(host)
+  PFSDP_2300(const std::string& host) : PFSDPBase(host)
   {
   }
 
@@ -17,7 +16,8 @@ public:
 
   virtual ScanParameters get_scan_parameters(int start_angle)
   {
-    auto resp = get_parameter("angular_fov", "radial_range_min", "radial_range_max", "measure_start_angle", "measure_stop_angle");
+    auto resp = get_parameter("angular_fov", "radial_range_min", "radial_range_max", "measure_start_angle",
+                              "measure_stop_angle");
     params.angular_fov = to_float(resp["angular_fov"]) * M_PI / 180.0;
     params.radial_range_max = to_float(resp["radial_range_max"]);
     params.radial_range_min = to_float(resp["radial_range_min"]);
@@ -29,58 +29,72 @@ public:
     return params;
   }
 
-  virtual void handle_reconfig(pf_driver::PFDriverR2300Config &config, uint32_t level)
+  virtual void handle_reconfig(pf_driver::PFDriverR2300Config& config, uint32_t level)
   {
-    if(level == 1)
+    if (level == 1)
     {
       set_parameter({ KV("ip_mode", config.ip_mode) });
-    } else if(level == 2)
+    }
+    else if (level == 2)
     {
       set_parameter({ KV("ip_address", config.ip_address) });
-    } else if(level == 3)
+    }
+    else if (level == 3)
     {
       set_parameter({ KV("subnet_mask", config.subnet_mask) });
-    } else if(level == 4)
+    }
+    else if (level == 4)
     {
       set_parameter({ KV("gateway", config.gateway) });
-    } else if(level == 5)
+    }
+    else if (level == 5)
     {
       set_parameter({ KV("user_tag", config.user_tag) });
-    } else if(level == 6)
+    }
+    else if (level == 6)
     {
       set_parameter({ KV("layer_enable", config.layer_enable) });
-    } else if(level == 7)
+    }
+    else if (level == 7)
     {
       set_parameter({ KV("scan_frequency", config.scan_frequency) });
-    } else if(level == 8)
+    }
+    else if (level == 8)
     {
       set_parameter({ KV("scan_direction", config.scan_direction) });
-    } else if(level == 9)
+    }
+    else if (level == 9)
     {
       set_parameter({ KV("measure_start_angle", config.measure_start_angle) });
-    } else if(level == 10)
+    }
+    else if (level == 10)
     {
       set_parameter({ KV("measure_stop_angle", config.measure_stop_angle) });
-    } else if(level == 11)
+    }
+    else if (level == 11)
     {
       set_parameter({ KV("locator_indication", config.locator_indication) });
-    } else if(level == 12)
+    }
+    else if (level == 12)
     {
       set_parameter({ KV("pilot_laser", config.pilot_laser) });
-    } else if(level == 13)
+    }
+    else if (level == 13)
     {
       set_parameter({ KV("pilot_start_angle", config.pilot_start_angle) });
-    } else if(level == 14)
+    }
+    else if (level == 14)
     {
       set_parameter({ KV("pilot_stop_angle", config.pilot_stop_angle) });
-    } else if(level == 15)
+    }
+    else if (level == 15)
     {
       set_parameter({ KV("operating_mode", config.operating_mode) });
     }
   }
 
 private:
-  void get_layers_enabled(uint16_t &enabled)
+  void get_layers_enabled(uint16_t& enabled)
   {
     std::string layers = get_parameter_str("layer_enable");
     std::vector<std::string> vals = split(layers);
@@ -107,6 +121,6 @@ private:
 
   virtual std::string get_start_angle_str()
   {
-      return std::string("start_angle");
+    return std::string("start_angle");
   }
 };
