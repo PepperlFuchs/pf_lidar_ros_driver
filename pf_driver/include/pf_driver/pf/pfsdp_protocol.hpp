@@ -30,7 +30,7 @@ struct ProtocolInfo
   int version_minor;                  // minor version of protocol
   std::vector<std::string> commands;  // list of available commands
                                       // Since R2300 may not give correct error reports
-                                      // it is safer to keep the list of commands 
+                                      // it is safer to keep the list of commands
 };
 
 struct HandleInfo
@@ -93,7 +93,7 @@ struct ScanParameters
 class KV : public std::pair<std::string, std::string>
 {
   template <typename T>
-  static std::string make_list(bool first, const T &t)
+  static std::string make_list(bool first, const T& t)
   {
     std::stringstream s;
     if (!first)
@@ -103,7 +103,7 @@ class KV : public std::pair<std::string, std::string>
   }
 
   template <typename T, typename... Ts>
-  static std::string make_list(bool first, const T &t, Ts &&... list)
+  static std::string make_list(bool first, const T& t, Ts&&... list)
   {
     std::stringstream s;
     s << make_list(first, t);
@@ -122,7 +122,7 @@ class KV : public std::pair<std::string, std::string>
 
 public:
   template <typename... Ts>
-  KV(const std::string &k, const Ts &... list) : std::pair<std::string, std::string>(k, make_list(true, list...))
+  KV(const std::string& k, const Ts&... list) : std::pair<std::string, std::string>(k, make_list(true, list...))
   {
   }
 };
@@ -134,14 +134,14 @@ inline const std::vector<std::string> split(std::string str, const char delim = 
   return results;
 }
 
-inline std::int64_t to_long(const std::string &s)
+inline std::int64_t to_long(const std::string& s)
 {
   std::int64_t int_val = 0;
   try
   {
     int_val = std::stoll(s);
   }
-  catch (std::exception &e)
+  catch (std::exception& e)
   {
     std::cerr << "conversion of data from string failed: " << s << std::endl;
     return std::numeric_limits<std::int64_t>::quiet_NaN();
@@ -149,14 +149,14 @@ inline std::int64_t to_long(const std::string &s)
   return int_val;
 }
 
-inline uint16_t to_uint16(const std::string &s)
+inline uint16_t to_uint16(const std::string& s)
 {
   uint16_t int_val = 0;
   try
   {
     int_val = static_cast<uint16_t>(stoi(s));
   }
-  catch (std::exception &e)
+  catch (std::exception& e)
   {
     std::cerr << "conversion of data from string failed: " << s << std::endl;
     return std::numeric_limits<uint16_t>::quiet_NaN();
@@ -164,14 +164,14 @@ inline uint16_t to_uint16(const std::string &s)
   return int_val;
 }
 
-inline float to_float(const std::string &s)
+inline float to_float(const std::string& s)
 {
   float float_val = 0;
   try
   {
     float_val = std::stof(s);
   }
-  catch (std::exception &e)
+  catch (std::exception& e)
   {
     std::cerr << "conversion of data from string failed " << s << std::endl;
     return std::numeric_limits<float>::quiet_NaN();
@@ -186,13 +186,14 @@ private:
   HTTPInterfacePtr http_interface;
   std::string hostname;
 
-  const std::map<std::string, std::string>
-  get_request(const std::string command, std::vector<std::string> json_keys, const std::initializer_list<param_type> query) {
+  const std::map<std::string, std::string> get_request(const std::string command, std::vector<std::string> json_keys,
+                                                       const std::initializer_list<param_type> query)
+  {
     return get_request(command, json_keys, param_map_type(query.begin(), query.end()));
   }
-  const std::map<std::string, std::string>
-  get_request(const std::string command, std::vector<std::string> json_keys = std::vector<std::string>(),
-              const param_map_type query = param_map_type())
+  const std::map<std::string, std::string> get_request(const std::string command,
+                                                       std::vector<std::string> json_keys = std::vector<std::string>(),
+                                                       const param_map_type query = param_map_type())
   {
     const std::string err_code = "error_code";
     const std::string err_text = "error_text";
@@ -220,8 +221,8 @@ private:
     return true;
   }
 
-  bool check_error(std::map<std::string, std::string> &mp, const std::string &err_code, const std::string &err_text,
-                   const std::string &err_http)
+  bool check_error(std::map<std::string, std::string>& mp, const std::string& err_code, const std::string& err_text,
+                   const std::string& err_http)
   {
     const std::string http_error = mp[err_http];
     const std::string code = mp[err_code];
@@ -260,7 +261,7 @@ protected:
   ScanParameters params;
 
 public:
-  PFSDPBase(const std::string &host) : hostname(host), http_interface(new HTTPInterface(host, "cmd"))
+  PFSDPBase(const std::string& host) : hostname(host), http_interface(new HTTPInterface(host, "cmd"))
   {
   }
 
@@ -290,7 +291,7 @@ public:
   {
     ProtocolInfo opi;
     auto resp = get_request("get_protocol_info", { "protocol_name", "version_major", "version_minor", "commands" });
-    if(resp.empty())
+    if (resp.empty())
     {
       opi.isError = true;
       return opi;
@@ -310,7 +311,7 @@ public:
   }
 
   template <typename... Ts>
-  std::map<std::string, std::string> get_parameter(const Ts &... ts)
+  std::map<std::string, std::string> get_parameter(const Ts&... ts)
   {
     return get_request("get_parameter", { ts... }, { KV("list", ts...) });
   }
@@ -346,7 +347,7 @@ public:
   }
 
   template <typename... Ts>
-  bool reset_parameter(const Ts &... ts)
+  bool reset_parameter(const Ts&... ts)
   {
     return get_request_bool("reset_parameter", { "" }, { KV("list", ts...) });
   }
@@ -354,9 +355,9 @@ public:
   HandleInfo request_handle_tcp(const std::string port = "", const std::string packet_type = "")
   {
     param_map_type query;
-    if(!port.empty())
+    if (!port.empty())
       query["port"] = port;
-    if(!packet_type.empty())
+    if (!packet_type.empty())
       query["packet_type"] = packet_type;
     auto resp = get_request("request_handle_tcp", { "handle", "port" }, query);
 
@@ -367,10 +368,11 @@ public:
     return handle_info;
   }
 
-  virtual HandleInfo request_handle_udp(const std::string host_ip, const std::string port, const std::string packet_type = "")
+  virtual HandleInfo request_handle_udp(const std::string host_ip, const std::string port,
+                                        const std::string packet_type = "")
   {
     param_map_type query = { KV("address", host_ip), KV("port", port) };
-    if(!packet_type.empty())
+    if (!packet_type.empty())
       query["packet_type"] = packet_type;
     auto resp = get_request("request_handle_udp", { "handle", "port" }, query);
 
@@ -402,9 +404,10 @@ public:
     return get_request_bool("stop_scanoutput", { "" }, { { "handle", handle } });
   }
 
-  std::string get_scanoutput_config(std::string param, std::string handle) {
-      auto resp = get_request("get_scanoutput_config", {param}, {KV("handle", handle)});
-      return resp[param];
+  std::string get_scanoutput_config(std::string param, std::string handle)
+  {
+    auto resp = get_request("get_scanoutput_config", { param }, { KV("handle", handle) });
+    return resp[param];
   }
 
   bool feed_watchdog(std::string handle)
@@ -417,16 +420,16 @@ public:
     return std::string("");
   }
 
-  virtual ScanParameters get_scan_parameters(int start_angle=0)
+  virtual ScanParameters get_scan_parameters(int start_angle = 0)
   {
     return ScanParameters();
   }
 
-  virtual void handle_reconfig(pf_driver::PFDriverR2000Config &config, uint32_t level)
+  virtual void handle_reconfig(pf_driver::PFDriverR2000Config& config, uint32_t level)
   {
   }
 
-  virtual void handle_reconfig(pf_driver::PFDriverR2300Config &config, uint32_t level)
+  virtual void handle_reconfig(pf_driver::PFDriverR2300Config& config, uint32_t level)
   {
   }
 };
