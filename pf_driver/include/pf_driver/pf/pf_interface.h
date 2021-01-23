@@ -19,10 +19,13 @@
 
 class PFInterface
 {
-
 public:
-    PFInterface(std::unique_ptr<Transport> &&transport, std::string device) : transport_(std::move(transport)), state_(PFState::UNINIT), expected_device_(device)
+  PFInterface(std::unique_ptr<Transport>&& transport, std::string device)
+    : transport_(std::move(transport)), state_(PFState::UNINIT), expected_device_(device)
+  {
+    if (transport_)
     {
+
         if(transport_)
         {
             ip_ = transport_->get_device_ip();
@@ -31,15 +34,17 @@ public:
             start_angle_ = transport_->get_start_angle();
         }
         protocol_interface_ = std::make_shared<PFSDPBase>(ip_);
-
     }
+    protocol_interface_ = std::make_shared<PFSDPBase>(ip_);
+  }
 
-    bool init();
-    bool start_transmission();
-    void stop_transmission();
-    void terminate();
+  bool init();
+  bool start_transmission();
+  void stop_transmission();
+  void terminate();
 
 private:
+
     using PipelinePtr = std::unique_ptr<Pipeline<PFPacket>>;
 
     ros::NodeHandle nh_;
