@@ -8,19 +8,28 @@
 
 int main(int argc, char* argv[])
 {
-  // TODO(ipa-hsd): use argparse
-  if (argc < 3)
-  {
-    ROS_ERROR("Please provide the IP address and the port");
-    return -1;
-  }
-  std::string transport_str = argv[1];
-  std::string IP = argv[2];
-  std::string port = argv[3];
-  std::string device = argv[4];
-
   ros::init(argc, argv, "pf_driver");
   ros::NodeHandle nh;
+
+  std::string transport_str, IP, port, device;
+  bool init_valid = true;
+  init_valid &= nh.getParam("transport", transport_str);
+  init_valid &= nh.getParam("scanner_ip", IP);
+  init_valid &= nh.getParam("port", port);
+  init_valid &= nh.getParam("device", device);
+
+  if (!init_valid)
+  {
+    ROS_ERROR("Please provide the IP address and the port");
+    return 1;
+  }
+
+  // other parameters can also be set in the same way
+  int max_num_points_scan = 0;
+  ScanConfig config;
+  nh.param<int>("start_angle", config.start_angle, -180);
+  nh.param<int>("max_num_points_scan", max_num_points_scan, 0);
+  config.max_num_points_scan = max_num_points_scan;
 
   std::unique_ptr<Transport> transport;
   if (transport_str == "udp")
@@ -33,13 +42,12 @@ int main(int argc, char* argv[])
     return -1;
   }
   PFInterface pf_interface(std::move(transport), device);
-  // PFInterface pf_interface(transport, IP);
   if (!pf_interface.init())
   {
     ROS_ERROR("Unable to initialize device");
     return -1;
   }
-  if (!pf_interface.start_transmission())
+  if (!pf_interface.start_transmission(config))
   {
     ROS_ERROR("Unable to start scan");
     return -1;
