@@ -267,7 +267,7 @@ void PFInterface::reconfig_callback_r2000(pf_driver::PFDriverR2000Config& config
     protocol_interface_->handle_reconfig(config, level);
   }
   pipeline_->set_scanoutput_config(config_);
-  config_ = protocol_interface_->get_scanoutput_config(info_.handle);
+  protocol_interface_->set_scanoutput_config(info_.handle, config_);
   params_ = protocol_interface_->get_scan_parameters(config_.start_angle);
   pipeline_->set_scan_params(params_);
 }
@@ -319,8 +319,7 @@ void PFInterface::reconfig_callback_r2300(pf_driver::PFDriverR2300Config& config
     protocol_interface_->handle_reconfig(config, level);
   }
   pipeline_->set_scanoutput_config(config_);
+  protocol_interface_->set_scanoutput_config(info_.handle, config_);
   params_ = protocol_interface_->get_scan_parameters(config_.start_angle);
   pipeline_->set_scan_params(params_);
-    protocol_interface_->set_scanoutput_config(info_.handle,config_);
-    config_ = protocol_interface_->get_scanoutput_config(info_.handle);
 }
