@@ -2,9 +2,17 @@ language: generic
 services:
   - docker
 
+cache:
+  directories:
+    - $HOME/.ccache
+
 env:
+  global:
+    - CCACHE_DIR=$HOME/.ccache # enables C/C++ caching in industrial_ci
   matrix:
     - ROS_DISTRO="melodic"
+    - ROS_DISTRO="noetic"
+    - ROS_DISTRO="melodic" CLANG_FORMAT_CHECK=file CLANG_FORMAT_VERSION=3.9
 
 install:
   - git clone --quiet --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci
