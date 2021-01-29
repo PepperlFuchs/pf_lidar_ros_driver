@@ -8,12 +8,12 @@
 
   <!-- R2300 Driver -->
   <node pkg="pf_driver" type="ros_main" name="r2000_node" output="screen">
-    <param name="transport" type="string" value="$(arg transport)">
-    <param name="scanner_ip" type="string" value="$(arg scanner_ip)">
-    <param name="port" type="string" value="0">
-    <param name="device" type="string" value="$(arg device)">
-    <param name="start_angle" type="int" value="$(arg start_angle)">
-    <param name="max_num_points_scan" type="int" value="$(arg max_num_points_scan)">
+    <param name="transport" type="string" value="$(arg transport)"/>
+    <param name="scanner_ip" type="string" value="$(arg scanner_ip)"/>
+    <param name="port" type="string" value="0"/>
+    <param name="device" type="string" value="$(arg device)"/>
+    <param name="start_angle" type="int" value="$(arg start_angle)"/>
+    <param name="max_num_points_scan" type="int" value="$(arg max_num_points_scan)"/>
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="ring1" args="0 0 0 0 0.0785 0 /base_link /scanner_1 10" />
