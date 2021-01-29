@@ -92,48 +92,30 @@ void ScanPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
   if (!msg)
     return;
 
+  // errors in scan_number - not in sequence sometimes
+  if (msg->header.seq != packet.header.header.scan_number)
+    return;
+  int idx = packet.header.first_index;
+
+  for (int i = 0; i < packet.header.num_points_packet; i++)
   {
-    std::lock_guard<std::mutex> lock(config_mutex_);
-    msg->time_increment = (params_.angular_fov * msg->scan_time) / (M_PI * 2.0) / packet.header.num_points_scan;
-    msg->angle_min = params_.angle_min;
-    msg->angle_max = params_.angle_max;
-    msg->range_min = params_.radial_range_min;
-    msg->range_max = params_.radial_range_max;
+    float data;
+    if (packet.distance[i] == 0xFFFFFFFF)
+      data = std::numeric_limits<std::uint32_t>::quiet_NaN();
+    else
+      data = packet.distance[i] / 1000.0;
+    msg->ranges[idx + i] = std::move(data);
+    if (!packet.amplitude.empty() && packet.amplitude[i] >= 32)
+      msg->intensities[idx + i] = packet.amplitude[i];
   }
-
-  msg->ranges.resize(packet.header.num_points_scan);
-  if (!packet.amplitude.empty())
-    msg->intensities.resize(packet.header.num_points_scan);
-  d_queue_.push_back(msg);
-}
-msg = d_queue_.back();
-if (!msg)
-  return;
-
-// errors in scan_number - not in sequence sometimes
-if (msg->header.seq != packet.header.header.scan_number)
-  return;
-int idx = packet.header.first_index;
-
-for (int i = 0; i < packet.header.num_points_packet; i++)
-{
-  float data;
-  if (packet.distance[i] == 0xFFFFFFFF)
-    data = std::numeric_limits<std::uint32_t>::quiet_NaN();
-  else
-    data = packet.distance[i] / 1000.0;
-  msg->ranges[idx + i] = std::move(data);
-  if (!packet.amplitude.empty() && packet.amplitude[i] >= 32)
-    msg->intensities[idx + i] = packet.amplitude[i];
-}
-if (packet.header.num_points_scan == (idx + packet.header.num_points_packet))
-{
-  if (msg)
+  if (packet.header.num_points_scan == (idx + packet.header.num_points_packet))
   {
-    handle_scan(msg, layer_idx);
-    d_queue_.pop_back();
+    if (msg)
+    {
+      handle_scan(msg, layer_idx);
+      d_queue_.pop_back();
+    }
   }
-}
 }
 
 // check the status bits here with a switch-case
