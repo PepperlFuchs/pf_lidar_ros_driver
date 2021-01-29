@@ -397,6 +397,18 @@ public:
     return config;
   }
 
+  bool set_scanoutput_config(std::string handle, ScanConfig config)
+  {
+    param_map_type query = { KV("handle", handle),
+                             KV("start_angle", config.start_angle),
+                             KV("packet_type", config.max_num_points_scan),
+                             KV("max_num_points_scan", config.packet_type),
+                             KV("watchdogtimeout", config.watchdogtimeout),
+                             KV("skip_scans", config.skip_scans),
+                             KV("watchdog", config.watchdog) };
+    auto resp = get_request("set_scanoutput_config", { "" }, query);
+    return true;
+  }
   bool start_scanoutput(std::string handle)
   {
     get_request("start_scanoutput", { "" }, { { "handle", handle } });
