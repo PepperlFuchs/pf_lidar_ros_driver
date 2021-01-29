@@ -32,7 +32,7 @@ public:
   }
 
   bool init();
-  bool start_transmission();
+  bool start_transmission(ScanConfig& config);
   void stop_transmission();
   void terminate();
 

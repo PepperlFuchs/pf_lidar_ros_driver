@@ -63,6 +63,7 @@ bool UDPTransport::disconnect()
 {
   std::cout << "disconnecting..." << std::endl;
   socket_->close();
+  return true;
 }
 
 bool UDPTransport::read(boost::array<uint8_t, 4096>& buf, size_t& len)

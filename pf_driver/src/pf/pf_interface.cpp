@@ -90,7 +90,7 @@ void PFInterface::setup_param_server()
   }
 }
 
-bool PFInterface::start_transmission()
+bool PFInterface::start_transmission(ScanConfig& config)
 {
   if (state_ != PFState::INIT)
     return false;
@@ -120,6 +120,8 @@ bool PFInterface::start_transmission()
     return false;
 
   config_ = protocol_interface_->get_scanoutput_config(info_.handle);
+  config_.start_angle = config.start_angle;
+  config_.max_num_points_scan = config.max_num_points_scan;
   params_ = protocol_interface_->get_scan_parameters(config_.start_angle);
 
   // config_.print();

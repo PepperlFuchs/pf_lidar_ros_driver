@@ -384,12 +384,16 @@ public:
 
   virtual ScanConfig get_scanoutput_config(std::string handle)
   {
-    auto resp = get_request("get_scanoutput_config", {"start_angle", "packet_type", "watchdogtimeout", "skip_scans", "watchdog"}, { KV("handle", handle) });
+    auto resp = get_request(
+        "get_scanoutput_config",
+        { "start_angle", "packet_type", "watchdogtimeout", "skip_scans", "watchdog", "max_num_points_scan" },
+        { KV("handle", handle) });
     config.packet_type = resp["packet_type"];
     config.start_angle = to_long(resp["start_angle"]);
     config.watchdogtimeout = to_long(resp["watchdogtimeout"]);
     config.watchdog = (resp["watchdog"] == "off") ? false : true;
     config.skip_scans = to_long(resp["skip_scans"]);
+    config.max_num_points_scan = to_long(resp["max_num_points_scan"]);
     return config;
   }
 
