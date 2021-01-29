@@ -73,7 +73,7 @@ struct ScanParameters
   double angle_min = 0.0;
   double angle_max = 0.0;
   uint16_t layers_enabled = 0;
-  double scan_freq = 0.0; //needed to calculate scan resolution in R2300
+  double scan_freq = 0.0;  // needed to calculate scan resolution in R2300
 
   // void print()
   // {
