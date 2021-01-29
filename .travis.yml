@@ -10,9 +10,15 @@ env:
   global:
     - CCACHE_DIR=$HOME/.ccache # enables C/C++ caching in industrial_ci
   matrix:
-    - ROS_DISTRO="melodic"
+    - ROS_DISTRO="melodic" CLANG_FORMAT_CHECK=file
+    - ROS_DISTRO="melodic" CATKIN_LINT=true
+    - ROS_DISTRO="melodic" ROS_REPO=main
+    - ROS_DISTRO="melodic" PRERELEASE=true
     - ROS_DISTRO="noetic"
-    - ROS_DISTRO="melodic" CLANG_FORMAT_CHECK=file CLANG_FORMAT_VERSION=3.9
+
+matrix:
+  allow_failures:
+    - env: ROS_DISTRO="indigo" PRERELEASE=true # need not pass for all PRs
 
 install:
   - git clone --quiet --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci
