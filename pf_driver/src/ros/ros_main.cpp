@@ -9,7 +9,7 @@
 int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "pf_driver");
-  ros::NodeHandle nh;
+  ros::NodeHandle nh("~");
 
   std::string transport_str, IP, port, device;
   bool init_valid = true;
