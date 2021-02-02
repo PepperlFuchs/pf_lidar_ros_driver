@@ -65,7 +65,6 @@ void ScanPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
       if (std::is_same<T, PFR2300Packet_C1>::value)  // Only Packet C1 for R2300
       {
         double config_start_angle = config_.start_angle / 1800000.0 * M_PI;
-        std::cout << config_start_angle << " " << config_.start_angle << " " << params_.angle_min << std::endl;
         if (config_start_angle > params_.angle_min)
         {
           msg->angle_min = config_start_angle;
