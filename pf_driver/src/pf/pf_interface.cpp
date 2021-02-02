@@ -127,6 +127,7 @@ bool PFInterface::start_transmission(ScanConfig& config)
   // config_.print();
   // params_.print();
 
+  protocol_interface_->set_scanoutput_config(info_.handle, config_);
   pipeline_ = get_pipeline(config_.packet_type);
   pipeline_->set_scanoutput_config(config_);
   pipeline_->set_scan_params(params_);
