@@ -16,13 +16,14 @@ public:
 
   virtual ScanParameters get_scan_parameters(int start_angle)
   {
-    auto resp = get_parameter("angular_fov", "radial_range_min", "radial_range_max");
+    auto resp = get_parameter("angular_fov", "radial_range_min", "radial_range_max", "scan_frequency");
     params.angular_fov = to_float(resp["angular_fov"]) * M_PI / 180.0;
     params.radial_range_max = to_float(resp["radial_range_max"]);
     params.radial_range_min = to_float(resp["radial_range_min"]);
 
     params.angle_min = start_angle / 10000.0f * M_PI / 180.0;
     params.angle_max = params.angle_min + params.angular_fov;
+    params.scan_freq = to_float(resp["scan_frequency"]);
     return params;
   }
 
