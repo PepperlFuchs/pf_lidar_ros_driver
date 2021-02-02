@@ -7,7 +7,7 @@
   <arg name="max_num_points_scan" default="0"/>
 
   <!-- R2300 Driver -->
-  <node pkg="pf_driver" type="ros_main" name="r2000_node" output="screen">
+  <node pkg="pf_driver" type="ros_main" name="r2300_node" output="screen">
     <param name="transport" type="string" value="$(arg transport)"/>
     <param name="scanner_ip" type="string" value="$(arg scanner_ip)"/>
     <param name="port" type="string" value="0"/>
