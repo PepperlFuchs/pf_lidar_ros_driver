@@ -402,11 +402,11 @@ public:
   {
     param_map_type query = { KV("handle", handle),
                              KV("start_angle", config.start_angle),
-                             KV("packet_type", config.max_num_points_scan),
-                             KV("max_num_points_scan", config.packet_type),
+                             KV("packet_type", config.packet_type),
+                             KV("max_num_points_scan", config.max_num_points_scan),
                              KV("watchdogtimeout", config.watchdogtimeout),
                              KV("skip_scans", config.skip_scans),
-                             KV("watchdog", config.watchdog) };
+                             KV("watchdog", config.watchdog ? "on" : "off") };
     auto resp = get_request("set_scanoutput_config", { "" }, query);
     return true;
   }

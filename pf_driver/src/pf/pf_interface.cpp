@@ -127,6 +127,8 @@ bool PFInterface::start_transmission(ScanConfig& config)
   // config_.print();
   // params_.print();
 
+  protocol_interface_->set_scanoutput_config(info_.handle, config_);
+  config_ = protocol_interface_->get_scanoutput_config(info_.handle);
   pipeline_ = get_pipeline(config_.packet_type);
   pipeline_->set_scanoutput_config(config_);
   pipeline_->set_scan_params(params_);
@@ -318,8 +320,9 @@ void PFInterface::reconfig_callback_r2300(pf_driver::PFDriverR2300Config& config
   {
     protocol_interface_->handle_reconfig(config, level);
   }
-  pipeline_->set_scanoutput_config(config_);
   protocol_interface_->set_scanoutput_config(info_.handle, config_);
+  config_ = protocol_interface_->get_scanoutput_config(info_.handle);
+  pipeline_->set_scanoutput_config(config_);
   params_ = protocol_interface_->get_scan_parameters(config_.start_angle);
   pipeline_->set_scan_params(params_);
 }

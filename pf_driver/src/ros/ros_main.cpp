@@ -9,7 +9,7 @@
 int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "pf_driver");
-  ros::NodeHandle nh;
+  ros::NodeHandle nh("~");
 
   std::string transport_str, IP, port, device;
   bool init_valid = true;
@@ -27,8 +27,8 @@ int main(int argc, char* argv[])
   // other parameters can also be set in the same way
   int max_num_points_scan = 0;
   ScanConfig config;
-  nh.param<int>("start_angle", config.start_angle, -180);
-  nh.param<int>("max_num_points_scan", max_num_points_scan, 0);
+  nh.getParam("start_angle", config.start_angle);
+  nh.getParam("max_num_points_scan", max_num_points_scan);
   config.max_num_points_scan = max_num_points_scan;
 
   std::unique_ptr<Transport> transport;

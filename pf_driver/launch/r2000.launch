@@ -3,7 +3,7 @@
   <arg name="transport" default="udp"/>
   <arg name="scanner_ip" default="169.254.253.4"/>
   <arg name="device" default="R2000"/>
-  <arg name="start_angle" default="-180"/>
+  <arg name="start_angle" default="-1800000"/>
   <arg name="max_num_points_scan" default="0"/>
 
   <!-- R2000 Driver -->
