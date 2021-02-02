@@ -406,7 +406,7 @@ public:
                              KV("max_num_points_scan", config.max_num_points_scan),
                              KV("watchdogtimeout", config.watchdogtimeout),
                              KV("skip_scans", config.skip_scans),
-                             KV("watchdog", config.watchdog) };
+                             KV("watchdog", config.watchdog ? "on" : "off") };
     auto resp = get_request("set_scanoutput_config", { "" }, query);
     return true;
   }
