@@ -1,29 +1,32 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>pf_driver</name>
-  <version>0.0.1</version>
-  <description>The Pepperl+Fuchs package</description>
+  <version>1.1.0</version>
+  <description>The Pepperl+Fuchs LiDAR package</description>
 
   <maintainer email="harshavardhan.deshpande@ipa.fraunhofer.de">Harsh Deshpande</maintainer>
   <author email="harshavardhan.deshpande@ipa.fraunhofer.de">Harsh Deshpande</author>
   <license>Apache2.0</license>
-  <url type="website">http://wiki.ros.org/pepperl_fuchs_r2000</url>
+  <url type="website">https://github.com/PepperlFuchs/ROS_driver</url>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>libpcl-all-dev</build_depend>
   <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
+  <build_depend>roslint</build_depend>
   <exec_depend>libpcl-all</exec_depend>
-  <depend>roscpp</depend>
-  <depend>libjsoncpp-dev</depend>
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>rviz</exec_depend>
   <depend>curlpp-dev</depend>
-  <depend>std_msgs</depend>
-  <depend>sensor_msgs</depend>
   <depend>dynamic_reconfigure</depend>
   <depend>laser_geometry</depend>
+  <depend>libjsoncpp-dev</depend>
   <depend>pcl_conversions</depend>
   <depend>pcl_ros</depend>
+  <depend>roscpp</depend>
   <depend>roscpp_serialization</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>tf</depend>
   <test_depend>rosunit</test_depend>
 
   <export>
