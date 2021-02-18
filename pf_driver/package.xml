@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>pf_driver</name>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
   <description>The Pepperl+Fuchs LiDAR package</description>
 
   <maintainer email="harshavardhan.deshpande@ipa.fraunhofer.de">Harsh Deshpande</maintainer>
   <author email="harshavardhan.deshpande@ipa.fraunhofer.de">Harsh Deshpande</author>
   <license>Apache2.0</license>
-  <url type="website">https://github.com/PepperlFuchs/ROS_driver</url>
+  <url type="website">https://github.com/PepperlFuchs/pf_lidar_ros_driver</url>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>libpcl-all-dev</build_depend>
