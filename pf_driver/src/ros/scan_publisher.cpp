@@ -136,21 +136,20 @@ void ScanPublisherR2300::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t lay
   {
     int channelOptions = laser_geometry::channel_option::Intensity;
     projector_.transformLaserScanToPointCloud("/base_link", *msg, c, tfListener_, -1.0, channelOptions);
-    if (cloud_->data.empty())
+    if (layer_idx < layer_prev_)
     {
+      if (!cloud_->data.empty())
+      {
+        pcl_publisher_.publish(cloud_);
+        cloud_.reset(new sensor_msgs::PointCloud2());
+      }
       copy_pointcloud(*cloud_, c);
     }
     else
     {
       add_pointcloud(*cloud_, c);
     }
-    layers_ += pow(2, layer_idx - 1);
-    if (layers_ >= params_.layers_enabled)
-    {
-      pcl_publisher_.publish(cloud_);
-      layers_ = 0;
-      cloud_.reset(new sensor_msgs::PointCloud2());
-    }
+    layer_prev_ = layer_idx;
   }
 }
 

@@ -83,7 +83,7 @@ private:
 class ScanPublisherR2300 : public ScanPublisher
 {
 public:
-  ScanPublisherR2300(std::string scan_topic, std::string frame_id) : tfListener_(nh_), layers_(0)
+  ScanPublisherR2300(std::string scan_topic, std::string frame_id) : tfListener_(nh_), layer_prev_(-1)
   {
     for (int i = 0; i < 4; i++)
     {
@@ -105,7 +105,7 @@ private:
   ros::Publisher pcl_publisher_;
   std::vector<ros::Publisher> scan_publishers_;
   std::vector<std::string> frame_ids_;
-  uint16_t layers_;
+  int16_t layer_prev_;
 
   virtual void publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx);
   virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx);
