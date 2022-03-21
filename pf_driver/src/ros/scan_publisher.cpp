@@ -131,11 +131,11 @@ void ScanPublisherR2300::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t lay
   publish_scan(msg, layer_idx);
   sensor_msgs::PointCloud2 c;
   if (tfListener_.waitForTransform(
-          msg->header.frame_id, "/base_link",
+          msg->header.frame_id, "base_link",
           msg->header.stamp + ros::Duration().fromSec(msg->ranges.size() * msg->time_increment), ros::Duration(1.0)))
   {
     int channelOptions = laser_geometry::channel_option::Intensity;
-    projector_.transformLaserScanToPointCloud("/base_link", *msg, c, tfListener_, -1.0, channelOptions);
+    projector_.transformLaserScanToPointCloud("base_link", *msg, c, tfListener_, -1.0, channelOptions);
     if (layer_idx <= layer_prev_)
     {
       if (!cloud_->data.empty())
