@@ -9,7 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   pcl_conversions
   pcl_ros
-  pf_description
   roscpp
   roscpp_serialization
   roslint
