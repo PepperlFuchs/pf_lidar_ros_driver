@@ -41,6 +41,8 @@ public:
   {
     std::lock_guard<std::mutex> lock(config_mutex_);
     params_ = params;
+
+    resetCurrentScans();
   }
 
 protected:
@@ -61,6 +63,10 @@ protected:
   void to_msg_queue(T& packet, uint16_t layer_idx = 0);
   virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx) = 0;
   virtual void publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx);
+
+  virtual void resetCurrentScans()
+  {
+  }
 };
 
 class ScanPublisherR2000 : public ScanPublisher
@@ -111,4 +117,10 @@ private:
   virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx);
   void add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
   void copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
+
+  virtual void resetCurrentScans()
+  {
+    cloud_.reset(new sensor_msgs::PointCloud2());
+    layer_prev_ = -1;
+  }
 };
