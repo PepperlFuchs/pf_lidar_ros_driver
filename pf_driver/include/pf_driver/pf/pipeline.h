@@ -134,7 +134,7 @@ private:
           ROS_DEBUG("Queue overflow!");
       }
       packets.clear();
-      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+      std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
     writer_->stop();
     running_ = false;
@@ -149,7 +149,7 @@ private:
     {
       // ROS_INFO("reader loop");
       // wait till next message is received from device with 1 second timeout
-      if (!queue_.wait_dequeue_timed(packet, std::chrono::seconds(1)))
+      if (!queue_.wait_dequeue_timed(packet, std::chrono::milliseconds(100)))
       {
         // TODO: reader needs to handle if no packet is received
         continue;
