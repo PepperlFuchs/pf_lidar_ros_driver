@@ -1,6 +1,6 @@
 ## ROS drivers for R2000 and R2300 laser scanners
 
-[![Build Status](https://travis-ci.org/PepperlFuchs/ROS_driver.svg?branch=master)](https://travis-ci.org/PepperlFuchs/ROS_driver)
+![Build Status](https://github.com/PepperlFuchs/pf_lidar_ros_driver/actions/workflows/main.yml/badge.svg)
 
 **Required platform:**  
 Ubuntu 18.04 and ROS Melodic
