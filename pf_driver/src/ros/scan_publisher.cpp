@@ -136,7 +136,7 @@ void ScanPublisherR2300::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t lay
   {
     int channelOptions = laser_geometry::channel_option::Intensity;
     projector_.transformLaserScanToPointCloud("/base_link", *msg, c, tfListener_, -1.0, channelOptions);
-    if (layer_idx < layer_prev_)
+    if (layer_idx <= layer_prev_)
     {
       if (!cloud_->data.empty())
       {
