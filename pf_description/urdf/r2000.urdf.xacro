@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <xacro:macro name="r2000" params="prefix" >
+        <link name="${prefix}base_link" >
+            <visual>
+                <origin xyz="0 0 0" rpy="1.57 0 1.57" />
+                <geometry>
+                    <mesh filename="package://pf_description/meshes/R2000.stl" scale="0.001 0.001 0.001" />
+                </geometry>
+            </visual>
+
+            <collision>
+                <origin xyz="0 0 0.045" rpy="0 0 0" />
+                <geometry>
+                    <box size="0.108 0.118 0.128" />
+                </geometry>
+            </collision>
+        </link>
+    </xacro:macro>
+</robot>

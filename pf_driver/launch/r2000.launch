@@ -6,6 +6,10 @@
   <arg name="start_angle" default="-1800000"/>
   <arg name="max_num_points_scan" default="0"/>
 
+  <include file="$(find pf_description)/launch/pf_bringup.launch" >
+    <arg name="scanner" value="r2000" />
+  </include>
+
   <!-- R2000 Driver -->
   <node pkg="pf_driver" type="ros_main" name="r2000_node" output="screen">
     <param name="transport" type="string" value="$(arg transport)"/>
