@@ -8,7 +8,7 @@ Ubuntu 18.04 and ROS Melodic
 **Clone the repository:**  
 Clone the repository in the `src` folder of your ROS workspace
 ```
-git clone --branch=master https://github.com/PepperlFuchs/pf_lidar_ros_driver.git
+git clone --branch=main https://github.com/PepperlFuchs/pf_lidar_ros_driver.git
 ```
   
 **Install the missing dependencies:**  
@@ -23,7 +23,7 @@ rosdep install --from-paths src --ignore-src --rosdistro=melodic -y
 cd <path/to/workspace>
 source /opt/ros/melodic/setup.bash
 catkin build
-source <path/to/workspace>/devel/setup.bash
+source <path/to/workspace>/install/setup.bash
 ```
   
 **Usage:**  
@@ -49,8 +49,3 @@ turn. This is (yet) not strictly from bottom to top:
 |1 |-1.5° | - |
 |2 |+4.5° | top |
 |3 |+1.5° | - |
-
-To visualize the 4 rings in RViz, run the following launch file:
-```
-roslaunch pf_driver r2300_allscans.launch
-```
