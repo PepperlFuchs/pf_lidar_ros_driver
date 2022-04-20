@@ -3,7 +3,7 @@
 ![Build Status](https://github.com/PepperlFuchs/pf_lidar_ros_driver/actions/workflows/main.yml/badge.svg)
 
 **Required platform:**  
-Ubuntu 20.04 and ROS Noetic
+Ubuntu 18.04 / ROS Melodic OR Ubuntu 20.04 / ROS Noetic
   
 **Clone the repository:**  
 Clone the repository in the `src` folder of your ROS workspace
@@ -13,15 +13,16 @@ git clone --branch=main https://github.com/PepperlFuchs/pf_lidar_ros_driver.git
   
 **Install the missing dependencies:**  
 ```
+export ROS_DISTRO=melodic OR export ROS_DISTRO=noetic
 cd <path/to/workspace>
 rosdep update
-rosdep install --from-paths src --ignore-src --rosdistro=noetic -y
+rosdep install --from-paths src --ignore-src --rosdistro=ROS_DISTRO -y
 ```
   
 **Build the workspace:**  
 ```
 cd <path/to/workspace>
-source /opt/ros/noetic/setup.bash
+source /opt/ros/ROS_DISTRO/setup.bash
 catkin build
 source <path/to/workspace>/install/setup.bash
 ```
