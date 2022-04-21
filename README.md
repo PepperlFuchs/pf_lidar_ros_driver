@@ -3,7 +3,19 @@
 ![Build Status](https://github.com/PepperlFuchs/pf_lidar_ros_driver/actions/workflows/main.yml/badge.svg)
 
 **Required platform:**  
-Ubuntu 18.04 / ROS Melodic OR Ubuntu 20.04 / ROS Noetic
+Ubuntu 18.04 / ROS Melodic OR Ubuntu 20.04 / ROS Noetic  
+
+To use `catkin_tools` instead of `catkin_make` for building from source:
+```
+sudo sh \
+    -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" \
+        > /etc/apt/sources.list.d/ros-latest.list'
+wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install python3-catkin-tools
+```
+
+For more details, refer https://catkin-tools.readthedocs.io/en/latest/installing.html
   
 **Clone the repository:**  
 Clone the repository in the `src` folder of your ROS workspace
@@ -23,7 +35,15 @@ rosdep install --from-paths src --ignore-src --rosdistro=ROS_DISTRO -y
 ```
 cd <path/to/workspace>
 source /opt/ros/ROS_DISTRO/setup.bash
+```
+If `catkin_tools` is installed as shown above:
+```
 catkin build
+source <path/to/workspace>/install/setup.bash
+```
+Instead, to use `catkin_make`:
+```
+catkin_make
 source <path/to/workspace>/install/setup.bash
 ```
   
