@@ -42,6 +42,7 @@ struct HandleInfo
   std::string hostname;
   std::string port;
   std::string handle;
+  std::string endpoint;
 };
 
 struct ScanConfig
@@ -383,7 +384,7 @@ public:
 
   virtual void request_handle_udp(const std::string packet_type = "")
   {
-    param_map_type query = { KV("address", info_->hostname), KV("port", info_->port) };
+    param_map_type query = { KV("address", info_->endpoint), KV("port", info_->port) };
     if (!packet_type.empty())
     {
       query["packet_type"] = packet_type;

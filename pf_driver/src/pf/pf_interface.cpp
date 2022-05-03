@@ -45,6 +45,7 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
       return false;
     }
 
+    info_->endpoint = transport_->get_host_ip();
     info_->port = transport_->get_port();
     protocol_interface_->request_handle_udp();
   }
