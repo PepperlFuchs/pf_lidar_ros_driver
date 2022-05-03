@@ -394,10 +394,6 @@ public:
       query["packet_type"] = config_->packet_type;
     }
     auto resp = get_request("request_handle_udp", { "handle", "port" }, query);
-    for (auto r : resp)
-    {
-      std::cout << r.first << " : " << r.second << std::endl;
-    }
     info_->handle = resp["handle"];
   }
 
