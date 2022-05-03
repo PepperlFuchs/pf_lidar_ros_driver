@@ -185,7 +185,6 @@ class PFSDPBase
 private:
   using HTTPInterfacePtr = std::unique_ptr<HTTPInterface>;
   HTTPInterfacePtr http_interface;
-  std::string hostname;
 
   const std::map<std::string, std::string> get_request(const std::string command, std::vector<std::string> json_keys,
                                                        const std::initializer_list<param_type> query)
@@ -258,11 +257,13 @@ private:
   }
 
 protected:
-  ScanConfig config;
-  ScanParameters params;
+  std::shared_ptr<HandleInfo> info_;
+  std::shared_ptr<ScanConfig> config_;
+  std::shared_ptr<ScanParameters> params_;
 
 public:
-  PFSDPBase(const std::string& host) : hostname(host), http_interface(new HTTPInterface(host, "cmd"))
+  PFSDPBase(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params) :
+    config_(config), info_(info), params_(params), http_interface(new HTTPInterface(info->hostname, "cmd"))
   {
   }
 
@@ -353,49 +354,64 @@ public:
     return get_request_bool("reset_parameter", { "" }, { KV("list", ts...) });
   }
 
-  HandleInfo request_handle_tcp(const std::string port = "", const std::string packet_type = "")
+  void request_handle_tcp(const std::string port = "", const std::string packet_type = "")
   {
     param_map_type query;
     if (!port.empty())
+    {
       query["port"] = port;
+    }
+    else if (info_->port != "0")
+    {
+      query["port"] = info_->port;
+    }
     if (!packet_type.empty())
+    {
       query["packet_type"] = packet_type;
+    }
+    else
+    {
+      query["packet_type"] = config_->packet_type;
+    }
     auto resp = get_request("request_handle_tcp", { "handle", "port" }, query);
 
-    HandleInfo handle_info;
-    handle_info.hostname = hostname;
-    handle_info.handle = resp["handle"];
-    handle_info.port = resp["port"];
-    return handle_info;
+    info_->handle = resp["handle"];
+    info_->port = resp["port"];
+
+    // TODO: port and pkt_type should be updated in config_
   }
 
-  virtual HandleInfo request_handle_udp(const std::string host_ip, const std::string port,
-                                        const std::string packet_type = "")
+  virtual void request_handle_udp(const std::string packet_type = "")
   {
-    param_map_type query = { KV("address", host_ip), KV("port", port) };
+    param_map_type query = { KV("address", info_->hostname), KV("port", info_->port) };
     if (!packet_type.empty())
+    {
       query["packet_type"] = packet_type;
+    }
+    else
+    {
+      query["packet_type"] = config_->packet_type;
+    }
     auto resp = get_request("request_handle_udp", { "handle", "port" }, query);
-
-    HandleInfo handle_info;
-    handle_info.handle = resp["handle"];
-    handle_info.port = resp["port"];
-    return handle_info;
+    for (auto r : resp)
+    {
+      std::cout << r.first << " : " << r.second << std::endl;
+    }
+    info_->handle = resp["handle"];
   }
 
-  virtual ScanConfig get_scanoutput_config(std::string handle)
+  virtual void get_scanoutput_config(std::string handle)
   {
     auto resp = get_request(
         "get_scanoutput_config",
         { "start_angle", "packet_type", "watchdogtimeout", "skip_scans", "watchdog", "max_num_points_scan" },
         { KV("handle", handle) });
-    config.packet_type = resp["packet_type"];
-    config.start_angle = to_long(resp["start_angle"]);
-    config.watchdogtimeout = to_long(resp["watchdogtimeout"]);
-    config.watchdog = (resp["watchdog"] == "off") ? false : true;
-    config.skip_scans = to_long(resp["skip_scans"]);
-    config.max_num_points_scan = to_long(resp["max_num_points_scan"]);
-    return config;
+    config_->packet_type = resp["packet_type"];
+    config_->start_angle = to_long(resp["start_angle"]);
+    config_->watchdogtimeout = to_long(resp["watchdogtimeout"]);
+    config_->watchdog = (resp["watchdog"] == "off") ? false : true;
+    config_->skip_scans = to_long(resp["skip_scans"]);
+    config_->max_num_points_scan = to_long(resp["max_num_points_scan"]);
   }
 
   bool set_scanoutput_config(std::string handle, ScanConfig config)
@@ -408,11 +424,32 @@ public:
                              KV("skip_scans", config.skip_scans),
                              KV("watchdog", config.watchdog ? "on" : "off") };
     auto resp = get_request("set_scanoutput_config", { "" }, query);
+
+    // update global config_
+    get_scanoutput_config(handle);
+    get_scan_parameters();
     return true;
   }
-  bool start_scanoutput(std::string handle)
+
+  bool update_scanoutput_config()
   {
-    get_request("start_scanoutput", { "" }, { { "handle", handle } });
+    param_map_type query = { KV("handle", info_->handle),
+                             KV("start_angle", config_->start_angle),
+                             KV("packet_type", config_->packet_type),
+                             KV("max_num_points_scan", config_->max_num_points_scan),
+                             KV("watchdogtimeout", config_->watchdogtimeout),
+                             KV("skip_scans", config_->skip_scans),
+                             KV("watchdog", config_->watchdog ? "on" : "off") };
+    auto resp = get_request("set_scanoutput_config", { "" }, query);
+
+    // recalculate scan params
+    get_scan_parameters();
+    return true;
+  }
+
+  bool start_scanoutput()
+  {
+    get_request("start_scanoutput", { "" }, { { "handle", info_->handle } });
     return true;
   }
 
@@ -437,16 +474,11 @@ public:
     return std::string("");
   }
 
-  virtual ScanParameters get_scan_parameters(int start_angle = 0)
-  {
-    return ScanParameters();
-  }
-
-  virtual void handle_reconfig(pf_driver::PFDriverR2000Config& config, uint32_t level)
+  virtual void get_scan_parameters()
   {
   }
 
-  virtual void handle_reconfig(pf_driver::PFDriverR2300Config& config, uint32_t level)
+  virtual void setup_param_server()
   {
   }
 };

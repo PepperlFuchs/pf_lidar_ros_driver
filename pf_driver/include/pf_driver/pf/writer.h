@@ -58,7 +58,6 @@ public:
 
 private:
   std::unique_ptr<Transport> transport_;
-  ;
   std::shared_ptr<Parser<T>> parser_;
   std::vector<uint8_t> persistent_buffer_;
 };

@@ -59,19 +59,19 @@ void ScanPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
 
     {
       std::lock_guard<std::mutex> lock(config_mutex_);
-      msg->time_increment = (params_.angular_fov * msg->scan_time) / (M_PI * 2.0) / packet.header.num_points_scan;
-      msg->angle_min = params_.angle_min;
-      msg->angle_max = params_.angle_max;
+      msg->time_increment = (params_->angular_fov * msg->scan_time) / (M_PI * 2.0) / packet.header.num_points_scan;
+      msg->angle_min = params_->angle_min;
+      msg->angle_max = params_->angle_max;
       if (std::is_same<T, PFR2300Packet_C1>::value)  // Only Packet C1 for R2300
       {
-        double config_start_angle = config_.start_angle / 1800000.0 * M_PI;
-        if (config_start_angle > params_.angle_min)
+        double config_start_angle = config_->start_angle / 1800000.0 * M_PI;
+        if (config_start_angle > params_->angle_min)
         {
           msg->angle_min = config_start_angle;
         }
-        if (config_.max_num_points_scan != 0)  // means need to calculate
+        if (config_->max_num_points_scan != 0)  // means need to calculate
         {
-          double config_angle = (config_.max_num_points_scan - 1) * (params_.scan_freq / 500.0) / 180.0 * M_PI;
+          double config_angle = (config_->max_num_points_scan - 1) * (params_->scan_freq / 500.0) / 180.0 * M_PI;
           if (msg->angle_min + config_angle < msg->angle_max)
           {
             msg->angle_max = msg->angle_min + config_angle;
@@ -79,8 +79,8 @@ void ScanPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
         }
       }
 
-      msg->range_min = params_.radial_range_min;
-      msg->range_max = params_.radial_range_max;
+      msg->range_min = params_->radial_range_min;
+      msg->range_max = params_->radial_range_max;
     }
 
     msg->ranges.resize(packet.header.num_points_scan);

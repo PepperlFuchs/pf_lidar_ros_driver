@@ -4,7 +4,6 @@ bool TCPTransport::connect()
 {
   try
   {
-    std::cout << "io_service " << io_service_->stopped() << std::endl;
     tcp::resolver resolver(*io_service_);
     tcp::resolver::query query(address_, port_);
     tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);

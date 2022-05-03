@@ -5,6 +5,11 @@
   <arg name="device" default="R2000"/>
   <arg name="start_angle" default="-1800000"/>
   <arg name="max_num_points_scan" default="0"/>
+  <arg name="packet_type" default="A"/>
+  <arg name="scan_topic" default="/scan"/>
+  <arg name="frame_id" default="scanner"/>
+  <arg name="watchdogtimeout" default="60000"/>
+
 
   <include file="$(find pf_description)/launch/pf_bringup.launch" >
     <arg name="scanner" value="r2000" />
@@ -18,6 +23,10 @@
     <param name="device" type="string" value="$(arg device)"/>
     <param name="start_angle" type="int" value="$(arg start_angle)"/>
     <param name="max_num_points_scan" type="int" value="$(arg max_num_points_scan)"/>
+    <param name="packet_type" type="string" value="$(arg packet_type)"/>
+    <param name="scan_topic" type="string" value="$(arg scan_topic)"/>
+    <param name="frame_id" type="string" value="$(arg frame_id)"/>
+    <param name="watchdogtimeout" type="int" value="$(arg watchdogtimeout)"/>
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="static_transform_publisher" args="0 0 0 0 0 0 1 /base_link /scanner 100"/>
