@@ -9,6 +9,7 @@
   <arg name="scan_topic" default="/scan"/>
   <arg name="frame_id" default="scanner"/>
   <arg name="watchdogtimeout" default="60000"/>
+  <arg name="watchdog" default="true"/>
 
 
   <include file="$(find pf_description)/launch/pf_bringup.launch" >
@@ -27,6 +28,7 @@
     <param name="scan_topic" type="string" value="$(arg scan_topic)"/>
     <param name="frame_id" type="string" value="$(arg frame_id)"/>
     <param name="watchdogtimeout" type="int" value="$(arg watchdogtimeout)"/>
+    <param name="watchdog" type="bool" value="$(arg watchdog)"/>
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="static_transform_publisher" args="0 0 0 0 0 0 1 /base_link /scanner 100"/>
