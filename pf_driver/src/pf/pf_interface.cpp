@@ -112,7 +112,7 @@ bool PFInterface::handle_version(int major_version, int minor_version, std::stri
     reader_ = std::shared_ptr<PFPacketReader>(
         new ScanPublisherR2000(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
   }
-  else if (major_version == 1 && minor_version == 2)
+  else if (major_version == 0 && minor_version == 5)
   {
     expected_dev = "R2300";
     protocol_interface_ = std::make_shared<PFSDP_2300>(info_, config_, params_, config_mutex_);
