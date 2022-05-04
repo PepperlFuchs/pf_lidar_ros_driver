@@ -263,8 +263,9 @@ protected:
   std::shared_ptr<ScanParameters> params_;
 
 public:
-  PFSDPBase(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params) :
-    config_(config), info_(info), params_(params), http_interface(new HTTPInterface(info->hostname, "cmd"))
+  PFSDPBase(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
+            std::shared_ptr<ScanParameters> params)
+    : config_(config), info_(info), params_(params), http_interface(new HTTPInterface(info->hostname, "cmd"))
   {
   }
 

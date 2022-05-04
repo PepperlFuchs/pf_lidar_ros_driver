@@ -5,7 +5,8 @@
 class PFSDP_2300 : public PFSDPBase
 {
 public:
-  PFSDP_2300(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params)
+  PFSDP_2300(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
+             std::shared_ptr<ScanParameters> params)
     : PFSDPBase(info, config, params)
   {
   }

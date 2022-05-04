@@ -6,9 +6,8 @@
 #include "pf_driver/pf/pf_interface.h"
 #include "pf_driver/ros/scan_publisher.h"
 
-
-bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-  std::string topic, std::string frame_id)
+bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
+                       std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id)
 {
   config_ = config;
   info_ = info;
@@ -108,15 +107,15 @@ bool PFInterface::handle_version(int major_version, int minor_version, std::stri
   {
     expected_dev = "R2000";
     protocol_interface_ = std::make_shared<PFSDP_2000>(this->info_, this->config_, this->params_);
-    reader_ = std::shared_ptr<PFPacketReader>(new ScanPublisherR2000(this->config_, this->params_,
-      topic.c_str(), frame_id.c_str()));
+    reader_ = std::shared_ptr<PFPacketReader>(
+        new ScanPublisherR2000(this->config_, this->params_, topic.c_str(), frame_id.c_str()));
   }
   else if (major_version == 1 && minor_version == 2)
   {
     expected_dev = "R2300";
     protocol_interface_ = std::make_shared<PFSDP_2300>(this->info_, this->config_, this->params_);
-    reader_ = std::shared_ptr<PFPacketReader>(new ScanPublisherR2300(this->config_, this->params_,
-      topic.c_str(), frame_id.c_str()));
+    reader_ = std::shared_ptr<PFPacketReader>(
+        new ScanPublisherR2300(this->config_, this->params_, topic.c_str(), frame_id.c_str()));
   }
   else
   {
@@ -198,7 +197,7 @@ std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet
       parser = std::unique_ptr<Parser<PFPacket>>(new PFR2300_C1_Parser);
     }
   }
-  if(!parser)
+  if (!parser)
   {
     return nullptr;
   }

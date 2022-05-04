@@ -11,12 +11,11 @@
 #include "pf_driver/pf/pf_packet.h"
 #include "pf_driver/queue/readerwriterqueue.h"
 
-
 class ScanPublisher : public PFPacketReader
 {
 public:
-  ScanPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params):
-    config_(config), params_(params)
+  ScanPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params)
+    : config_(config), params_(params)
   {
   }
 
@@ -62,8 +61,9 @@ protected:
 class ScanPublisherR2000 : public ScanPublisher
 {
 public:
-  ScanPublisherR2000(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-    std::string scan_topic, std::string frame_id) : ScanPublisher(config, params)
+  ScanPublisherR2000(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params, std::string scan_topic,
+                     std::string frame_id)
+    : ScanPublisher(config, params)
   {
     scan_publisher_ = nh_.advertise<sensor_msgs::LaserScan>(scan_topic, 1);
     header_publisher_ = nh_.advertise<pf_driver::PFR2000Header>("/r2000_header", 1);
@@ -80,8 +80,9 @@ private:
 class ScanPublisherR2300 : public ScanPublisher
 {
 public:
-  ScanPublisherR2300(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-    std::string scan_topic, std::string frame_id) : ScanPublisher(config, params), tfListener_(nh_), layer_prev_(-1)
+  ScanPublisherR2300(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params, std::string scan_topic,
+                     std::string frame_id)
+    : ScanPublisher(config, params), tfListener_(nh_), layer_prev_(-1)
   {
     for (int i = 0; i < 4; i++)
     {

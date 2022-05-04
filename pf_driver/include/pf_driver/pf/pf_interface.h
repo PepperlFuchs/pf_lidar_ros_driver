@@ -20,13 +20,12 @@
 class PFInterface
 {
 public:
-  PFInterface()
-    : state_(PFState::UNINIT)
+  PFInterface() : state_(PFState::UNINIT)
   {
   }
 
-  bool init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-    std::string topic, std::string frame_id);
+  bool init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
+            std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id);
   bool start_transmission();
   void stop_transmission();
   void terminate();
