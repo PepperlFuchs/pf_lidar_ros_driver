@@ -1,16 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="transport" default="udp"/>
-  <arg name="scanner_ip" default="169.254.253.4"/>
   <arg name="device" default="R2000"/>
-  <arg name="start_angle" default="-1800000"/>
-  <arg name="max_num_points_scan" default="0"/>
-  <arg name="packet_type" default="A"/>
-  <arg name="scan_topic" default="/scan"/>
-  <arg name="frame_id" default="scanner"/>
-  <arg name="watchdogtimeout" default="60000"/>
-  <arg name="watchdog" default="true"/>
-
 
   <include file="$(find pf_description)/launch/pf_bringup.launch" >
     <arg name="scanner" value="r2000" />
@@ -18,17 +8,8 @@
 
   <!-- R2000 Driver -->
   <node pkg="pf_driver" type="ros_main" name="r2000_node" output="screen">
-    <param name="transport" type="string" value="$(arg transport)"/>
-    <param name="scanner_ip" type="string" value="$(arg scanner_ip)"/>
-    <param name="port" type="string" value="0"/>
-    <param name="device" type="string" value="$(arg device)"/>
-    <param name="start_angle" type="int" value="$(arg start_angle)"/>
-    <param name="max_num_points_scan" type="int" value="$(arg max_num_points_scan)"/>
-    <param name="packet_type" type="string" value="$(arg packet_type)"/>
-    <param name="scan_topic" type="string" value="$(arg scan_topic)"/>
-    <param name="frame_id" type="string" value="$(arg frame_id)"/>
-    <param name="watchdogtimeout" type="int" value="$(arg watchdogtimeout)"/>
-    <param name="watchdog" type="bool" value="$(arg watchdog)"/>
+    <param name="device" value="$(arg device)"/>
+    <rosparam file="$(find pf_driver)/config/r2000_params.yaml" command="load"/>
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="static_transform_publisher" args="0 0 0 0 0 0 1 /base_link /scanner 100"/>
