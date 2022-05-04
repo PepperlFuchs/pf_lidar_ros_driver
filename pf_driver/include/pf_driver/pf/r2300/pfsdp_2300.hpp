@@ -41,6 +41,7 @@ public:
 private:
   void get_layers_enabled(uint16_t& enabled)
   {
+    enabled = 0;
     std::string layers = get_parameter_str("layer_enable");
     std::vector<std::string> vals = split(layers);
     std::vector<bool> enabled_layers(vals.size(), false);
