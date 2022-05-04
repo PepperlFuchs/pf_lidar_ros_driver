@@ -13,7 +13,7 @@ public:
 
   virtual std::string get_product()
   {
-    return get_parameter_str("product");
+    return get_parameter_str("part");
   }
 
   virtual void get_scan_parameters()
@@ -165,6 +165,8 @@ private:
       config_->skip_scans = config.skip_scans;
     }
     update_scanoutput_config();
+
+    config_mutex_->unlock();
   }
 
   std::unique_ptr<dynamic_reconfigure::Server<pf_driver::PFDriverR2300Config>> param_server_R2300_;
