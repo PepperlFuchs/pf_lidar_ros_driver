@@ -27,7 +27,7 @@ public:
     auto start_stop = get_angle_start_stop(config_->start_angle);
     params_->angle_min = start_stop.first;
     params_->angle_max = start_stop.second;
-    get_layers_enabled(params_->layers_enabled);
+    get_layers_enabled(params_->layers_enabled, params_->h_enabled_layer);
     params_->scan_freq = to_float(resp["scan_frequency"]);
   }
 
@@ -39,7 +39,7 @@ public:
   }
 
 private:
-  void get_layers_enabled(uint16_t& enabled)
+  void get_layers_enabled(uint16_t& enabled, uint16_t& highest)
   {
     enabled = 0;
     std::string layers = get_parameter_str("layer_enable");
@@ -50,6 +50,7 @@ private:
       if (vals[i].compare("on") == 0)
       {
         enabled += pow(2, i);
+        highest = i;
       }
     }
   }
@@ -163,7 +164,6 @@ private:
     {
       config_->skip_scans = config.skip_scans;
     }
-
     update_scanoutput_config();
   }
 
