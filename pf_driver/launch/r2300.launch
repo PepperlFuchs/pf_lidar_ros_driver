@@ -5,6 +5,11 @@
   <arg name="device" default="R2300"/>
   <arg name="start_angle" default="-450000"/>
   <arg name="max_num_points_scan" default="0"/>
+  <arg name="packet_type" default="C1"/>
+  <arg name="scan_topic" default="/cloud"/>
+  <arg name="frame_id" default="scanner"/>
+  <arg name="watchdogtimeout" default="0"/>
+  <arg name="watchdog" default="false"/>
 
   <include file="$(find pf_description)/launch/pf_bringup.launch" >
     <arg name="scanner" value="r2300" />
@@ -18,6 +23,11 @@
     <param name="device" type="string" value="$(arg device)"/>
     <param name="start_angle" type="int" value="$(arg start_angle)"/>
     <param name="max_num_points_scan" type="int" value="$(arg max_num_points_scan)"/>
+    <param name="packet_type" type="string" value="$(arg packet_type)"/>
+    <param name="scan_topic" type="string" value="$(arg scan_topic)"/>
+    <param name="frame_id" type="string" value="$(arg frame_id)"/>
+    <param name="watchdogtimeout" type="int" value="$(arg watchdogtimeout)"/>
+    <param name="watchdog" type="bool" value="$(arg watchdog)"/>
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="ring1" args="0 0 0 0 0.0785 0 base_link scanner_1 10" />
