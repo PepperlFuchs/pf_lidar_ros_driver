@@ -51,6 +51,11 @@ void ScanPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
     d_queue_.pop_front();
   if (packet.header.header.packet_number == 1)
   {
+    if (layer_idx == 0)
+    {
+      config_mutex_->lock();
+    }
+
     msg.reset(new sensor_msgs::LaserScan());
     msg->header.frame_id.assign(frame_id_);
     msg->header.seq = packet.header.header.scan_number;
@@ -58,7 +63,6 @@ void ScanPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
     msg->angle_increment = packet.header.angular_increment / 10000.0 * (M_PI / 180.0);
 
     {
-      std::lock_guard<std::mutex> lock(config_mutex_);
       msg->time_increment = (params_->angular_fov * msg->scan_time) / (M_PI * 2.0) / packet.header.num_points_scan;
       msg->angle_min = params_->angle_min;
       msg->angle_max = params_->angle_max;
@@ -114,6 +118,12 @@ void ScanPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
     {
       handle_scan(msg, layer_idx);
       d_queue_.pop_back();
+      // in case of single layered device (R2000),
+      // h_enabled_layer = 0 and layer_idx is always 0
+      if (layer_idx == params_->h_enabled_layer)
+      {
+        config_mutex_->unlock();
+      }
     }
   }
 }
@@ -129,6 +139,7 @@ bool ScanPublisher::check_status(uint32_t status_flags)
 void ScanPublisherR2300::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
 {
   publish_scan(msg, layer_idx);
+
   sensor_msgs::PointCloud2 c;
   if (tfListener_.waitForTransform(
           msg->header.frame_id, "base_link",

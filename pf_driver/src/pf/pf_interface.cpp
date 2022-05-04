@@ -13,7 +13,9 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
   info_ = info;
   params_ = params;
 
-  protocol_interface_ = std::make_shared<PFSDPBase>(info, config, params);
+  config_mutex_ = std::make_shared<std::mutex>();
+
+  protocol_interface_ = std::make_shared<PFSDPBase>(info, config, params, config_mutex_);
   // This is the first time ROS communicates with the device
   auto opi = protocol_interface_->get_protocol_info();
   if (opi.isError)
@@ -106,16 +108,16 @@ bool PFInterface::handle_version(int major_version, int minor_version, std::stri
   if (major_version == 1 && minor_version == 3)
   {
     expected_dev = "R2000";
-    protocol_interface_ = std::make_shared<PFSDP_2000>(this->info_, this->config_, this->params_);
+    protocol_interface_ = std::make_shared<PFSDP_2000>(info_, config_, params_, config_mutex_);
     reader_ = std::shared_ptr<PFPacketReader>(
-        new ScanPublisherR2000(this->config_, this->params_, topic.c_str(), frame_id.c_str()));
+        new ScanPublisherR2000(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
   }
   else if (major_version == 1 && minor_version == 2)
   {
     expected_dev = "R2300";
-    protocol_interface_ = std::make_shared<PFSDP_2300>(this->info_, this->config_, this->params_);
+    protocol_interface_ = std::make_shared<PFSDP_2300>(info_, config_, params_, config_mutex_);
     reader_ = std::shared_ptr<PFPacketReader>(
-        new ScanPublisherR2300(this->config_, this->params_, topic.c_str(), frame_id.c_str()));
+        new ScanPublisherR2300(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
   }
   else
   {

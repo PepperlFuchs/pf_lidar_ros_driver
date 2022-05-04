@@ -6,8 +6,8 @@ class PFSDP_2300 : public PFSDPBase
 {
 public:
   PFSDP_2300(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-             std::shared_ptr<ScanParameters> params)
-    : PFSDPBase(info, config, params)
+             std::shared_ptr<ScanParameters> params, std::shared_ptr<std::mutex> config_mutex)
+    : PFSDPBase(info, config, params, config_mutex)
   {
   }
 
@@ -71,6 +71,8 @@ private:
 
   void reconfig_callback(pf_driver::PFDriverR2300Config& config, uint32_t level)
   {
+    config_mutex_->lock();
+
     if (level == 1)
     {
       set_parameter({ KV("ip_mode", config.ip_mode) });
