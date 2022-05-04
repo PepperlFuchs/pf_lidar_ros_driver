@@ -31,14 +31,16 @@ int main(int argc, char* argv[])
   // other parameters can also be set in the same way
   int max_num_points_scan = 0;
   int watchdogtimeout = 0;
+  bool watchdog;
   nh.getParam("start_angle", config->start_angle);
   nh.getParam("max_num_points_scan", max_num_points_scan);
   nh.getParam("packet_type", config->packet_type);
   nh.getParam("watchdogtimeout", watchdogtimeout);
+  nh.getParam("watchdogtimeout", watchdog);
 
   config->max_num_points_scan = max_num_points_scan;
   config->watchdogtimeout = watchdogtimeout;
-  config->watchdog = true;
+  config->watchdog = watchdog;
 
   std::string topic, frame_id;
   nh.getParam("scan_topic", topic);
