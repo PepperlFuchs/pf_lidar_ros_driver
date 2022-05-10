@@ -7,7 +7,7 @@
 #include "pf_driver/ros/scan_publisher.h"
 
 bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-                       std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id)
+                       std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id, const uint16_t num_layers)
 {
   config_ = config;
   info_ = info;
@@ -30,7 +30,7 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
     return false;
   }
 
-  if (!handle_version(opi.version_major, opi.version_minor, topic, frame_id))
+  if (!handle_version(opi.version_major, opi.version_minor, topic, frame_id, num_layers))
   {
     ROS_ERROR("Device unsupported");
     return false;
@@ -102,7 +102,7 @@ bool PFInterface::can_change_state(PFState state)
   return true;
 }
 
-bool PFInterface::handle_version(int major_version, int minor_version, std::string topic, std::string frame_id)
+bool PFInterface::handle_version(int major_version, int minor_version, std::string topic, std::string frame_id, const uint16_t num_layers)
 {
   std::string expected_dev = "";
   if (major_version == 1 && minor_version == 3)
@@ -117,7 +117,7 @@ bool PFInterface::handle_version(int major_version, int minor_version, std::stri
     expected_dev = "R2300";
     protocol_interface_ = std::make_shared<PFSDP_2300>(info_, config_, params_, config_mutex_);
     reader_ = std::shared_ptr<PFPacketReader>(
-        new PointcloudPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
+        new PointcloudPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_, num_layers));
   }
   else
   {

@@ -8,3 +8,4 @@ R2300:
   frame_id: "scanner"
   watchdogtimeout: 0
   watchdog: false
+  num_layers: 4

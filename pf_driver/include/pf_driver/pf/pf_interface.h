@@ -25,7 +25,7 @@ public:
   }
 
   bool init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-            std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id);
+            std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id, const uint16_t num_layers);
   bool start_transmission();
   void stop_transmission();
   void terminate();
@@ -55,7 +55,7 @@ private:
 
   void change_state(PFState state);
   bool can_change_state(PFState state);
-  bool handle_version(int major_version, int minor_version, std::string topic, std::string frame_id);
+  bool handle_version(int major_version, int minor_version, std::string topic, std::string frame_id, const uint16_t num_layers);
 
   void start_watchdog_timer(float duration);
   void feed_watchdog(const ros::TimerEvent& e);  // timer based

@@ -82,10 +82,10 @@ class PointcloudPublisher : public PFDataPublisher
 {
 public:
   PointcloudPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params, std::string scan_topic,
-                     std::string frame_id, std::shared_ptr<std::mutex> config_mutex)
+                     std::string frame_id, std::shared_ptr<std::mutex> config_mutex, const uint16_t num_layers)
     : PFDataPublisher(config, params, config_mutex), tfListener_(nh_), layer_prev_(-1)
   {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < num_layers; i++)
     {
       std::string topic = scan_topic + "_" + std::to_string(i + 1);
       std::string id = frame_id + "_" + std::to_string(i + 1);
