@@ -31,6 +31,7 @@ struct ProtocolInfo
   std::vector<std::string> commands;  // list of available commands
                                       // Since R2300 may not give correct error reports
                                       // it is safer to keep the list of commands
+  uint16_t device_family;
 };
 
 struct HandleInfo
@@ -300,7 +301,7 @@ public:
   ProtocolInfo get_protocol_info()
   {
     ProtocolInfo opi;
-    auto resp = get_request("get_protocol_info", { "protocol_name", "version_major", "version_minor", "commands" });
+    auto resp = get_request("get_protocol_info", { "protocol_name", "version_major", "version_minor", "commands", "device_family" });
     if (resp.empty())
     {
       opi.isError = true;
@@ -310,6 +311,7 @@ public:
     opi.version_major = atoi(resp["version_major"].c_str());
     opi.version_minor = atoi(resp["version_minor"].c_str());
     opi.protocol_name = resp["protocol_name"];
+    opi.device_family = atoi(resp["device_family"].c_str());
 
     return opi;
   }

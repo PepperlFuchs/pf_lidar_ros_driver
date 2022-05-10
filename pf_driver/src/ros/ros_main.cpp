@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
   dev_nh.getParam("max_num_points_scan", max_num_points_scan);
   dev_nh.getParam("packet_type", config->packet_type);
   dev_nh.getParam("watchdogtimeout", watchdogtimeout);
-  dev_nh.getParam("watchdogtimeout", watchdog);
+  dev_nh.getParam("watchdog", watchdog);
   dev_nh.getParam("num_layers", num_layers);
 
   config->max_num_points_scan = max_num_points_scan;
