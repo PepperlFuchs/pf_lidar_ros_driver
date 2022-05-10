@@ -7,7 +7,8 @@
 #include "pf_driver/ros/scan_publisher.h"
 
 bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-                       std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id, const uint16_t num_layers)
+                       std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id,
+                       const uint16_t num_layers)
 {
   config_ = config;
   info_ = info;
@@ -102,7 +103,8 @@ bool PFInterface::can_change_state(PFState state)
   return true;
 }
 
-bool PFInterface::handle_version(int major_version, int minor_version, int device_family, std::string topic, std::string frame_id, const uint16_t num_layers)
+bool PFInterface::handle_version(int major_version, int minor_version, int device_family, std::string topic,
+                                 std::string frame_id, const uint16_t num_layers)
 {
   std::string expected_dev = "";
   if (major_version == 1 && minor_version == 3)
@@ -120,12 +122,12 @@ bool PFInterface::handle_version(int major_version, int minor_version, int devic
     if (device_family == 5)
     {
       reader_ = std::shared_ptr<PFPacketReader>(
-        new PointcloudPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_, num_layers));
+          new PointcloudPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_, num_layers));
     }
     else if (device_family == 7)
     {
       reader_ = std::shared_ptr<PFPacketReader>(
-        new LaserscanPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
+          new LaserscanPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
     }
   }
   else

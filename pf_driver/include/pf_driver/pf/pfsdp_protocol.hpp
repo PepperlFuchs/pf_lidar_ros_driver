@@ -301,7 +301,8 @@ public:
   ProtocolInfo get_protocol_info()
   {
     ProtocolInfo opi;
-    auto resp = get_request("get_protocol_info", { "protocol_name", "version_major", "version_minor", "commands", "device_family" });
+    auto resp = get_request("get_protocol_info",
+                            { "protocol_name", "version_major", "version_minor", "commands", "device_family" });
     if (resp.empty())
     {
       opi.isError = true;
