@@ -103,6 +103,64 @@ bool PFInterface::can_change_state(PFState state)
   return true;
 }
 
+bool PFInterface::start_transmission()
+{
+  if (state_ != PFState::INIT)
+    return false;
+
+  if (pipeline_ && pipeline_->is_running())
+    return true;
+
+  pipeline_ = get_pipeline(config_->packet_type);
+  if (!pipeline_ || !pipeline_->start())
+    return false;
+
+  protocol_interface_->start_scanoutput();
+  if (config_->watchdog)
+    start_watchdog_timer(config_->watchdogtimeout / 1000.0);
+
+  change_state(PFState::RUNNING);
+  return true;
+}
+
+// What happens to the connection_ obj?
+void PFInterface::stop_transmission()
+{
+  if (state_ != PFState::RUNNING)
+    return;
+  pipeline_->terminate();
+  pipeline_.reset();
+  protocol_interface_->stop_scanoutput(info_->handle);
+  change_state(PFState::SHUTDOWN);
+}
+
+void PFInterface::terminate()
+{
+  if (!pipeline_)
+    return;
+  pipeline_->terminate();
+  pipeline_.reset();
+}
+
+void PFInterface::start_watchdog_timer(float duration)
+{
+  int feed_time = std::floor(std::min(duration, 60.0f));
+  watchdog_timer_ =
+      nh_.createTimer(ros::Duration(feed_time), std::bind(&PFInterface::feed_watchdog, this, std::placeholders::_1));
+}
+
+void PFInterface::feed_watchdog(const ros::TimerEvent& e)
+{
+  protocol_interface_->feed_watchdog(info_->handle);
+}
+
+void PFInterface::on_shutdown()
+{
+  ROS_INFO("Shutting down pipeline!");
+  stop_transmission();
+}
+
+// factory functions
 bool PFInterface::handle_version(int major_version, int minor_version, int device_family, std::string topic,
                                  std::string frame_id, const uint16_t num_layers)
 {
@@ -143,46 +201,6 @@ bool PFInterface::handle_version(int major_version, int minor_version, int devic
   return false;
 }
 
-// TODO: this function needs a thorough clean-up
-bool PFInterface::start_transmission()
-{
-  if (state_ != PFState::INIT)
-    return false;
-
-  if (pipeline_ && pipeline_->is_running())
-    return true;
-
-  pipeline_ = get_pipeline(config_->packet_type);
-  if (!pipeline_ || !pipeline_->start())
-    return false;
-
-  protocol_interface_->start_scanoutput();
-  if (config_->watchdog)
-    start_watchdog_timer(config_->watchdogtimeout / 1000.0);
-
-  change_state(PFState::RUNNING);
-  return true;
-}
-
-// What happens to the connection_ obj?
-void PFInterface::stop_transmission()
-{
-  if (state_ != PFState::RUNNING)
-    return;
-  pipeline_->terminate();
-  pipeline_.reset();
-  protocol_interface_->stop_scanoutput(info_->handle);
-  change_state(PFState::SHUTDOWN);
-}
-
-void PFInterface::terminate()
-{
-  if (!pipeline_)
-    return;
-  pipeline_->terminate();
-  pipeline_.reset();
-}
-
 std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet_type)
 {
   std::shared_ptr<Parser<PFPacket>> parser;
@@ -217,22 +235,4 @@ std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet
   writer = std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(std::move(transport_), parser));
   return std::unique_ptr<Pipeline<PFPacket>>(
       new Pipeline<PFPacket>(writer, reader_, std::bind(&PFInterface::on_shutdown, this)));
-}
-
-void PFInterface::start_watchdog_timer(float duration)
-{
-  int feed_time = std::floor(std::min(duration, 60.0f));
-  watchdog_timer_ =
-      nh_.createTimer(ros::Duration(feed_time), std::bind(&PFInterface::feed_watchdog, this, std::placeholders::_1));
-}
-
-void PFInterface::feed_watchdog(const ros::TimerEvent& e)
-{
-  protocol_interface_->feed_watchdog(info_->handle);
-}
-
-void PFInterface::on_shutdown()
-{
-  ROS_INFO("Shutting down pipeline!");
-  stop_transmission();
 }

@@ -37,6 +37,15 @@ private:
   ros::Timer watchdog_timer_;
   std::unique_ptr<Transport> transport_;
   std::shared_ptr<PFSDPBase> protocol_interface_;
+  PipelinePtr pipeline_;
+  std::shared_ptr<Reader<PFPacket>> reader_;
+  std::shared_ptr<std::mutex> config_mutex_;
+
+  std::string product_;
+
+  std::shared_ptr<HandleInfo> info_;
+  std::shared_ptr<ScanConfig> config_;
+  std::shared_ptr<ScanParameters> params_;
 
   enum class PFState
   {
@@ -47,26 +56,18 @@ private:
     ERROR
   };
   PFState state_;
-  std::string product_;
-
-  std::shared_ptr<HandleInfo> info_;
-  std::shared_ptr<ScanConfig> config_;
-  std::shared_ptr<ScanParameters> params_;
 
   void change_state(PFState state);
   bool can_change_state(PFState state);
-  bool handle_version(int major_version, int minor_version, int device_family, std::string topic, std::string frame_id,
-                      const uint16_t num_layers);
 
   void start_watchdog_timer(float duration);
   void feed_watchdog(const ros::TimerEvent& e);  // timer based
-
-  PipelinePtr pipeline_;
-  PipelinePtr get_pipeline(std::string packet_type);
-  std::shared_ptr<Reader<PFPacket>> reader_;
-
-  std::shared_ptr<std::mutex> config_mutex_;
   void on_shutdown();
+
+  // factory functions
+  bool handle_version(int major_version, int minor_version, int device_family, std::string topic, std::string frame_id,
+                      const uint16_t num_layers);
+  PipelinePtr get_pipeline(std::string packet_type);
 };
 
 #endif
