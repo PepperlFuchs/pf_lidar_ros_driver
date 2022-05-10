@@ -11,10 +11,10 @@
 #include "pf_driver/pf/pf_packet.h"
 #include "pf_driver/queue/readerwriterqueue.h"
 
-class ScanPublisher : public PFPacketReader
+class PFDataPublisher : public PFPacketReader
 {
 public:
-  ScanPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
+  PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
                 std::shared_ptr<std::mutex> config_mutex)
     : config_(config), params_(params), config_mutex_(config_mutex)
   {
@@ -59,12 +59,12 @@ protected:
   }
 };
 
-class ScanPublisherR2000 : public ScanPublisher
+class LaserscanPublisher : public PFDataPublisher
 {
 public:
-  ScanPublisherR2000(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params, std::string scan_topic,
+  LaserscanPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params, std::string scan_topic,
                      std::string frame_id, std::shared_ptr<std::mutex> config_mutex)
-    : ScanPublisher(config, params, config_mutex)
+    : PFDataPublisher(config, params, config_mutex)
   {
     scan_publisher_ = nh_.advertise<sensor_msgs::LaserScan>(scan_topic, 1);
     header_publisher_ = nh_.advertise<pf_driver::PFR2000Header>("/r2000_header", 1);
@@ -78,12 +78,12 @@ private:
   }
 };
 
-class ScanPublisherR2300 : public ScanPublisher
+class PointcloudPublisher : public PFDataPublisher
 {
 public:
-  ScanPublisherR2300(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params, std::string scan_topic,
+  PointcloudPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params, std::string scan_topic,
                      std::string frame_id, std::shared_ptr<std::mutex> config_mutex)
-    : ScanPublisher(config, params, config_mutex), tfListener_(nh_), layer_prev_(-1)
+    : PFDataPublisher(config, params, config_mutex), tfListener_(nh_), layer_prev_(-1)
   {
     for (int i = 0; i < 4; i++)
     {

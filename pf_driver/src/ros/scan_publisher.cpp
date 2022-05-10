@@ -4,31 +4,31 @@
 
 #include "pf_driver/ros/scan_publisher.h"
 
-void ScanPublisher::read(PFR2000Packet_A& packet)
+void PFDataPublisher::read(PFR2000Packet_A& packet)
 {
   header_publisher_.publish(packet.header);
   to_msg_queue<PFR2000Packet_A>(packet);
 }
 
-void ScanPublisher::read(PFR2000Packet_B& packet)
+void PFDataPublisher::read(PFR2000Packet_B& packet)
 {
   header_publisher_.publish(packet.header);
   to_msg_queue<PFR2000Packet_B>(packet);
 }
 
-void ScanPublisher::read(PFR2000Packet_C& packet)
+void PFDataPublisher::read(PFR2000Packet_C& packet)
 {
   header_publisher_.publish(packet.header);
   to_msg_queue<PFR2000Packet_C>(packet);
 }
 
-void ScanPublisher::read(PFR2300Packet_C1& packet)
+void PFDataPublisher::read(PFR2300Packet_C1& packet)
 {
   header_publisher_.publish(packet.header);
   to_msg_queue<PFR2300Packet_C1>(packet, packet.header.layer_index);
 }
 
-void ScanPublisher::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
+void PFDataPublisher::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
 {
   ros::Time t = ros::Time::now();
   msg->header.stamp = t;
@@ -39,7 +39,7 @@ void ScanPublisher::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_i
 // Skipped scans?
 // Device errors?
 template <typename T>
-void ScanPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
+void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
 {
   if (!check_status(packet.header.status_flags))
     return;
@@ -130,13 +130,13 @@ void ScanPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
 
 // check the status bits here with a switch-case
 // Currently only for logging purposes only
-bool ScanPublisher::check_status(uint32_t status_flags)
+bool PFDataPublisher::check_status(uint32_t status_flags)
 {
   // if(packet.header.header.scan_number > packet.)
   return true;
 }
 
-void ScanPublisherR2300::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
+void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
 {
   publish_scan(msg, layer_idx);
 
@@ -164,7 +164,7 @@ void ScanPublisherR2300::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t lay
   }
 }
 
-void ScanPublisherR2300::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t idx)
+void PointcloudPublisher::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t idx)
 {
   ros::Time t = ros::Time::now();
   msg->header.stamp = t;
@@ -172,7 +172,7 @@ void ScanPublisherR2300::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t id
   scan_publishers_.at(idx).publish(msg);
 }
 
-void ScanPublisherR2300::copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2)
+void PointcloudPublisher::copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2)
 {
   c1.header.frame_id = c2.header.frame_id;
   c1.height = c2.height;
@@ -185,7 +185,7 @@ void ScanPublisherR2300::copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_ms
   c1.data = std::move(c2.data);
 }
 
-void ScanPublisherR2300::add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2)
+void PointcloudPublisher::add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2)
 {
   pcl::PCLPointCloud2 p1, p2;
   pcl_conversions::toPCL(c1, p1);
