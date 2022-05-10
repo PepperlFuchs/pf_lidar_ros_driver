@@ -187,6 +187,10 @@ bool PFInterface::handle_version(int major_version, int minor_version, int devic
       reader_ = std::shared_ptr<PFPacketReader>(
           new LaserscanPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
     }
+    else
+    {
+      return false;
+    }
   }
   else
   {
