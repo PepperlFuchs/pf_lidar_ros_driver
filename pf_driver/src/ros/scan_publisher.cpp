@@ -146,7 +146,10 @@ void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t la
           msg->header.stamp + ros::Duration().fromSec(msg->ranges.size() * msg->time_increment), ros::Duration(1.0)))
   {
     int channelOptions = laser_geometry::channel_option::Intensity;
-    projector_.transformLaserScanToPointCloud("base_link", *msg, c, tfListener_, -1.0, channelOptions);
+    // since 'apply_correction' calculates the point cloud from laser scan message,
+    // 'transformLaserScanToPointCloud' may not be needed anymore
+    // just 'projectLaser' is enough just so that it initializes the pointcloud message correctly
+    projector_.projectLaser(*msg, c);
 
     apply_correction(c, msg, layer_idx);
 
@@ -154,6 +157,7 @@ void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t la
     {
       if (!cloud_->data.empty())
       {
+        cloud_->header.frame_id = "base_link";
         pcl_publisher_.publish(cloud_);
         cloud_.reset(new sensor_msgs::PointCloud2());
       }
