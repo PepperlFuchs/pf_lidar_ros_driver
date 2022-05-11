@@ -1,10 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="transport" default="udp"/>
-  <arg name="scanner_ip" default="10.0.10.76"/>
   <arg name="device" default="R2300"/>
-  <arg name="start_angle" default="-450000"/>
-  <arg name="max_num_points_scan" default="0"/>
 
   <include file="$(find pf_description)/launch/pf_bringup.launch" >
     <arg name="scanner" value="r2300" />
@@ -12,12 +8,8 @@
 
   <!-- R2300 Driver -->
   <node pkg="pf_driver" type="ros_main" name="r2300_node" output="screen">
-    <param name="transport" type="string" value="$(arg transport)"/>
-    <param name="scanner_ip" type="string" value="$(arg scanner_ip)"/>
-    <param name="port" type="string" value="0"/>
-    <param name="device" type="string" value="$(arg device)"/>
-    <param name="start_angle" type="int" value="$(arg start_angle)"/>
-    <param name="max_num_points_scan" type="int" value="$(arg max_num_points_scan)"/>
+    <param name="device" value="$(arg device)"/>
+    <rosparam file="$(find pf_driver)/config/r2300_params.yaml" command="load"/>
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="ring1" args="0 0 0 0 0.0785 0 base_link scanner_1 10" />

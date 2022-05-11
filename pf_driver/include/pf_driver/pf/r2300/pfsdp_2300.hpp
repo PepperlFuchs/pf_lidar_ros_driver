@@ -5,7 +5,9 @@
 class PFSDP_2300 : public PFSDPBase
 {
 public:
-  PFSDP_2300(const std::string& host) : PFSDPBase(host)
+  PFSDP_2300(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
+             std::shared_ptr<ScanParameters> params, std::shared_ptr<std::mutex> config_mutex)
+    : PFSDPBase(info, config, params, config_mutex)
   {
   }
 
@@ -14,24 +16,65 @@ public:
     return get_parameter_str("product");
   }
 
-  virtual ScanParameters get_scan_parameters(int start_angle)
+  virtual void get_scan_parameters()
   {
     auto resp = get_parameter("angular_fov", "radial_range_min", "radial_range_max", "measure_start_angle",
                               "measure_stop_angle", "scan_frequency");
-    params.angular_fov = to_float(resp["angular_fov"]) * M_PI / 180.0;
-    params.radial_range_max = to_float(resp["radial_range_max"]);
-    params.radial_range_min = to_float(resp["radial_range_min"]);
+    params_->angular_fov = to_float(resp["angular_fov"]) * M_PI / 180.0;
+    params_->radial_range_max = to_float(resp["radial_range_max"]);
+    params_->radial_range_min = to_float(resp["radial_range_min"]);
 
-    auto start_stop = get_angle_start_stop(start_angle);
-    params.angle_min = start_stop.first;
-    params.angle_max = start_stop.second;
-    get_layers_enabled(params.layers_enabled);
-    params.scan_freq = to_float(resp["scan_frequency"]);
-    return params;
+    auto start_stop = get_angle_start_stop(config_->start_angle);
+    params_->angle_min = start_stop.first;
+    params_->angle_max = start_stop.second;
+    get_layers_enabled(params_->layers_enabled, params_->h_enabled_layer);
+    params_->scan_freq = to_float(resp["scan_frequency"]);
   }
 
-  virtual void handle_reconfig(pf_driver::PFDriverR2300Config& config, uint32_t level)
+  void setup_param_server()
   {
+    param_server_R2300_ = std::make_unique<dynamic_reconfigure::Server<pf_driver::PFDriverR2300Config>>();
+    param_server_R2300_->setCallback(
+        boost::bind(&PFSDP_2300::reconfig_callback, this, boost::placeholders::_1, boost::placeholders::_2));
+  }
+
+private:
+  void get_layers_enabled(uint16_t& enabled, uint16_t& highest)
+  {
+    enabled = 0;
+    std::string layers = get_parameter_str("layer_enable");
+    std::vector<std::string> vals = split(layers);
+    std::vector<bool> enabled_layers(vals.size(), false);
+    for (int i = 0; i < vals.size(); i++)
+    {
+      if (vals[i].compare("on") == 0)
+      {
+        enabled += pow(2, i);
+        highest = i;
+      }
+    }
+  }
+
+  virtual std::pair<float, float> get_angle_start_stop(int start_angle)
+  {
+    float measure_start_angle = get_parameter_float("measure_start_angle") / 10000.0 * M_PI / 180.0;
+    float measure_stop_angle = get_parameter_float("measure_stop_angle") / 10000.0 * M_PI / 180.0;
+    start_angle = start_angle * M_PI / 180.0;
+
+    // float min = (measure_start_angle > start_angle) ? measure_start_angle : start_angle;
+    // float max = measure_stop_angle;
+    return std::pair<float, float>(measure_start_angle, measure_stop_angle);
+  }
+
+  virtual std::string get_start_angle_str()
+  {
+    return std::string("start_angle");
+  }
+
+  void reconfig_callback(pf_driver::PFDriverR2300Config& config, uint32_t level)
+  {
+    config_mutex_->lock();
+
     if (level == 1)
     {
       set_parameter({ KV("ip_mode", config.ip_mode) });
@@ -92,36 +135,39 @@ public:
     {
       set_parameter({ KV("operating_mode", config.operating_mode) });
     }
-  }
-
-private:
-  void get_layers_enabled(uint16_t& enabled)
-  {
-    std::string layers = get_parameter_str("layer_enable");
-    std::vector<std::string> vals = split(layers);
-    std::vector<bool> enabled_layers(vals.size(), false);
-    for (int i = 0; i < vals.size(); i++)
+    else if (level == 18)
     {
-      if (vals[i].compare("on") == 0)
-      {
-        enabled += pow(2, i);
-      }
+      config_->packet_type = config.packet_type;
     }
+    else if (level == 19)
+    {
+      // currently always none for R2300
+      // config_->packet_crc = config.packet_crc;
+    }
+    else if (level == 20)
+    {
+      config_->watchdog = (config.watchdog == "on") ? true : false;
+    }
+    else if (level == 21)
+    {
+      config_->watchdogtimeout = config.watchdogtimeout;
+    }
+    else if (level == 22)
+    {
+      config_->start_angle = config.start_angle;
+    }
+    else if (level == 23)
+    {
+      config_->max_num_points_scan = config.max_num_points_scan;
+    }
+    else if (level == 24)
+    {
+      config_->skip_scans = config.skip_scans;
+    }
+    update_scanoutput_config();
+
+    config_mutex_->unlock();
   }
 
-  virtual std::pair<float, float> get_angle_start_stop(int start_angle)
-  {
-    float measure_start_angle = get_parameter_float("measure_start_angle") / 10000.0 * M_PI / 180.0;
-    float measure_stop_angle = get_parameter_float("measure_stop_angle") / 10000.0 * M_PI / 180.0;
-    start_angle = start_angle * M_PI / 180.0;
-
-    // float min = (measure_start_angle > start_angle) ? measure_start_angle : start_angle;
-    // float max = measure_stop_angle;
-    return std::pair<float, float>(measure_start_angle, measure_stop_angle);
-  }
-
-  virtual std::string get_start_angle_str()
-  {
-    return std::string("start_angle");
-  }
+  std::unique_ptr<dynamic_reconfigure::Server<pf_driver::PFDriverR2300Config>> param_server_R2300_;
 };

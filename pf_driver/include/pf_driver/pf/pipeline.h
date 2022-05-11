@@ -100,16 +100,6 @@ public:
     }
   }
 
-  void set_scanoutput_config(ScanConfig& config)
-  {
-    reader_->set_scanoutput_config(config);
-  }
-
-  void set_scan_params(ScanParameters& params)
-  {
-    reader_->set_scan_params(params);
-  }
-
 private:
   moodycamel::BlockingReaderWriterQueue<std::unique_ptr<T>> queue_;  // the queue basically stored scan data
   std::shared_ptr<Reader<T>> reader_;

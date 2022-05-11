@@ -14,6 +14,12 @@
 class ScanPublisher : public PFPacketReader
 {
 public:
+  ScanPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
+                std::shared_ptr<std::mutex> config_mutex)
+    : config_(config), params_(params), config_mutex_(config_mutex)
+  {
+  }
+
   virtual void read(PFR2000Packet_A& packet);
   virtual void read(PFR2000Packet_B& packet);
   virtual void read(PFR2000Packet_C& packet);
@@ -29,22 +35,6 @@ public:
     return true;
   }
 
-  virtual void set_scanoutput_config(ScanConfig config)
-  {
-    std::lock_guard<std::mutex> lock(config_mutex_);
-    config_.start_angle = config.start_angle;
-    config_.max_num_points_scan = config.max_num_points_scan;
-    config_.skip_scans = config.skip_scans;
-  }
-
-  virtual void set_scan_params(ScanParameters params)
-  {
-    std::lock_guard<std::mutex> lock(config_mutex_);
-    params_ = params;
-
-    resetCurrentScans();
-  }
-
 protected:
   ros::NodeHandle nh_;
   std::string frame_id_;
@@ -53,9 +43,9 @@ protected:
   std::deque<sensor_msgs::LaserScanPtr> d_queue_;
   std::mutex q_mutex_;
 
-  std::mutex config_mutex_;
-  ScanConfig config_;
-  ScanParameters params_;
+  std::shared_ptr<std::mutex> config_mutex_;
+  std::shared_ptr<ScanConfig> config_;
+  std::shared_ptr<ScanParameters> params_;
 
   bool check_status(uint32_t status_flags);
 
@@ -72,7 +62,9 @@ protected:
 class ScanPublisherR2000 : public ScanPublisher
 {
 public:
-  ScanPublisherR2000(std::string scan_topic, std::string frame_id)
+  ScanPublisherR2000(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params, std::string scan_topic,
+                     std::string frame_id, std::shared_ptr<std::mutex> config_mutex)
+    : ScanPublisher(config, params, config_mutex)
   {
     scan_publisher_ = nh_.advertise<sensor_msgs::LaserScan>(scan_topic, 1);
     header_publisher_ = nh_.advertise<pf_driver::PFR2000Header>("/r2000_header", 1);
@@ -89,7 +81,9 @@ private:
 class ScanPublisherR2300 : public ScanPublisher
 {
 public:
-  ScanPublisherR2300(std::string scan_topic, std::string frame_id) : tfListener_(nh_), layer_prev_(-1)
+  ScanPublisherR2300(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params, std::string scan_topic,
+                     std::string frame_id, std::shared_ptr<std::mutex> config_mutex)
+    : ScanPublisher(config, params, config_mutex), tfListener_(nh_), layer_prev_(-1)
   {
     for (int i = 0; i < 4; i++)
     {
