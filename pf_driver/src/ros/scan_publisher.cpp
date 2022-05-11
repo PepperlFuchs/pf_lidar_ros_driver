@@ -224,9 +224,19 @@ void PointcloudPublisher::apply_correction(sensor_msgs::PointCloud2& c, sensor_m
     {
       continue;
     }
-    double angle = msg->angle_min + msg->angle_increment * i;
-    p_cloud->points[cl_idx].z = correction_params_[layer_idx][0] * angle * angle +
-                                correction_params_[layer_idx][1] * angle + correction_params_[layer_idx][2];
+    double angle_h = msg->angle_min + msg->angle_increment * (double)i;
+
+    // the correction parameters have been calculated for vertical angles in degrees
+    // this needs to be fixed while calculating the quadratic equation parameters
+    double angle_v_deg = correction_params_[layer_idx][0] * angle_h * angle_h +
+                         correction_params_[layer_idx][1] * angle_h + correction_params_[layer_idx][2];
+    double angle_v = (M_PI / 180.0) * angle_v_deg;
+
+    // from https://www.youtube.com/watch?v=LHaZ3l4q5eM
+    p_cloud->points[cl_idx].x = cos(angle_h) * cos(angle_v) * msg->ranges[i];
+    p_cloud->points[cl_idx].y = sin(angle_h) * cos(angle_v) * msg->ranges[i];
+    p_cloud->points[cl_idx].z = sin(angle_v) * msg->ranges[i];
+
     cl_idx++;
   }
 
