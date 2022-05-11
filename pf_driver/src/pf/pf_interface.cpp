@@ -180,8 +180,8 @@ bool PFInterface::handle_version(int major_version, int minor_version, int devic
     if (device_family == 5)
     {
       std::string part = protocol_interface_->get_part();
-      reader_ = std::shared_ptr<PFPacketReader>(
-          new PointcloudPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_, num_layers, part.c_str()));
+      reader_ = std::shared_ptr<PFPacketReader>(new PointcloudPublisher(
+          config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_, num_layers, part.c_str()));
     }
     else if (device_family == 7)
     {
