@@ -10,6 +10,7 @@
   <node pkg="pf_driver" type="ros_main" name="r2300_node" output="screen">
     <param name="device" value="$(arg device)"/>
     <rosparam file="$(find pf_driver)/config/r2300_params.yaml" command="load"/>
+    <rosparam file="$(find pf_driver)/config/correction_params.yaml" command="load"/>
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="ring1" args="0 0 0 0 0.0785 0 base_link scanner_1 10" />

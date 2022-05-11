@@ -94,6 +94,11 @@ public:
       std::string id = frame_id + "_" + std::to_string(i + 1);
       scan_publishers_.push_back(nh_.advertise<sensor_msgs::LaserScan>(topic.c_str(), 100));
       frame_ids_.push_back(id);
+
+      std::vector<double> correction_param;
+      std::string param = "layer_" + std::to_string(i);
+      p_nh.getParam(param.c_str(), correction_param);
+      correction_params_.push_back(correction_param);
     }
     cloud_.reset(new sensor_msgs::PointCloud2());
     pcl_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>(scan_topic, 1);
@@ -109,6 +114,7 @@ private:
   std::vector<ros::Publisher> scan_publishers_;
   std::vector<std::string> frame_ids_;
   int16_t layer_prev_;
+  std::vector<std::vector<double>> correction_params_;
 
   virtual void publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx);
   virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx);
