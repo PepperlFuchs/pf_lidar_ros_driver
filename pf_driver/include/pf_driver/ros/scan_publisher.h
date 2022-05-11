@@ -121,6 +121,8 @@ private:
   void add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
   void copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
 
+  void apply_correction(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg, const uint16_t layer_idx);
+
   virtual void resetCurrentScans()
   {
     cloud_.reset(new sensor_msgs::PointCloud2());

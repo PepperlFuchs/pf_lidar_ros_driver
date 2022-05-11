@@ -147,6 +147,9 @@ void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t la
   {
     int channelOptions = laser_geometry::channel_option::Intensity;
     projector_.transformLaserScanToPointCloud("base_link", *msg, c, tfListener_, -1.0, channelOptions);
+
+    apply_correction(c, msg, layer_idx);
+
     if (layer_idx <= layer_prev_)
     {
       if (!cloud_->data.empty())
@@ -200,4 +203,32 @@ void PointcloudPublisher::add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_ms
 
   *p1_cloud += *p2_cloud;
   pcl::toROSMsg(*p1_cloud.get(), c1);
+}
+
+void PointcloudPublisher::apply_correction(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg,
+                                           const uint16_t layer_idx)
+{
+  pcl::PCLPointCloud2 p;
+  pcl_conversions::toPCL(c, p);
+  pcl::PointCloud<pcl::PointXYZI>::Ptr p_cloud(new pcl::PointCloud<pcl::PointXYZI>);
+
+  // handle when point cloud is empty
+  pcl::fromPCLPointCloud2(p, *p_cloud);
+
+  size_t cl_idx = 0;
+  for (size_t i = 0; i < msg->ranges.size(); i++)
+  {
+    // num of points in cloud is sometimes less than that in laser scan because of
+    // https://github.com/ros-perception/laser_geometry/blob/indigo-devel/src/laser_geometry.cpp#L110
+    if (msg->ranges[i] < msg->range_min || msg->ranges[i] >= msg->range_max)
+    {
+      continue;
+    }
+    double angle = msg->angle_min + msg->angle_increment * i;
+    p_cloud->points[cl_idx].z = correction_params_[layer_idx][0] * angle * angle +
+                                correction_params_[layer_idx][1] * angle + correction_params_[layer_idx][2];
+    cl_idx++;
+  }
+
+  pcl::toROSMsg(*p_cloud.get(), c);
 }
