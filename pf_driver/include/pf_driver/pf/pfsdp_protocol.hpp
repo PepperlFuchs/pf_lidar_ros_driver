@@ -481,6 +481,11 @@ public:
     return std::string("");
   }
 
+  virtual std::string get_part()
+  {
+    return std::string("");
+  }
+
   virtual void get_scan_parameters()
   {
   }

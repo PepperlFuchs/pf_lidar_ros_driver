@@ -13,6 +13,11 @@ public:
 
   virtual std::string get_product()
   {
+    return get_parameter_str("part");
+  }
+
+  virtual std::string get_part()
+  {
     return get_parameter_str("product");
   }
 

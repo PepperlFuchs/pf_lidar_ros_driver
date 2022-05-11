@@ -83,9 +83,11 @@ class PointcloudPublisher : public PFDataPublisher
 public:
   PointcloudPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
                       std::string scan_topic, std::string frame_id, std::shared_ptr<std::mutex> config_mutex,
-                      const uint16_t num_layers)
+                      const uint16_t num_layers, std::string part)
     : PFDataPublisher(config, params, config_mutex), tfListener_(nh_), layer_prev_(-1)
   {
+    ros::NodeHandle p_nh("~/part_" + part);
+
     for (int i = 0; i < num_layers; i++)
     {
       std::string topic = scan_topic + "_" + std::to_string(i + 1);
