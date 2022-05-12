@@ -77,6 +77,7 @@ struct ScanParameters
   uint16_t layers_enabled = 0;
   double scan_freq = 0.0;        // needed to calculate scan resolution in R2300
   uint16_t h_enabled_layer = 0;  // highest enabled layer
+  bool apply_correction = true;
 
   // void print()
   // {

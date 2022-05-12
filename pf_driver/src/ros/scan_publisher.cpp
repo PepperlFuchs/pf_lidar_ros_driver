@@ -25,14 +25,14 @@ void PFDataPublisher::read(PFR2000Packet_C& packet)
 void PFDataPublisher::read(PFR2300Packet_C1& packet)
 {
   header_publisher_.publish(packet.header);
-  to_msg_queue<PFR2300Packet_C1>(packet, packet.header.layer_index);
+  to_msg_queue<PFR2300Packet_C1>(packet, packet.header.layer_index, packet.header.layer_inclination);
 }
 
 // What are validation checks required here?
 // Skipped scans?
 // Device errors?
 template <typename T>
-void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
+void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx, double layer_inclination)
 {
   if (!check_status(packet.header.status_flags))
     return;
@@ -109,7 +109,7 @@ void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
   {
     if (msg)
     {
-      handle_scan(msg, layer_idx);
+      handle_scan(msg, layer_idx, layer_inclination / 10000.0, params_->apply_correction);
       d_queue_.pop_back();
       // in case of single layered device (R2000),
       // h_enabled_layer = 0 and layer_idx is always 0
@@ -129,7 +129,8 @@ bool PFDataPublisher::check_status(uint32_t status_flags)
   return true;
 }
 
-void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
+void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, double layer_inclination,
+                                      bool apply_correction)
 {
   sensor_msgs::PointCloud2 c;
 
@@ -139,7 +140,7 @@ void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t la
   // just 'projectLaser' is enough just so that it initializes the pointcloud message correctly
   projector_.projectLaser(*msg, c);
 
-  apply_correction(c, msg, layer_idx);
+  project_laser(c, msg, layer_idx, layer_inclination, apply_correction);
 
   if (layer_idx <= layer_prev_)
   {
@@ -188,8 +189,8 @@ void PointcloudPublisher::add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_ms
   pcl::toROSMsg(*p1_cloud.get(), c1);
 }
 
-void PointcloudPublisher::apply_correction(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg,
-                                           const uint16_t layer_idx)
+void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg,
+                                        const uint16_t layer_idx, const double layer_inclination, bool apply_correction)
 {
   pcl::PCLPointCloud2 p;
   pcl_conversions::toPCL(c, p);
@@ -211,14 +212,26 @@ void PointcloudPublisher::apply_correction(sensor_msgs::PointCloud2& c, sensor_m
 
     // the correction parameters have been calculated for vertical angles in degrees
     // this needs to be fixed while calculating the quadratic equation parameters
-    double angle_v_deg = correction_params_[layer_idx][0] * angle_h * angle_h +
-                         correction_params_[layer_idx][1] * angle_h + correction_params_[layer_idx][2];
-    double angle_v = (M_PI / 180.0) * angle_v_deg;
+    if (apply_correction)
+    {
+      double angle_v_deg = correction_params_[layer_idx][0] * angle_h * angle_h +
+                           correction_params_[layer_idx][1] * angle_h + correction_params_[layer_idx][2];
+      double angle_v = (M_PI / 180.0) * angle_v_deg;
 
-    // from https://www.youtube.com/watch?v=LHaZ3l4q5eM
-    p_cloud->points[cl_idx].x = cos(angle_h) * cos(angle_v) * msg->ranges[i];
-    p_cloud->points[cl_idx].y = sin(angle_h) * cos(angle_v) * msg->ranges[i];
-    p_cloud->points[cl_idx].z = sin(angle_v) * msg->ranges[i];
+      // from https://www.youtube.com/watch?v=LHaZ3l4q5eM
+      p_cloud->points[cl_idx].x = cos(angle_h) * cos(angle_v) * msg->ranges[i];
+      p_cloud->points[cl_idx].y = sin(angle_h) * cos(angle_v) * msg->ranges[i];
+      p_cloud->points[cl_idx].z = sin(angle_v) * msg->ranges[i];
+    }
+    else
+    {
+      double angle_v_deg = layer_inclination;
+      double angle_v = (M_PI / 180.0) * angle_v_deg;
+
+      p_cloud->points[cl_idx].x = cos(angle_h) * cos(angle_v) * msg->ranges[i];
+      p_cloud->points[cl_idx].y = sin(angle_h) * cos(angle_v) * msg->ranges[i];
+      p_cloud->points[cl_idx].z = sin(angle_v);
+    }
 
     cl_idx++;
   }

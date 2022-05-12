@@ -49,8 +49,9 @@ protected:
   bool check_status(uint32_t status_flags);
 
   template <typename T>
-  void to_msg_queue(T& packet, uint16_t layer_idx = 0);
-  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx) = 0;
+  void to_msg_queue(T& packet, uint16_t layer_idx = 0, double layer_inclination = 0);
+  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, double layer_inclination,
+                           bool apply_correction = true) = 0;
 
   virtual void resetCurrentScans()
   {
@@ -72,12 +73,13 @@ public:
 private:
   ros::Publisher scan_publisher_;
 
-  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
+  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, double layer_inclination,
+                           bool apply_correction)
   {
-    publish_scan(msg, layer_idx);
+    publish_scan(msg);
   }
 
-  void publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
+  void publish_scan(sensor_msgs::LaserScanPtr msg)
   {
     ros::Time t = ros::Time::now();
     msg->header.stamp = t;
@@ -116,11 +118,13 @@ private:
   int16_t layer_prev_;
   std::vector<std::vector<double>> correction_params_;
 
-  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx);
+  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, double layer_inclination,
+                           bool apply_correction);
   void add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
   void copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
 
-  void apply_correction(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg, const uint16_t layer_idx);
+  void project_laser(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg, const uint16_t layer_idx,
+                     double layer_inclination, bool apply_correction);
 
   virtual void resetCurrentScans()
   {
