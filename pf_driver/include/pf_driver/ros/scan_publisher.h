@@ -49,8 +49,8 @@ protected:
   bool check_status(uint32_t status_flags);
 
   template <typename T>
-  void to_msg_queue(T& packet, uint16_t layer_idx = 0, double layer_inclination = 0);
-  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, double layer_inclination,
+  void to_msg_queue(T& packet, uint16_t layer_idx = 0, int layer_inclination = 0);
+  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, int layer_inclination,
                            bool apply_correction = true) = 0;
 
   virtual void resetCurrentScans()
@@ -73,7 +73,7 @@ public:
 private:
   ros::Publisher scan_publisher_;
 
-  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, double layer_inclination,
+  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, int layer_inclination,
                            bool apply_correction)
   {
     publish_scan(msg);
@@ -95,14 +95,22 @@ public:
                       const uint16_t num_layers, std::string part)
     : PFDataPublisher(config, params, config_mutex), layer_prev_(-1)
   {
-    ros::NodeHandle p_nh("~/part_" + part);
+    ros::NodeHandle p_nh("~/");
 
-    for (int i = 0; i < num_layers; i++)
+    XmlRpc::XmlRpcValue angles_param;
+    p_nh.getParam("correction_params", angles_param);
+
+    for (size_t i = 0; i < angles_param.size(); i++)
     {
-      std::vector<double> correction_param;
-      std::string param = "layer_" + std::to_string(i);
-      p_nh.getParam(param.c_str(), correction_param);
-      correction_params_.push_back(correction_param);
+      int ang = angles_param[i]["ang"];
+      auto coeff_param = angles_param[i]["coeff"];
+      std::vector<double> coeffs;
+      for (size_t j = 0; j < coeff_param.size(); j++)
+      {
+        coeffs.push_back(coeff_param[j]);
+      }
+
+      correction_params_[ang] = coeffs;
     }
     cloud_.reset(new sensor_msgs::PointCloud2());
     pcl_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>(scan_topic, 1);
@@ -116,15 +124,15 @@ private:
   laser_geometry::LaserProjection projector_;
   ros::Publisher pcl_publisher_;
   int16_t layer_prev_;
-  std::vector<std::vector<double>> correction_params_;
+  std::map<int, std::vector<double>> correction_params_;
 
-  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, double layer_inclination,
+  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, int layer_inclination,
                            bool apply_correction);
   void add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
   void copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
 
-  void project_laser(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg, const uint16_t layer_idx,
-                     double layer_inclination, bool apply_correction);
+  void project_laser(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg, const int layer_inclination,
+                     bool apply_correction);
 
   virtual void resetCurrentScans()
   {

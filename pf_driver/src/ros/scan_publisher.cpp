@@ -32,7 +32,7 @@ void PFDataPublisher::read(PFR2300Packet_C1& packet)
 // Skipped scans?
 // Device errors?
 template <typename T>
-void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx, double layer_inclination)
+void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx, int layer_inclination)
 {
   if (!check_status(packet.header.status_flags))
     return;
@@ -109,7 +109,7 @@ void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx, double layer_i
   {
     if (msg)
     {
-      handle_scan(msg, layer_idx, layer_inclination / 10000.0, params_->apply_correction);
+      handle_scan(msg, layer_idx, layer_inclination, params_->apply_correction);
       d_queue_.pop_back();
       // in case of single layered device (R2000),
       // h_enabled_layer = 0 and layer_idx is always 0
@@ -129,7 +129,7 @@ bool PFDataPublisher::check_status(uint32_t status_flags)
   return true;
 }
 
-void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, double layer_inclination,
+void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, int layer_inclination,
                                       bool apply_correction)
 {
   sensor_msgs::PointCloud2 c;
@@ -140,7 +140,7 @@ void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t la
   // just 'projectLaser' is enough just so that it initializes the pointcloud message correctly
   projector_.projectLaser(*msg, c);
 
-  project_laser(c, msg, layer_idx, layer_inclination, apply_correction);
+  project_laser(c, msg, layer_inclination, apply_correction);
 
   if (layer_idx <= layer_prev_)
   {
@@ -190,7 +190,7 @@ void PointcloudPublisher::add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_ms
 }
 
 void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg,
-                                        const uint16_t layer_idx, const double layer_inclination, bool apply_correction)
+                                        const int layer_inclination, bool apply_correction)
 {
   pcl::PCLPointCloud2 p;
   pcl_conversions::toPCL(c, p);
@@ -214,8 +214,9 @@ void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs
     // this needs to be fixed while calculating the quadratic equation parameters
     if (apply_correction)
     {
-      double angle_v_deg = correction_params_[layer_idx][0] * angle_h * angle_h +
-                           correction_params_[layer_idx][1] * angle_h + correction_params_[layer_idx][2];
+      double angle_v_deg = correction_params_[layer_inclination][0] * angle_h * angle_h +
+                           correction_params_[layer_inclination][1] * angle_h +
+                           correction_params_[layer_inclination][2];
       double angle_v = (M_PI / 180.0) * angle_v_deg;
 
       // from https://www.youtube.com/watch?v=LHaZ3l4q5eM
@@ -225,7 +226,7 @@ void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs
     }
     else
     {
-      double angle_v_deg = layer_inclination;
+      double angle_v_deg = layer_inclination / 10000.0;
       double angle_v = (M_PI / 180.0) * angle_v_deg;
 
       p_cloud->points[cl_idx].x = cos(angle_h) * cos(angle_v) * msg->ranges[i];
