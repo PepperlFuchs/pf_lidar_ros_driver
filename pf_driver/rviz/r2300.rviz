@@ -90,7 +90,7 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_link:
+        scanner_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -110,15 +110,7 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        base_link:
-          Value: true
-        scanner_1:
-          Value: true
-        scanner_2:
-          Value: true
-        scanner_3:
-          Value: true
-        scanner_4:
+        scanner_link:
           Value: true
         world:
           Value: true
@@ -130,22 +122,15 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
-          base_link:
-            scanner_1:
-              {}
-            scanner_2:
-              {}
-            scanner_3:
-              {}
-            scanner_4:
-              {}
+          scanner_link:
+            {}
       Update Interval: 0
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: base_link
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -206,4 +191,4 @@ Window Geometry:
     collapsed: false
   Width: 1267
   X: 395
-  Y: 303
+  Y: 197

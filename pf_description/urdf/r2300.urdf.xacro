@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
     <xacro:macro name="r2300" params="prefix" >
-        <link name="${prefix}base_link" >
+        <link name="${prefix}scanner_link" >
             <visual>
                 <origin xyz="-0.00195 0.0158 -0.0094" rpy="-1.57 0 1.57" />
                 <geometry>

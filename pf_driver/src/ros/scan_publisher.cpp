@@ -28,13 +28,6 @@ void PFDataPublisher::read(PFR2300Packet_C1& packet)
   to_msg_queue<PFR2300Packet_C1>(packet, packet.header.layer_index);
 }
 
-void PFDataPublisher::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
-{
-  ros::Time t = ros::Time::now();
-  msg->header.stamp = t;
-  scan_publisher_.publish(std::move(msg));
-}
-
 // What are validation checks required here?
 // Skipped scans?
 // Device errors?
@@ -138,45 +131,31 @@ bool PFDataPublisher::check_status(uint32_t status_flags)
 
 void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
 {
-  publish_scan(msg, layer_idx);
-
   sensor_msgs::PointCloud2 c;
-  if (tfListener_.waitForTransform(
-          msg->header.frame_id, "base_link",
-          msg->header.stamp + ros::Duration().fromSec(msg->ranges.size() * msg->time_increment), ros::Duration(1.0)))
+
+  int channelOptions = laser_geometry::channel_option::Intensity;
+  // since 'apply_correction' calculates the point cloud from laser scan message,
+  // 'transformLaserScanToPointCloud' may not be needed anymore
+  // just 'projectLaser' is enough just so that it initializes the pointcloud message correctly
+  projector_.projectLaser(*msg, c);
+
+  apply_correction(c, msg, layer_idx);
+
+  if (layer_idx <= layer_prev_)
   {
-    int channelOptions = laser_geometry::channel_option::Intensity;
-    // since 'apply_correction' calculates the point cloud from laser scan message,
-    // 'transformLaserScanToPointCloud' may not be needed anymore
-    // just 'projectLaser' is enough just so that it initializes the pointcloud message correctly
-    projector_.projectLaser(*msg, c);
-
-    apply_correction(c, msg, layer_idx);
-
-    if (layer_idx <= layer_prev_)
+    if (!cloud_->data.empty())
     {
-      if (!cloud_->data.empty())
-      {
-        cloud_->header.frame_id = "base_link";
-        pcl_publisher_.publish(cloud_);
-        cloud_.reset(new sensor_msgs::PointCloud2());
-      }
-      copy_pointcloud(*cloud_, c);
+      cloud_->header.frame_id = frame_id_;
+      pcl_publisher_.publish(cloud_);
+      cloud_.reset(new sensor_msgs::PointCloud2());
     }
-    else
-    {
-      add_pointcloud(*cloud_, c);
-    }
-    layer_prev_ = layer_idx;
+    copy_pointcloud(*cloud_, c);
   }
-}
-
-void PointcloudPublisher::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t idx)
-{
-  ros::Time t = ros::Time::now();
-  msg->header.stamp = t;
-  msg->header.frame_id = frame_ids_.at(idx);
-  scan_publishers_.at(idx).publish(msg);
+  else
+  {
+    add_pointcloud(*cloud_, c);
+  }
+  layer_prev_ = layer_idx;
 }
 
 void PointcloudPublisher::copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2)

@@ -38,7 +38,6 @@ public:
 protected:
   ros::NodeHandle nh_;
   std::string frame_id_;
-  ros::Publisher scan_publisher_;
   ros::Publisher header_publisher_;
   std::deque<sensor_msgs::LaserScanPtr> d_queue_;
   std::mutex q_mutex_;
@@ -52,7 +51,6 @@ protected:
   template <typename T>
   void to_msg_queue(T& packet, uint16_t layer_idx = 0);
   virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx) = 0;
-  virtual void publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx);
 
   virtual void resetCurrentScans()
   {
@@ -72,9 +70,18 @@ public:
   }
 
 private:
+  ros::Publisher scan_publisher_;
+
   virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
   {
     publish_scan(msg, layer_idx);
+  }
+
+  void publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
+  {
+    ros::Time t = ros::Time::now();
+    msg->header.stamp = t;
+    scan_publisher_.publish(std::move(msg));
   }
 };
 
@@ -84,17 +91,12 @@ public:
   PointcloudPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
                       std::string scan_topic, std::string frame_id, std::shared_ptr<std::mutex> config_mutex,
                       const uint16_t num_layers, std::string part)
-    : PFDataPublisher(config, params, config_mutex), tfListener_(nh_), layer_prev_(-1)
+    : PFDataPublisher(config, params, config_mutex), layer_prev_(-1)
   {
     ros::NodeHandle p_nh("~/part_" + part);
 
     for (int i = 0; i < num_layers; i++)
     {
-      std::string topic = scan_topic + "_" + std::to_string(i + 1);
-      std::string id = frame_id + "_" + std::to_string(i + 1);
-      scan_publishers_.push_back(nh_.advertise<sensor_msgs::LaserScan>(topic.c_str(), 100));
-      frame_ids_.push_back(id);
-
       std::vector<double> correction_param;
       std::string param = "layer_" + std::to_string(i);
       p_nh.getParam(param.c_str(), correction_param);
@@ -108,15 +110,12 @@ public:
 
 private:
   sensor_msgs::PointCloud2Ptr cloud_;
-  tf::TransformListener tfListener_;
+  // tf::TransformListener tfListener_;
   laser_geometry::LaserProjection projector_;
   ros::Publisher pcl_publisher_;
-  std::vector<ros::Publisher> scan_publishers_;
-  std::vector<std::string> frame_ids_;
   int16_t layer_prev_;
   std::vector<std::vector<double>> correction_params_;
 
-  virtual void publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx);
   virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx);
   void add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
   void copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);

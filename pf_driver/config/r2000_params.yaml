@@ -6,6 +6,6 @@ R2000:
   max_num_points_scan: 0
   packet_type: "A"
   scan_topic: "/scan"
-  frame_id: "scanner"
+  frame_id: "scanner_link"
   watchdogtimeout: 60000
   watchdog: true
