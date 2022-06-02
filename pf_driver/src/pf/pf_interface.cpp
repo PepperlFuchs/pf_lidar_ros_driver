@@ -165,14 +165,14 @@ bool PFInterface::handle_version(int major_version, int minor_version, int devic
                                  std::string frame_id, const uint16_t num_layers)
 {
   std::string expected_dev = "";
-  if (major_version == 1 && minor_version == 3)
+  if (device_family == 1 || device_family == 3 || device_family == 6)
   {
     expected_dev = "R2000";
     protocol_interface_ = std::make_shared<PFSDP_2000>(info_, config_, params_, config_mutex_);
     reader_ = std::shared_ptr<PFPacketReader>(
         new LaserscanPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
   }
-  else if (major_version == 0 && minor_version == 5)
+  else if (device_family == 5 || device_family == 7)
   {
     expected_dev = "R2300";
     protocol_interface_ = std::make_shared<PFSDP_2300>(info_, config_, params_, config_mutex_);
