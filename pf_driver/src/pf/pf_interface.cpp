@@ -10,9 +10,14 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
                        std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id,
                        const uint16_t num_layers)
 {
+  std::cout << "initializing..." << std::endl;
   config_ = config;
   info_ = info;
   params_ = params;
+
+  topic_ = topic;
+  frame_id_ = frame_id;
+  num_layers_ = num_layers;
 
   config_mutex_ = std::make_shared<std::mutex>();
 
@@ -73,6 +78,7 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
   }
 
   protocol_interface_->setup_param_server();
+  protocol_interface_->set_connection_failure_cb(std::bind(&PFInterface::connection_failure_cb, this));
   //   protocol_interface_->update_scanoutput_config();
   change_state(PFState::INIT);
   return true;
@@ -128,18 +134,18 @@ void PFInterface::stop_transmission()
 {
   if (state_ != PFState::RUNNING)
     return;
-  pipeline_->terminate();
-  pipeline_.reset();
   protocol_interface_->stop_scanoutput(info_->handle);
-  change_state(PFState::SHUTDOWN);
+  change_state(PFState::INIT);
 }
 
 void PFInterface::terminate()
 {
   if (!pipeline_)
     return;
+  watchdog_timer_.stop();
   pipeline_->terminate();
   pipeline_.reset();
+  change_state(PFState::UNINIT);
 }
 
 void PFInterface::start_watchdog_timer(float duration)
@@ -157,7 +163,19 @@ void PFInterface::feed_watchdog(const ros::TimerEvent& e)
 void PFInterface::on_shutdown()
 {
   ROS_INFO("Shutting down pipeline!");
-  stop_transmission();
+  // stop_transmission();
+}
+
+void PFInterface::connection_failure_cb()
+{
+  std::cout << "handling connection failure" << std::endl;
+  terminate();
+  std::cout << "terminated" << std::endl;
+  while(!init())
+  {
+    std::cout << "trying to reconnect..." << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
 }
 
 // factory functions

@@ -189,6 +189,7 @@ class PFSDPBase
 private:
   using HTTPInterfacePtr = std::unique_ptr<HTTPInterface>;
   HTTPInterfacePtr http_interface;
+  std::function<void()> handle_connection_failure;
 
   const std::map<std::string, std::string> get_request(const std::string command, std::vector<std::string> json_keys,
                                                        const std::initializer_list<param_type> query)
@@ -225,6 +226,19 @@ private:
     return true;
   }
 
+  bool is_connection_failure(const std::string http_error)
+  {
+    std::string error_1 = "Failed to connect to ";
+    std::string error_2 = "No route to host";
+
+    if (http_error.find(error_1) != std::string::npos && http_error.find(error_2) != std::string::npos)
+    {
+      std::cerr << "Connection lost! Try to reconect..." << std::endl;
+      return true;
+    }
+    return false;
+  }
+
   bool check_error(std::map<std::string, std::string>& mp, const std::string& err_code, const std::string& err_text,
                    const std::string& err_http)
   {
@@ -241,6 +255,13 @@ private:
     if (http_error.compare(std::string("OK")))
     {
       std::cerr << "HTTP ERROR: " << http_error << std::endl;
+      if (is_connection_failure(http_error))
+      {
+        if(handle_connection_failure)
+        {
+          handle_connection_failure();
+        }
+      }
       return false;
     }
 
@@ -275,6 +296,11 @@ public:
     , config_mutex_(config_mutex)
     , http_interface(new HTTPInterface(info->hostname, "cmd"))
   {
+  }
+
+  void set_connection_failure_cb(std::function<void()> callback)
+  {
+    handle_connection_failure = callback;
   }
 
   const std::vector<std::string> list_parameters()
