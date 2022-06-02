@@ -38,6 +38,10 @@ public:
   virtual bool connect() = 0;
   virtual bool disconnect() = 0;
   virtual bool read(boost::array<uint8_t, 4096>& buf, size_t& len) = 0;
+  virtual bool readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len, const uint32_t expiry_time)
+  {
+    return false;
+  }
 
   Transport(std::string address, transport_type typ) : address_(address), type_(typ), is_connected_(false)
   {
@@ -80,6 +84,8 @@ protected:
   bool is_connected_;
   transport_type type_;
   std::shared_ptr<boost::asio::io_service> io_service_;
+  std::shared_ptr<boost::asio::deadline_timer> timer_;
+  boost::optional<boost::system::error_code> timer_result_;
 };
 
 class TCPTransport : public Transport
@@ -111,6 +117,7 @@ public:
   {
     io_service_ = std::make_shared<boost::asio::io_service>();
     socket_ = std::make_unique<udp::socket>(*io_service_, udp::endpoint(udp::v4(), 0));
+    timer_ = std::make_shared<boost::asio::deadline_timer>(*io_service_.get());
   }
 
   ~UDPTransport()
@@ -121,6 +128,44 @@ public:
   virtual bool connect();
   virtual bool disconnect();
   virtual bool read(boost::array<uint8_t, 4096>& buf, size_t& len);
+
+  // https://stackoverflow.com/questions/13126776/asioread-with-timeout
+  bool readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len, const uint32_t expiry_time)
+  {
+    timer_->expires_from_now(boost::posix_time::seconds(expiry_time));
+    timer_->async_wait([this, &expiry_time](const boost::system::error_code& error) {
+      timer_result_.reset(error);
+      std::cout << "Time out: No packets received in " << expiry_time << " seconds" << std::endl;
+    });
+
+    boost::optional<boost::system::error_code> read_result;
+    boost::system::error_code error;
+    udp::endpoint sender_endpoint;
+
+    socket_->async_receive_from(boost::asio::buffer(buf), sender_endpoint,
+                                [&len, &read_result](const boost::system::error_code& error, size_t received) {
+                                  len = received;
+                                  read_result.reset(error);
+                                });
+    bool success = false;
+    while (io_service_->run_one())
+    {
+      if (read_result)
+      {
+        // packets received so cancel timer
+        timer_->cancel();
+        success = true;
+      }
+      else if (timer_result_)
+      {
+        // timeout
+        socket_->cancel();
+        success = false;
+      }
+    }
+    io_service_->reset();
+    return success;
+  }
 
 private:
   std::unique_ptr<udp::socket> socket_;
