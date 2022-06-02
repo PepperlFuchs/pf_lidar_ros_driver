@@ -171,7 +171,7 @@ void PFInterface::connection_failure_cb()
   std::cout << "handling connection failure" << std::endl;
   terminate();
   std::cout << "terminated" << std::endl;
-  while(!init())
+  while (!init())
   {
     std::cout << "trying to reconnect..." << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(500));

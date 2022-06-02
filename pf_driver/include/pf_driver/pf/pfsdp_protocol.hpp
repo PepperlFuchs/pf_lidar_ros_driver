@@ -257,7 +257,7 @@ private:
       std::cerr << "HTTP ERROR: " << http_error << std::endl;
       if (is_connection_failure(http_error))
       {
-        if(handle_connection_failure)
+        if (handle_connection_failure)
         {
           handle_connection_failure();
         }
