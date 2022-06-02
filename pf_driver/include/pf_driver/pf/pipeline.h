@@ -72,12 +72,12 @@ public:
 
   void terminate()
   {
-    shutdown_ = true;
     // ROS_INFO("Stopping read-write pipeline!");
     running_ = false;
 
     writer_->stop();
     reader_->stop();
+    on_shutdown();
 
     if (reader_thread_.joinable() && writer_thread_.joinable())
     {
@@ -126,10 +126,6 @@ private:
       packets.clear();
       std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
-    writer_->stop();
-    running_ = false;
-    reader_->stop();
-    on_shutdown();
   }
 
   void run_reader()
@@ -149,9 +145,5 @@ private:
         reader_->read(std::move(packet));  // here the scans will be published
       }
     }
-    reader_->stop();
-    running_ = false;
-    writer_->stop();
-    on_shutdown();
   }
 };
