@@ -3,19 +3,21 @@ project(pf_driver)
 
 add_compile_options(-std=c++14)
 
-find_package(catkin REQUIRED COMPONENTS
-  dynamic_reconfigure
-  laser_geometry
-  message_generation
-  pcl_conversions
-  pcl_ros
-  roscpp
-  roscpp_serialization
-  roslint
-  sensor_msgs
-  std_msgs
-  tf
-)
+find_package(ament_cmake REQUIRED)
+
+find_package(pf_interfaces)
+#find_package(dynamic_reconfigure REQUIRED)
+find_package(laser_geometry REQUIRED)
+#find_package(message_generation REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(pcl_ros REQUIRED)
+find_package(rclcpp REQUIRED)
+#find_package(roscpp_serialization REQUIRED)
+#find_package(roslint REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+#find_package(tf REQUIRED)
+find_package(tf2_ros REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS  thread system)
 find_package(jsoncpp REQUIRED)
@@ -23,32 +25,24 @@ get_target_property(jsoncpp_INCLUDE_DIRS jsoncpp_lib INTERFACE_INCLUDE_DIRECTORI
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(CURLPP REQUIRED curlpp)
 
-generate_dynamic_reconfigure_options(
-  cfg/PFDriverR2000.cfg
-  cfg/PFDriverR2300.cfg
-)
+#generate_dynamic_reconfigure_options(
+#  cfg/PFDriverR2000.cfg
+#  cfg/PFDriverR2300.cfg
+#)
 
-add_message_files(
-  FILES
-  PFHeader.msg
-  PFR2000Header.msg
-  PFR2300Header.msg
-)
+#generate_messages(
+#  DEPENDENCIES
+#  std_msgs
+#)
 
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
-
-catkin_package(
-  INCLUDE_DIRS include
-  CATKIN_DEPENDS dynamic_reconfigure message_runtime roscpp roscpp_serialization sensor_msgs std_msgs tf
-)
+#catkin_package(
+#  INCLUDE_DIRS include
+#  CATKIN_DEPENDS dynamic_reconfigure message_runtime roscpp roscpp_serialization sensor_msgs std_msgs tf
+#)
 
 include_directories(
   include
   ${jsoncpp_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
 )
 
 add_executable(ros_main src/pf/pf_interface.cpp
@@ -76,16 +70,24 @@ add_executable(ros_main src/pf/pf_interface.cpp
                         src/ros/pf_data_publisher.cpp
                         )
 target_link_libraries(ros_main
-  ${catkin_LIBRARIES} curlpp curl jsoncpp
+  curlpp
+  curl
+  jsoncpp
 )
-add_dependencies(ros_main ${PROJECT_NAME}_gencfg)
-add_dependencies(ros_main ${${PROJECT_NAME}_EXPORTED_TARGETS})
+ament_target_dependencies(ros_main
+  pf_interfaces
+  laser_geometry
+  tf2_ros
+  pcl_ros
+)
+#add_dependencies(ros_main ${PROJECT_NAME}_gencfg)
+#add_dependencies(ros_main ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
-roslint_cpp(src/ros/ros_main.cpp
-            src/ros/scan_publisher.cpp
-            src/pf/pf_interface.cpp
-            src/pf/pf_packet.cpp
-            src/communication.cpp)
+#roslint_cpp(src/ros/ros_main.cpp
+#            src/ros/scan_publisher.cpp
+#            src/pf/pf_interface.cpp
+#            src/pf/pf_packet.cpp
+#            src/communication.cpp)
 
 #if (CATKIN_ENABLE_TESTING)
 #  set(${PROJECT_NAME}_TEST_SOURCES
@@ -96,18 +98,15 @@ roslint_cpp(src/ros/ros_main.cpp
 #  target_link_libraries(pf_driver_test ${catkin_LIBRARIES} cpprestsdk::cpprest)
 #endif()
 
-install(TARGETS ros_main ros_main
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+install(TARGETS ros_main
+        DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY config/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
+install(DIRECTORY launch config rviz
+        DESTINATION share/${PROJECT_NAME})
 
-install(DIRECTORY include/${PROJECT_NAME}/
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+install(DIRECTORY include/
+        DESTINATION include)
 
-install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+ament_export_include_directories(include)
 
-install(DIRECTORY rviz/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/rviz)
+ament_package()

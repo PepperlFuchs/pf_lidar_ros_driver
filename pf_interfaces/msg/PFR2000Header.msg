@@ -1,4 +1,4 @@
-pf_driver/PFHeader header
+PFHeader header
 
 uint64 timestamp_raw      # raw timestamp of first scan point in this packet in NTP time format
 uint64 timestamp_sync     # synchronized timestamp of first scan point in this packet in NTP time format

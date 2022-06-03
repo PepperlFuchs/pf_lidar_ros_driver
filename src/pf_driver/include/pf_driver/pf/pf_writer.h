@@ -8,8 +8,8 @@ template <typename T>
 class PFWriter : public Writer<T>
 {
 public:
-  PFWriter(std::unique_ptr<Transport>&& transport, std::shared_ptr<Parser<T>> parser)
-    : transport_(std::move(transport)), parser_(parser), is_running_(false)
+  PFWriter(std::unique_ptr<Transport>&& transport, std::shared_ptr<Parser<T>> parser, rclcpp::Logger logger)
+    : transport_(std::move(transport)), parser_(parser), is_running_(false), logger_(logger)
   {
   }
 
@@ -51,7 +51,7 @@ public:
     if (transport_->readWithTimeout(buf, read, 2))
     {
       persistent_buffer_.insert(persistent_buffer_.end(), buf.begin(), buf.begin() + read);
-      parser_->parse(persistent_buffer_.data(), persistent_buffer_.size(), packets, used);
+      parser_->parse(persistent_buffer_.data(), persistent_buffer_.size(), packets, used, logger_);
 
       if (used)
       {
@@ -71,4 +71,5 @@ private:
   std::vector<uint8_t> persistent_buffer_;
   bool is_running_;
   std::mutex mtx_;
+  rclcpp::Logger logger_;
 };

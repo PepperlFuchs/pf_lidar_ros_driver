@@ -15,19 +15,19 @@ PFDataPublisher::PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared
 
 void PFDataPublisher::read(PFR2000Packet_A& packet)
 {
-  header_publisher_.publish(packet.header);
+  header_publisher_->publish(packet.header);
   to_msg_queue<PFR2000Packet_A>(packet);
 }
 
 void PFDataPublisher::read(PFR2000Packet_B& packet)
 {
-  header_publisher_.publish(packet.header);
+  header_publisher_->publish(packet.header);
   to_msg_queue<PFR2000Packet_B>(packet);
 }
 
 void PFDataPublisher::read(PFR2000Packet_C& packet)
 {
-  header_publisher_.publish(packet.header);
+  header_publisher_->publish(packet.header);
   to_msg_queue<PFR2000Packet_C>(packet);
 }
 
@@ -56,7 +56,7 @@ void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx, int layer_incl
   if (!check_status(packet.header.status_flags))
     return;
 
-  sensor_msgs::LaserScanPtr msg;
+  sensor_msgs::msg::LaserScan::SharedPtr msg;
   if (d_queue_.empty())
     d_queue_.emplace_back();
   else if (d_queue_.size() > 5)
@@ -106,8 +106,8 @@ void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx, int layer_incl
     return;
 
   // errors in scan_number - not in sequence sometimes
-  if (msg->header.seq != packet.header.header.scan_number)
-    return;
+  /*if (msg->header.seq != packet.header.header.scan_number)
+    return;*/
   int idx = packet.header.first_index;
 
   for (int i = 0; i < packet.header.num_points_packet; i++)
