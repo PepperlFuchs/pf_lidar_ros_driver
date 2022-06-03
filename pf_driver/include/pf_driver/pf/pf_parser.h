@@ -1,20 +1,21 @@
 #pragma once
 
-#include <ros/ros.h>
+#include <rclcpp/logger.hpp>
+#include <rclcpp/logging.hpp>
 #include "pf_driver/pf/pf_packet.h"
 
 template <typename T>
 class Parser
 {
 public:
-  virtual bool parse(uint8_t* buf, size_t buf_len, std::vector<std::unique_ptr<T>>& results, size_t& used) = 0;
+  virtual bool parse(uint8_t* buf, size_t buf_len, std::vector<std::unique_ptr<T>>& results, size_t& used, rclcpp::Logger logger) = 0;
 };
 
 template <typename T>
 class PFParser : public Parser<PFPacket>
 {
 public:
-  virtual bool parse(uint8_t* buf, size_t buf_len, std::vector<std::unique_ptr<PFPacket>>& results, size_t& used)
+  virtual bool parse(uint8_t* buf, size_t buf_len, std::vector<std::unique_ptr<PFPacket>>& results, size_t& used, rclcpp::Logger logger) override
   {
     std::unique_ptr<T> packet = std::make_unique<T>();
     uint32_t serial_size = packet->get_size();
@@ -27,7 +28,7 @@ public:
       int start = packet->find_packet_start(buf, buf_len);
       if (start == -1)
       {
-        ROS_DEBUG("No magic number found. Invalid packet.");
+        RCLCPP_DEBUG(logger, "No magic number found. Invalid packet.");
         break;
       }
       buf += start;
@@ -48,7 +49,7 @@ public:
     }
 
     if (count == 0)
-      ROS_DEBUG("Received data smaller than header size");
+      RCLCPP_DEBUG(logger, "Received data smaller than header size");
 
     return count > 0;
   }

@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 #include <mutex>
-#include <ros/ros.h>
+#include <rclcpp/logger.hpp>
 #include "pf_driver/queue/readerwriterqueue.h"
 #include "pf_driver/pf/pfsdp_protocol.hpp"
 
@@ -45,8 +45,8 @@ template <typename T>
 class Pipeline
 {
 public:
-  Pipeline(std::shared_ptr<Writer<T>> writer, std::shared_ptr<Reader<T>> reader, std::function<void()> func)
-    : writer_(writer), reader_(reader), shutdown(func), running_(false), shutdown_(false), queue_{ 100 }
+  Pipeline(std::shared_ptr<Writer<T>> writer, std::shared_ptr<Reader<T>> reader, std::function<void()> func, rclcpp::Logger logger)
+    : writer_(writer), reader_(reader), shutdown(func), running_(false), shutdown_(false), queue_{ 100 }, logger_(logger)
   {
   }
 
@@ -57,13 +57,12 @@ public:
 
     if (!writer_->start() || !reader_->start())
     {
-      ROS_ERROR("Unable to establish connection");
+      RCLCPP_ERROR(logger_, "Unable to establish connection");
       return false;
     }
 
     running_ = true;
     shutdown_ = false;
-    // ROS_INFO("Starting read-write pipeline!");
 
     reader_thread_ = std::thread(&Pipeline::run_reader, this);
     writer_thread_ = std::thread(&Pipeline::run_writer, this);
@@ -73,7 +72,6 @@ public:
   void terminate()
   {
     shutdown_ = true;
-    // ROS_INFO("Stopping read-write pipeline!");
     running_ = false;
 
     writer_->stop();
@@ -108,6 +106,7 @@ private:
   std::atomic<bool> running_, shutdown_;
   std::thread reader_thread_, writer_thread_;
   std::mutex mutex_;
+  rclcpp::Logger logger_;
 
   void run_writer()
   {
@@ -121,7 +120,7 @@ private:
       for (auto& p : packets)
       {
         if (!queue_.try_enqueue(std::move(p)))
-          ROS_DEBUG("Queue overflow!");
+          RCLCPP_DEBUG(logger_, "Queue overflow!");
       }
       packets.clear();
       std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -137,7 +136,6 @@ private:
     std::unique_ptr<T> packet;
     while (running_)
     {
-      // ROS_INFO("reader loop");
       // wait till next message is received from device with 1 second timeout
       if (!queue_.wait_dequeue_timed(packet, std::chrono::milliseconds(100)))
       {

@@ -4,35 +4,48 @@
 
 #include "pf_driver/ros/scan_publisher.h"
 
-void ScanPublisher::read(PFR2000Packet_A& packet)
+void ScanPublisherR2000::read(PFR2000Packet_A& packet)
 {
-  header_publisher_.publish(packet.header);
+  header_publisher_->publish(packet.header);
   to_msg_queue<PFR2000Packet_A>(packet);
 }
 
-void ScanPublisher::read(PFR2000Packet_B& packet)
+void ScanPublisherR2000::read(PFR2000Packet_B& packet)
 {
-  header_publisher_.publish(packet.header);
+  header_publisher_->publish(packet.header);
   to_msg_queue<PFR2000Packet_B>(packet);
 }
 
-void ScanPublisher::read(PFR2000Packet_C& packet)
+void ScanPublisherR2000::read(PFR2000Packet_C& packet)
 {
-  header_publisher_.publish(packet.header);
+  header_publisher_->publish(packet.header);
   to_msg_queue<PFR2000Packet_C>(packet);
 }
 
-void ScanPublisher::read(PFR2300Packet_C1& packet)
+void ScanPublisherR2000::read(PFR2300Packet_C1& packet)
 {
-  header_publisher_.publish(packet.header);
-  to_msg_queue<PFR2300Packet_C1>(packet, packet.header.layer_index);
+  RCLCPP_ERROR(node_->get_logger(), "Received PFR2300Packet_C1 packet on R2000 parser");
 }
 
-void ScanPublisher::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
+void ScanPublisherR2300::read(PFR2000Packet_A& packet)
 {
-  ros::Time t = ros::Time::now();
-  msg->header.stamp = t;
-  scan_publisher_.publish(std::move(msg));
+  RCLCPP_ERROR(node_->get_logger(), "Received PFR2000Packet_A packet on R2000 parser");
+}
+
+void ScanPublisherR2300::read(PFR2000Packet_B& packet)
+{
+  RCLCPP_ERROR(node_->get_logger(), "Received PFR2000Packet_B packet on R2000 parser");
+}
+
+void ScanPublisherR2300::read(PFR2000Packet_C& packet)
+{
+  RCLCPP_ERROR(node_->get_logger(), "Received PFR2000Packet_C packet on R2000 parser");
+}
+
+void ScanPublisherR2300::read(PFR2300Packet_C1& packet)
+{
+  header_publisher_->publish(packet.header);
+  to_msg_queue<PFR2300Packet_C1>(packet, packet.header.layer_index);
 }
 
 // What are validation checks required here?
@@ -44,7 +57,7 @@ void ScanPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
   if (!check_status(packet.header.status_flags))
     return;
 
-  sensor_msgs::LaserScanPtr msg;
+  sensor_msgs::msg::LaserScan::SharedPtr msg;
   if (d_queue_.empty())
     d_queue_.emplace_back();
   else if (d_queue_.size() > 5)
@@ -56,9 +69,9 @@ void ScanPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
       config_mutex_->lock();
     }
 
-    msg.reset(new sensor_msgs::LaserScan());
+    msg.reset(new sensor_msgs::msg::LaserScan());
     msg->header.frame_id.assign(frame_id_);
-    msg->header.seq = packet.header.header.scan_number;
+    //msg->header.seq = packet.header.header.scan_number;
     msg->scan_time = 1000.0 / packet.header.scan_frequency;
     msg->angle_increment = packet.header.angular_increment / 10000.0 * (M_PI / 180.0);
 
@@ -97,8 +110,8 @@ void ScanPublisher::to_msg_queue(T& packet, uint16_t layer_idx)
     return;
 
   // errors in scan_number - not in sequence sometimes
-  if (msg->header.seq != packet.header.header.scan_number)
-    return;
+  /*if (msg->header.seq != packet.header.header.scan_number)
+    return;*/
   int idx = packet.header.first_index;
 
   for (int i = 0; i < packet.header.num_points_packet; i++)
@@ -136,23 +149,26 @@ bool ScanPublisher::check_status(uint32_t status_flags)
   return true;
 }
 
-void ScanPublisherR2300::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx)
+void ScanPublisherR2300::handle_scan(sensor_msgs::msg::LaserScan::SharedPtr msg, uint16_t layer_idx)
 {
   publish_scan(msg, layer_idx);
 
-  sensor_msgs::PointCloud2 c;
-  if (tfListener_.waitForTransform(
-          msg->header.frame_id, "base_link",
-          msg->header.stamp + ros::Duration().fromSec(msg->ranges.size() * msg->time_increment), ros::Duration(1.0)))
+  auto scan_duration = std::chrono::nanoseconds(static_cast<uint64_t>(msg->ranges.size() * msg->time_increment * 1000000000));
+
+  sensor_msgs::msg::PointCloud2 c;
+  if(_tfBuffer->canTransform(msg->header.frame_id,
+                             "base_link",
+                             rclcpp::Duration(scan_duration) + msg->header.stamp,
+                             rclcpp::Duration(std::chrono::seconds(1))))
   {
     int channelOptions = laser_geometry::channel_option::Intensity;
-    projector_.transformLaserScanToPointCloud("base_link", *msg, c, tfListener_, -1.0, channelOptions);
+    projector_.transformLaserScanToPointCloud("base_link", *msg, c, *_tfBuffer, -1.0, channelOptions);
     if (layer_idx <= layer_prev_)
     {
       if (!cloud_->data.empty())
       {
-        pcl_publisher_.publish(cloud_);
-        cloud_.reset(new sensor_msgs::PointCloud2());
+        pcl_publisher_->publish(*cloud_);
+        cloud_.reset(new sensor_msgs::msg::PointCloud2());
       }
       copy_pointcloud(*cloud_, c);
     }
@@ -164,15 +180,14 @@ void ScanPublisherR2300::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t lay
   }
 }
 
-void ScanPublisherR2300::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t idx)
+void ScanPublisherR2300::publish_scan(sensor_msgs::msg::LaserScan::SharedPtr msg, uint16_t idx)
 {
-  ros::Time t = ros::Time::now();
-  msg->header.stamp = t;
+  msg->header.stamp = node_->get_clock()->now();
   msg->header.frame_id = frame_ids_.at(idx);
-  scan_publishers_.at(idx).publish(msg);
+  scan_publishers_.at(idx)->publish(*msg);
 }
 
-void ScanPublisherR2300::copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2)
+void ScanPublisherR2300::copy_pointcloud(sensor_msgs::msg::PointCloud2& c1, sensor_msgs::msg::PointCloud2 c2)
 {
   c1.header.frame_id = c2.header.frame_id;
   c1.height = c2.height;
@@ -185,7 +200,7 @@ void ScanPublisherR2300::copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_ms
   c1.data = std::move(c2.data);
 }
 
-void ScanPublisherR2300::add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2)
+void ScanPublisherR2300::add_pointcloud(sensor_msgs::msg::PointCloud2& c1, sensor_msgs::msg::PointCloud2 c2)
 {
   pcl::PCLPointCloud2 p1, p2;
   pcl_conversions::toPCL(c1, p1);

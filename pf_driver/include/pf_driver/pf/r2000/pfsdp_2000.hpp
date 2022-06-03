@@ -5,10 +5,10 @@
 class PFSDP_2000 : public PFSDPBase
 {
 public:
-  PFSDP_2000(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-             std::shared_ptr<ScanParameters> params, std::shared_ptr<std::mutex> config_mutex)
-    : PFSDPBase(info, config, params, config_mutex)
+  PFSDP_2000(std::shared_ptr<PFSDPBase> base)
+    : PFSDPBase(base)
   {
+    declare_specific_parameters();
   }
 
   virtual std::string get_product()
@@ -16,7 +16,7 @@ public:
     return get_parameter_str("product");
   }
 
-  virtual void get_scan_parameters()
+  virtual void read_scan_parameters()
   {
     auto resp = get_parameter("angular_fov", "radial_range_min", "radial_range_max", "scan_frequency");
     params_->angular_fov = to_float(resp["angular_fov"]) * M_PI / 180.0;
@@ -28,119 +28,46 @@ public:
     params_->scan_freq = to_float(resp["scan_frequency"]);
   }
 
-  void setup_param_server()
+  void declare_specific_parameters() override
   {
-    param_server_R2000_ = std::make_unique<dynamic_reconfigure::Server<pf_driver::PFDriverR2000Config>>();
-    param_server_R2000_->setCallback(
-        boost::bind(&PFSDP_2000::reconfig_callback, this, boost::placeholders::_1, boost::placeholders::_2));
+    rcl_interfaces::msg::ParameterDescriptor descriptorPacketType;
+    descriptorPacketType.name = "Packet type";
+    descriptorPacketType.description = "Packet type for scan data output";
+    descriptorPacketType.read_only = true;
+    node_->declare_parameter<std::string>("packet_type", "C", descriptorPacketType);
   }
 
-  virtual void reconfig_callback(pf_driver::PFDriverR2000Config& config, uint32_t level)
+  virtual bool reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters) override
   {
-    config_mutex_->lock();
+    bool successful = PFSDPBase::reconfig_callback_impl(parameters);
 
-    if (level == 1)
+    for(const auto &parameter : parameters)
     {
-      set_parameter({ KV("ip_mode", config.ip_mode) });
+      if(parameter.get_name() == "samples_per_scan" ||
+         parameter.get_name() == "hmi_display_mode" ||
+         parameter.get_name() == "hmi_language" ||
+         parameter.get_name() == "hmi_button_lock" ||
+         parameter.get_name() == "hmi_parameter_lock" ||
+         parameter.get_name() == "hmi_static_text_1" ||
+         parameter.get_name() == "hmi_static_text_2" ||
+         parameter.get_name() == "user_notes")
+      {
+        set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
+      }
+      else if(parameter.get_name() == "packet_type")
+      {
+        std::string packet_type = parameter.as_string();
+        if(packet_type == "A" || packet_type == "B" || packet_type == "C")
+        {
+          config_->packet_type = packet_type;
+        }
+        else
+        {
+          successful = false;
+        }
+      }
     }
-    else if (level == 2)
-    {
-      set_parameter({ KV("ip_address", config.ip_address) });
-    }
-    else if (level == 3)
-    {
-      set_parameter({ KV("subnet_mask", config.subnet_mask) });
-    }
-    else if (level == 4)
-    {
-      set_parameter({ KV("gateway", config.gateway) });
-    }
-    else if (level == 5)
-    {
-      set_parameter({ KV("scan_frequency", config.scan_frequency) });
-    }
-    else if (level == 6)
-    {
-      set_parameter({ KV("scan_direction", config.scan_direction) });
-    }
-    else if (level == 7)
-    {
-      set_parameter({ KV("samples_per_scan", config.samples_per_scan) });
-    }
-    else if (level == 8)
-    {
-      set_parameter({ KV("hmi_display_mode", config.hmi_display_mode) });
-    }
-    else if (level == 9)
-    {
-      set_parameter({ KV("hmi_language", config.hmi_language) });
-    }
-    else if (level == 10)
-    {
-      set_parameter({ KV("hmi_button_lock", config.hmi_button_lock) });
-    }
-    else if (level == 11)
-    {
-      set_parameter({ KV("hmi_parameter_lock", config.hmi_parameter_lock) });
-    }
-    else if (level == 12)
-    {
-      set_parameter({ KV("hmi_static_text_1", config.hmi_static_text_1) });
-    }
-    else if (level == 13)
-    {
-      set_parameter({ KV("hmi_static_text_2", config.hmi_static_text_2) });
-    }
-    else if (level == 14)
-    {
-      set_parameter({ KV("locator_indication", config.locator_indication) });
-    }
-    else if (level == 15)
-    {
-      set_parameter({ KV("operating_mode", config.operating_mode) });
-    }
-    else if (level == 25)
-    {
-      set_parameter({ KV("user_tag", config.user_tag) });
-    }
-    else if (level == 26)
-    {
-      set_parameter({ KV("user_notes", config.user_notes) });
-    }
-    else if (level == 18)
-    {
-      config_->packet_type = config.packet_type;
-    }
-    else if (level == 19)
-    {
-      // this param doesn't exist for R2000
-      // set_parameter({ KV("packet_crc", config.packet_crc) });
-    }
-    else if (level == 20)
-    {
-      config_->watchdog = (config.watchdog == "on") ? true : false;
-    }
-    else if (level == 21)
-    {
-      config_->watchdogtimeout = config.watchdogtimeout;
-    }
-    else if (level == 22)
-    {
-      config_->start_angle = config.start_angle;
-    }
-    else if (level == 23)
-    {
-      config_->max_num_points_scan = config.max_num_points_scan;
-    }
-    else if (level == 24)
-    {
-      config_->skip_scans = config.skip_scans;
-    }
-    update_scanoutput_config();
 
-    config_mutex_->unlock();
+    return successful;
   }
-
-private:
-  std::unique_ptr<dynamic_reconfigure::Server<pf_driver::PFDriverR2000Config>> param_server_R2000_;
 };

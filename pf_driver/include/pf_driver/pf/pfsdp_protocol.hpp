@@ -17,10 +17,9 @@
 
 #pragma once
 
+#include <rclcpp/node.hpp>
 #include <boost/algorithm/string.hpp>
 #include "pf_driver/pf/http_helpers.hpp"
-#include "pf_driver/PFDriverR2000Config.h"
-#include "pf_driver/PFDriverR2300Config.h"
 
 struct ProtocolInfo
 {
@@ -224,55 +223,70 @@ private:
   }
 
   bool check_error(std::map<std::string, std::string>& mp, const std::string& err_code, const std::string& err_text,
-                   const std::string& err_http)
-  {
-    const std::string http_error = mp[err_http];
-    const std::string code = mp[err_code];
-    const std::string text = mp[err_text];
-
-    // remove error related key-value pairs
-    mp.erase(err_http);
-    mp.erase(err_code);
-    mp.erase(err_text);
-
-    // check if HTTP has an error
-    if (http_error.compare(std::string("OK")))
-    {
-      std::cerr << "HTTP ERROR: " << http_error << std::endl;
-      return false;
-    }
-
-    // check if 'error_code' and 'error_text' does not exist in the response
-    // this happens in case of invalid command
-    if (!code.compare("--COULD NOT RETRIEVE VALUE--") || !text.compare("--COULD NOT RETRIEVE VALUE--"))
-    {
-      std::cout << "Invalid command or parameter requested." << std::endl;
-      return false;
-    }
-    // check for error messages in protocol response
-    if (code.compare("0") || text.compare("success"))
-    {
-      std::cout << "protocol error: " << code << " " << text << std::endl;
-      return false;
-    }
-    return true;
-  }
+                   const std::string& err_http);
 
 protected:
+  std::shared_ptr<rclcpp::Node> node_;
   std::shared_ptr<HandleInfo> info_;
   std::shared_ptr<ScanConfig> config_;
   std::shared_ptr<ScanParameters> params_;
   std::shared_ptr<std::mutex> config_mutex_;
+  std::string topic_;
+  std::string frame_id_;
 
 public:
-  PFSDPBase(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-            std::shared_ptr<ScanParameters> params, std::shared_ptr<std::mutex> config_mutex)
-    : config_(config)
-    , info_(info)
-    , params_(params)
-    , config_mutex_(config_mutex)
-    , http_interface(new HTTPInterface(info->hostname, "cmd"))
+  PFSDPBase(std::shared_ptr<rclcpp::Node> node)
+    : node_(node)
+    , info_(std::make_shared<HandleInfo>())
+    , config_(std::make_shared<ScanConfig>())
+    , params_(std::make_shared<ScanParameters>())
+    , config_mutex_(std::make_shared<std::mutex>())
   {
+  }
+
+  PFSDPBase(std::shared_ptr<PFSDPBase> base)
+    : http_interface(std::move(base->http_interface))
+    , node_(base->node_)
+    , info_(base->info_)
+    , config_(base->config_)
+    , params_(base->params_)
+    , config_mutex_(base->config_mutex_)
+    , topic_(base->topic_)
+    , frame_id_(base->frame_id_)
+  {
+    setup_parameters_callback();
+  }
+
+  bool init();
+
+  const std::string &get_topic() const
+  {
+    return topic_;
+  }
+
+  const std::string &get_frame_id() const
+  {
+    return frame_id_;
+  }
+
+  std::shared_ptr<HandleInfo> get_handle_info()
+  {
+    return info_;
+  }
+
+  std::shared_ptr<ScanConfig> get_scan_config()
+  {
+    return config_;
+  }
+
+  std::shared_ptr<ScanParameters> get_scan_parameters()
+  {
+    return params_;
+  }
+
+  std::shared_ptr<std::mutex> get_config_mutex()
+  {
+    return config_mutex_;
   }
 
   const std::vector<std::string> list_parameters()
@@ -317,7 +331,12 @@ public:
   template <typename... Ts>
   bool set_parameter(const std::initializer_list<param_type> params)
   {
-    return get_request_bool("set_parameter", { "" }, params);
+    if(http_interface)
+    {
+      return get_request_bool("set_parameter", { "" }, params);
+    }
+
+    return false;
   }
 
   template <typename... Ts>
@@ -431,24 +450,26 @@ public:
 
     // update global config_
     get_scanoutput_config(handle);
-    get_scan_parameters();
+    read_scan_parameters();
     return true;
   }
 
-  bool update_scanoutput_config()
+  void update_scanoutput_config()
   {
-    param_map_type query = { KV("handle", info_->handle),
-                             KV("start_angle", config_->start_angle),
-                             KV("packet_type", config_->packet_type),
-                             KV("max_num_points_scan", config_->max_num_points_scan),
-                             KV("watchdogtimeout", config_->watchdogtimeout),
-                             KV("skip_scans", config_->skip_scans),
-                             KV("watchdog", config_->watchdog ? "on" : "off") };
-    auto resp = get_request("set_scanoutput_config", { "" }, query);
+    if(http_interface)
+    {
+      param_map_type query = { KV("handle", info_->handle),
+                               KV("start_angle", config_->start_angle),
+                               KV("packet_type", config_->packet_type),
+                               KV("max_num_points_scan", config_->max_num_points_scan),
+                               KV("watchdogtimeout", config_->watchdogtimeout),
+                               KV("skip_scans", config_->skip_scans),
+                               KV("watchdog", config_->watchdog ? "on" : "off") };
+      auto resp = get_request("set_scanoutput_config", { "" }, query);
 
-    // recalculate scan params
-    get_scan_parameters();
-    return true;
+      // recalculate scan params
+      read_scan_parameters();
+    }
   }
 
   bool start_scanoutput()
@@ -468,9 +489,9 @@ public:
     return resp[param];
   }
 
-  bool feed_watchdog(std::string handle)
+  bool feed_watchdog()
   {
-    return get_request_bool("feed_watchdog", { "" }, { { "handle", handle } });
+    return get_request_bool("feed_watchdog", { "" }, { { "handle", info_->handle } });
   }
 
   virtual std::string get_product()
@@ -478,13 +499,24 @@ public:
     return std::string("");
   }
 
-  virtual void get_scan_parameters()
+  virtual void read_scan_parameters()
   {
   }
 
-  virtual void setup_param_server()
-  {
-  }
+  void setup_parameters_callback();
+
+  void declare_critical_parameters();
+
+  void declare_common_parameters();
+
+  virtual void declare_specific_parameters() {}
+
+  virtual bool reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters);
+
+  rcl_interfaces::msg::SetParametersResult reconfig_callback(const std::vector<rclcpp::Parameter>& parameters);
+
+private:
+  rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr parameters_handle_;
 };
 
 #endif

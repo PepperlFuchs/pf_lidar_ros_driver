@@ -1,4 +1,4 @@
-pf_driver/PFHeader header
+PFHeader header
 
 uint16 layer_index        # vertical layer index (0..3)
 int32 layer_inclination   # vertical layer inclination [1/10000 degree]
