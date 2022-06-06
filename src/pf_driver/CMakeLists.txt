@@ -6,17 +6,12 @@ add_compile_options(-std=c++14)
 find_package(ament_cmake REQUIRED)
 
 find_package(pf_interfaces)
-#find_package(dynamic_reconfigure REQUIRED)
 find_package(laser_geometry REQUIRED)
-#find_package(message_generation REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(pcl_ros REQUIRED)
 find_package(rclcpp REQUIRED)
-#find_package(roscpp_serialization REQUIRED)
-#find_package(roslint REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
-#find_package(tf REQUIRED)
 find_package(tf2_ros REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS  thread system)
@@ -24,21 +19,6 @@ find_package(jsoncpp REQUIRED)
 get_target_property(jsoncpp_INCLUDE_DIRS jsoncpp_lib INTERFACE_INCLUDE_DIRECTORIES)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(CURLPP REQUIRED curlpp)
-
-#generate_dynamic_reconfigure_options(
-#  cfg/PFDriverR2000.cfg
-#  cfg/PFDriverR2300.cfg
-#)
-
-#generate_messages(
-#  DEPENDENCIES
-#  std_msgs
-#)
-
-#catkin_package(
-#  INCLUDE_DIRS include
-#  CATKIN_DEPENDS dynamic_reconfigure message_runtime roscpp roscpp_serialization sensor_msgs std_msgs tf
-#)
 
 include_directories(
   include
@@ -75,13 +55,12 @@ target_link_libraries(ros_main
   jsoncpp
 )
 ament_target_dependencies(ros_main
+  rclcpp
   pf_interfaces
   laser_geometry
   tf2_ros
   pcl_ros
 )
-#add_dependencies(ros_main ${PROJECT_NAME}_gencfg)
-#add_dependencies(ros_main ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 #roslint_cpp(src/ros/ros_main.cpp
 #            src/ros/scan_publisher.cpp
