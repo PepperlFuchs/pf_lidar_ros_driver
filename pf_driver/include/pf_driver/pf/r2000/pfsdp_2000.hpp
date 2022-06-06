@@ -35,6 +35,18 @@ public:
     descriptorPacketType.description = "Packet type for scan data output";
     descriptorPacketType.read_only = true;
     node_->declare_parameter<std::string>("packet_type", "C", descriptorPacketType);
+
+    rcl_interfaces::msg::ParameterDescriptor descriptorWatchdog;
+    descriptorWatchdog.name = "Watchdog";
+    descriptorWatchdog.description = "Cease scan data output if watchdog isn't fed in time";
+    descriptorWatchdog.read_only = true;
+    node_->declare_parameter<bool>("watchdog", true, descriptorWatchdog);
+
+    rcl_interfaces::msg::ParameterDescriptor descriptorWatchdogTimeout;
+    descriptorWatchdogTimeout.name = "Watchdog timeout (ms)";
+    descriptorWatchdogTimeout.description = "Maximum time for client to feed watchdog";
+    descriptorWatchdogTimeout.read_only = true;
+    node_->declare_parameter<int>("watchdog_timeout", 10000, descriptorWatchdogTimeout);
   }
 
   virtual bool reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters) override
@@ -53,6 +65,14 @@ public:
          parameter.get_name() == "user_notes")
       {
         set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
+      }
+      else if(parameter.get_name() == "watchdog")
+      {
+        config_->watchdog = parameter.as_bool();
+      }
+      else if(parameter.get_name() == "watchdog_timeout")
+      {
+        config_->watchdogtimeout = parameter.as_int();
       }
       else if(parameter.get_name() == "packet_type")
       {

@@ -60,14 +60,6 @@ bool PFSDPBase::reconfig_callback_impl(const std::vector<rclcpp::Parameter> &par
     {
       frame_id_ = parameter.as_string();
     }
-    else if(parameter.get_name() == "watchdog")
-    {
-      config_->watchdog = parameter.as_bool();
-    }
-    else if(parameter.get_name() == "watchdogtimeout")
-    {
-      config_->watchdogtimeout = parameter.as_int();
-    }
     else if(parameter.get_name() == "start_angle")
     {
       config_->start_angle = parameter.as_double();
