@@ -8,8 +8,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/PFHeader.msg"
   "msg/PFR2000Header.msg"
   "msg/PFR2300Header.msg"
-
-  #DEPENDENCIES geometry_msgs std_msgs
 )
 
 ament_export_dependencies(rosidl_default_runtime)
