@@ -68,10 +68,6 @@ bool PFSDPBase::reconfig_callback_impl(const std::vector<rclcpp::Parameter> &par
     {
       config_->max_num_points_scan = parameter.as_int();
     }
-    else if(parameter.get_name() == "skip_scans")
-    {
-      config_->skip_scans = parameter.as_int();
-    }
   }
 
   return successful;
@@ -168,7 +164,7 @@ void PFSDPBase::declare_common_parameters()
   rangeScanFrequency.to_value = 50;
   rangeScanFrequency.step = 1;
   descriptorScanFreqency.integer_range.push_back(rangeScanFrequency);
-  node_->declare_parameter<int>("scan_frequency", 35, descriptorScanFreqency);
+  node_->declare_parameter<int>("scan_frequency", 30, descriptorScanFreqency);
 
   rcl_interfaces::msg::ParameterDescriptor descriptorScanTopic;
   descriptorScanTopic.name = "Scan topic";

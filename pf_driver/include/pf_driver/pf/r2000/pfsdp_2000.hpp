@@ -47,6 +47,23 @@ public:
     descriptorWatchdogTimeout.description = "Maximum time for client to feed watchdog";
     descriptorWatchdogTimeout.read_only = true;
     node_->declare_parameter<int>("watchdog_timeout", 10000, descriptorWatchdogTimeout);
+
+    rcl_interfaces::msg::ParameterDescriptor descriptorSamplesPerScan;
+    descriptorSamplesPerScan.name = "Samples per scan";
+    descriptorSamplesPerScan.description = "Defines the number of samples recorded during one revolution of the sensor "
+                                           "head (for details please refer to section 3.1 in the R2000 Ethernet "
+                                           "communication protocol).";
+    rcl_interfaces::msg::IntegerRange rangeSamplesPerScan;
+    rangeSamplesPerScan.from_value = 72;
+    rangeSamplesPerScan.to_value = 25200;
+    rangeSamplesPerScan.step = 1;
+    descriptorSamplesPerScan.integer_range.push_back(rangeSamplesPerScan);
+    node_->declare_parameter<int>("samples_per_scan", 2400, descriptorSamplesPerScan);
+
+    rcl_interfaces::msg::ParameterDescriptor descriptorSkipScans;
+    descriptorSkipScans.name = "Skip scans";
+    descriptorSkipScans.description = "Reduce scan output rate to every (n+1)th scan";
+    node_->declare_parameter<int>("skip_scans", 0, descriptorSkipScans);
   }
 
   virtual bool reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters) override
@@ -85,6 +102,10 @@ public:
         {
           successful = false;
         }
+      }
+      else if(parameter.get_name() == "skip_scans")
+      {
+        config_->skip_scans = parameter.as_int();
       }
     }
 

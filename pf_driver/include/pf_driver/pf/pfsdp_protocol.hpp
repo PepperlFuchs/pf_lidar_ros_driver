@@ -467,6 +467,8 @@ public:
                                KV("watchdog", config_->watchdog ? "on" : "off") };
       auto resp = get_request("set_scanoutput_config", { "" }, query);
 
+      RCLCPP_INFO(node_->get_logger(), "update %d", config_->skip_scans);
+
       // recalculate scan params
       read_scan_parameters();
     }
