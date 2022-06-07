@@ -6,6 +6,7 @@
 #include <rcutils/logging.h>
 #include "pf_driver/pf/pf_interface.h"
 #include "pf_driver/ros/scan_publisher.h"
+#include "pf_driver/ros/hmi_image_listener.h"
 
 bool PFInterface::init()
 {
@@ -116,6 +117,7 @@ bool PFInterface::handle_version(int major_version, int minor_version)
                                protocol_interface_->get_frame_id(),
                                protocol_interface_->get_config_mutex(),
                                node_);
+    hmi_listener_ = std::make_shared<HmiImageListener>(node_, protocol_interface_);
   }
   else if (major_version == 0 && minor_version == 5)
   {

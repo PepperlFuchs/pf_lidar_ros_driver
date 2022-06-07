@@ -31,11 +31,13 @@ add_executable(ros_main src/communication.cpp
                         src/pf/pfsdp_protocol.cpp
                         src/ros/ros_main.cpp
                         src/ros/scan_publisher.cpp
+                        src/ros/hmi_image_listener.cpp
                         )
 target_link_libraries(ros_main
   curlpp
   curl
   jsoncpp
+  b64
 )
 ament_target_dependencies(ros_main
   rclcpp

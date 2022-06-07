@@ -15,6 +15,8 @@
 #include "pf_driver/pf/r2000/pfsdp_2000.hpp"
 #include "pf_driver/pf/r2300/pfsdp_2300.hpp"
 
+class HmiImageListener;
+
 class PFInterface
 {
 public:
@@ -56,6 +58,7 @@ private:
   PipelinePtr pipeline_;
   PipelinePtr get_pipeline(std::string packet_type);
   std::shared_ptr<Reader<PFPacket>> reader_;
+  std::shared_ptr<HmiImageListener> hmi_listener_;
 
   //std::shared_ptr<std::mutex> config_mutex_;
   void on_shutdown();

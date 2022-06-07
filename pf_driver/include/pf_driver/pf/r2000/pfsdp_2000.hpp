@@ -64,6 +64,21 @@ public:
     descriptorSkipScans.name = "Skip scans";
     descriptorSkipScans.description = "Reduce scan output rate to every (n+1)th scan";
     node_->declare_parameter<int>("skip_scans", 0, descriptorSkipScans);
+
+    rcl_interfaces::msg::ParameterDescriptor descriptorDisplayMode;
+    descriptorDisplayMode.name = "HMI display mode";
+    descriptorDisplayMode.description = "Controls the content of the HMI LED display during normal operation, i.e. "
+                                        "while neither warnings nor errors are displayed and the user did not activate "
+                                        "the HMI menu. Supported values are:\n"
+                                        "- hmi_display_off\n"
+                                        "- static_logo\n"
+                                        "- static_text\n"
+                                        "- bargraph_distance\n"
+                                        "- bargraph_echo\n"
+                                        "- bargraph_reflector\n"
+                                        "- application_bitmap\n"
+                                        "- application_text\n";
+    node_->declare_parameter<std::string>("hmi_display_mode", "static_logo", descriptorDisplayMode);
   }
 
   virtual bool reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters) override
