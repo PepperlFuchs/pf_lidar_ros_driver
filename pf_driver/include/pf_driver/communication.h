@@ -135,7 +135,10 @@ public:
     timer_->expires_from_now(boost::posix_time::seconds(expiry_time));
     timer_->async_wait([this, &expiry_time](const boost::system::error_code& error) {
       timer_result_.reset(error);
-      std::cout << "Time out: No packets received in " << expiry_time << " seconds" << std::endl;
+      if (error.message() == "Success")
+      {
+        std::cout << "Time out: No packets received in " << expiry_time << " seconds" << std::endl;
+      }
     });
 
     boost::optional<boost::system::error_code> read_result;
