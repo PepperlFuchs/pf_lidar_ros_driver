@@ -17,7 +17,7 @@ HmiImageListener::HmiImageListener(std::shared_ptr<rclcpp::Node> node, std::shar
 
 void HmiImageListener::on_image_published(sensor_msgs::msg::Image::SharedPtr image)
 {
-  const int bit_depth = sensor_msgs::image_encodings::bitDepth(image->encoding);
+  const int byte_depth = sensor_msgs::image_encodings::bitDepth(image->encoding) / 8;
   const int channels = sensor_msgs::image_encodings::numChannels(image->encoding);
 
   const int scanner_image_width = 252;
@@ -38,10 +38,13 @@ void HmiImageListener::on_image_published(sensor_msgs::msg::Image::SharedPtr ima
     {
       for(size_t channel = 0 ; channel < channels ; ++channel)
       {
-        if(image->data[y * step + x * channels + channel])
+        for(size_t byte = 0 ; byte < byte_depth ; ++byte)
         {
-          size_t byte_index = (x * scanner_image_height_bytes) + (2 - y / 8);
-          raw_data[byte_index] |= (1 << (y % 8));
+          if(image->data[y * step + x * channels * byte_depth + channel * byte_depth + byte])
+          {
+            size_t byte_index = (x * scanner_image_height_bytes) + (2 - y / 8);
+            raw_data[byte_index] |= (1 << (y % 8));
+          }
         }
       }
     }
