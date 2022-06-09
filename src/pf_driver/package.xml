@@ -13,6 +13,7 @@
   <build_depend>libpcl-all-dev</build_depend>
   <exec_depend>libpcl-all</exec_depend>
   <exec_depend>pf_description</exec_depend>
+  <depend>pf_interfaces</depend>
   <depend>curlpp-dev</depend>
   <depend>laser_geometry</depend>
   <depend>libjsoncpp-dev</depend>
