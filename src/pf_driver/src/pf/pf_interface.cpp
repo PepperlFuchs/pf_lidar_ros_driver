@@ -220,6 +220,53 @@ bool PFInterface::handle_version(int major_version, int minor_version, int devic
     expected_dev = "R2300";
     protocol_interface_ = std::make_shared<PFSDP_2300>(info_, config_, params_);
 
+void PFInterface::start_watchdog_timer(float duration)
+{
+  int feed_time = std::floor(std::min(duration, 60.0f));
+  watchdog_timer_ =
+      nh_.createTimer(ros::Duration(feed_time), std::bind(&PFInterface::feed_watchdog, this, std::placeholders::_1));
+}
+
+void PFInterface::feed_watchdog(const ros::TimerEvent& e)
+{
+  protocol_interface_->feed_watchdog(info_->handle);
+}
+
+void PFInterface::on_shutdown()
+{
+  RCLCPP_INFO(node_->get_logger(), "Shutting down pipeline!");
+  // stop_transmission();
+}
+
+void PFInterface::connection_failure_cb()
+{
+  std::cout << "handling connection failure" << std::endl;
+  terminate();
+  std::cout << "terminated" << std::endl;
+  while (!init())
+  {
+    std::cout << "trying to reconnect..." << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
+}
+
+// factory functions
+bool PFInterface::handle_version(int major_version, int minor_version, int device_family, const std::string& topic,
+                                 const std::string& frame_id, const uint16_t num_layers)
+{
+  std::string expected_dev = "";
+  if (device_family == 1 || device_family == 3 || device_family == 6)
+  {
+    expected_dev = "R2000";
+    protocol_interface_ = std::make_shared<PFSDP_2000>(info_, config_, params_);
+    reader_ =
+        std::shared_ptr<PFPacketReader>(new LaserscanPublisher(config_, params_, topic.c_str(), frame_id.c_str()));
+  }
+  else if (device_family == 5 || device_family == 7)
+  {
+    expected_dev = "R2300";
+    protocol_interface_ = std::make_shared<PFSDP_2300>(info_, config_, params_);
+
     if (device_family == 5)
     {
       std::string part = protocol_interface_->get_part();

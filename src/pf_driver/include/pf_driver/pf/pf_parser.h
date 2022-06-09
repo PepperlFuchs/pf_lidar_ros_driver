@@ -12,7 +12,8 @@ template <typename T>
 class PFParser : public Parser<PFPacket>
 {
 public:
-  virtual bool parse(uint8_t* buf, size_t buf_len, std::vector<std::unique_ptr<PFPacket>>& results, size_t& used, rclcpp::Logger logger) override
+  virtual bool parse(uint8_t* buf, size_t buf_len, std::vector<std::unique_ptr<PFPacket>>& results, size_t& used,
+                     rclcpp::Logger logger) override
   {
     std::unique_ptr<T> packet = std::make_unique<T>();
     uint32_t serial_size = packet->get_size();
