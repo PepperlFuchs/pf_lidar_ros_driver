@@ -80,7 +80,7 @@ ament_target_dependencies(ros_main
 install(TARGETS ros_main
         DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY launch config rviz
+install(DIRECTORY launch config
         DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY include/
