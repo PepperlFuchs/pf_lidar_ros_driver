@@ -302,8 +302,7 @@ public:
   ProtocolInfo get_protocol_info()
   {
     ProtocolInfo opi;
-    auto resp = get_request("get_protocol_info",
-                            { "protocol_name", "version_major", "version_minor", "commands", "device_family" });
+    auto resp = get_request("get_protocol_info", { "protocol_name", "version_major", "version_minor", "commands" });
     if (resp.empty())
     {
       opi.isError = true;
@@ -313,7 +312,7 @@ public:
     opi.version_major = atoi(resp["version_major"].c_str());
     opi.version_minor = atoi(resp["version_minor"].c_str());
     opi.protocol_name = resp["protocol_name"];
-    opi.device_family = atoi(resp["device_family"].c_str());
+    opi.device_family = get_parameter_int("device_family");
 
     return opi;
   }
