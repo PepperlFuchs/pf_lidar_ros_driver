@@ -37,12 +37,14 @@ int main(int argc, char* argv[])
   int watchdogtimeout = 0;
   bool watchdog;
   int num_layers = 0;
+  bool apply_correction;
   dev_nh.getParam("start_angle", config->start_angle);
   dev_nh.getParam("max_num_points_scan", max_num_points_scan);
   dev_nh.getParam("packet_type", config->packet_type);
   dev_nh.getParam("watchdogtimeout", watchdogtimeout);
   dev_nh.getParam("watchdog", watchdog);
   dev_nh.getParam("num_layers", num_layers);
+  dev_nh.param<bool>("apply_correction", apply_correction, false);
 
   config->max_num_points_scan = max_num_points_scan;
   config->watchdogtimeout = watchdogtimeout;
@@ -54,6 +56,7 @@ int main(int argc, char* argv[])
 
   // currently ScanParameters is not set through params
   std::shared_ptr<ScanParameters> params = std::make_shared<ScanParameters>();
+  params->apply_correction = apply_correction;
 
   PFInterface pf_interface;
   if (!pf_interface.init(info, config, params, topic, frame_id, num_layers))

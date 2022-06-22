@@ -9,3 +9,4 @@ R2300:
   watchdogtimeout: 0
   watchdog: false
   num_layers: 4
+  apply_correction: true
