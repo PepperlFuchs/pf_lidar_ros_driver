@@ -13,7 +13,7 @@ public:
 
   virtual std::string get_product()
   {
-    return get_parameter_str("part");
+    return get_parameter_str("product");
   }
 
   virtual std::string get_part()
