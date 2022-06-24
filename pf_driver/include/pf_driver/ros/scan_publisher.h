@@ -151,8 +151,7 @@ private:
   void add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
   void copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
 
-  void project_laser(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg, const int layer_inclination,
-                     bool apply_correction);
+  void project_laser(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg, const int layer_inclination);
 
   virtual void resetCurrentScans()
   {

@@ -136,12 +136,14 @@ void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t la
 
   sensor_msgs::PointCloud2 c;
   int channelOptions = laser_geometry::channel_option::Intensity;
-  // since 'apply_correction' calculates the point cloud from laser scan message,
-  // 'transformLaserScanToPointCloud' may not be needed anymore
-  // just 'projectLaser' is enough just so that it initializes the pointcloud message correctly
-  projector_.projectLaser(*msg, c);
-
-  project_laser(c, msg, layer_inclination, apply_correction);
+  if (apply_correction)
+  {
+    // since 'apply_correction' calculates the point cloud from laser scan message,
+    // 'transformLaserScanToPointCloud' is not be needed anymore
+    // just 'projectLaser' is enough just so that it initializes the pointcloud message correctly
+    projector_.projectLaser(*msg, c);
+    project_laser(c, msg, layer_inclination);
+  }
   else
   {
     projector_.transformLaserScanToPointCloud(frame_id_, *msg, c, tfListener_, -1.0, channelOptions);
@@ -195,7 +197,7 @@ void PointcloudPublisher::add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_ms
 }
 
 void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg,
-                                        const int layer_inclination, bool apply_correction)
+                                        const int layer_inclination)
 {
   pcl::PCLPointCloud2 p;
   pcl_conversions::toPCL(c, p);
@@ -219,11 +221,11 @@ void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs
     }
     double angle_h = msg->angle_min + msg->angle_increment * (double)i;
 
-    if (apply_correction)
-    {
-      angle_v = correction_params_[layer_inclination][0] * angle_h * angle_h +
-                       correction_params_[layer_inclination][1] * angle_h + correction_params_[layer_inclination][2];
-    }
+    angle_v = correction_params_[layer_inclination][0] * angle_h * angle_h +
+              correction_params_[layer_inclination][1] * angle_h + correction_params_[layer_inclination][2];
+
+    p_cloud->points[cl_idx].x = cos(angle_h) * cos(angle_v) * msg->ranges[i];
+    p_cloud->points[cl_idx].y = sin(angle_h) * cos(angle_v) * msg->ranges[i];
     p_cloud->points[cl_idx].z = sin(angle_v) * msg->ranges[i];
 
     cl_idx++;
