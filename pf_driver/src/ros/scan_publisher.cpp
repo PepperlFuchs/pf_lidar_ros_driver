@@ -200,6 +200,10 @@ void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs
   pcl::fromPCLPointCloud2(p, *p_cloud);
 
   size_t cl_idx = 0;
+
+  double angle_v_deg = layer_inclination / 10000.0;
+  double angle_v = (M_PI / 180.0) * angle_v_deg;
+
   for (size_t i = 0; i < msg->ranges.size(); i++)
   {
     // num of points in cloud is sometimes less than that in laser scan because of
@@ -212,19 +216,10 @@ void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs
 
     if (apply_correction)
     {
-      double angle_v = correction_params_[layer_inclination][0] * angle_h * angle_h +
+      angle_v = correction_params_[layer_inclination][0] * angle_h * angle_h +
                        correction_params_[layer_inclination][1] * angle_h + correction_params_[layer_inclination][2];
-
-      // from https://www.youtube.com/watch?v=LHaZ3l4q5eM
-      p_cloud->points[cl_idx].z = sin(angle_v) * msg->ranges[i];
     }
-    else
-    {
-      double angle_v_deg = layer_inclination / 10000.0;
-      double angle_v = (M_PI / 180.0) * angle_v_deg;
-
-      p_cloud->points[cl_idx].z = sin(angle_v);
-    }
+    p_cloud->points[cl_idx].z = sin(angle_v) * msg->ranges[i];
 
     cl_idx++;
   }
