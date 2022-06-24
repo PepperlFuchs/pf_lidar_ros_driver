@@ -132,8 +132,9 @@ bool PFDataPublisher::check_status(uint32_t status_flags)
 void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, int layer_inclination,
                                       bool apply_correction)
 {
-  sensor_msgs::PointCloud2 c;
+  publish_scan(msg, layer_idx);
 
+  sensor_msgs::PointCloud2 c;
   int channelOptions = laser_geometry::channel_option::Intensity;
   // since 'apply_correction' calculates the point cloud from laser scan message,
   // 'transformLaserScanToPointCloud' may not be needed anymore
@@ -141,6 +142,10 @@ void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t la
   projector_.projectLaser(*msg, c);
 
   project_laser(c, msg, layer_inclination, apply_correction);
+  else
+  {
+    projector_.transformLaserScanToPointCloud(frame_id_, *msg, c, tfListener_, -1.0, channelOptions);
+  }
 
   if (layer_idx <= layer_prev_)
   {
