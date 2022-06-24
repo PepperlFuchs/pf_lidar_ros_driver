@@ -220,8 +220,6 @@ void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs
       double angle_v = (M_PI / 180.0) * angle_v_deg;
 
       // from https://www.youtube.com/watch?v=LHaZ3l4q5eM
-      p_cloud->points[cl_idx].x = cos(angle_h) * cos(angle_v) * msg->ranges[i];
-      p_cloud->points[cl_idx].y = sin(angle_h) * cos(angle_v) * msg->ranges[i];
       p_cloud->points[cl_idx].z = sin(angle_v) * msg->ranges[i];
     }
     else
@@ -229,8 +227,6 @@ void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs
       double angle_v_deg = layer_inclination / 10000.0;
       double angle_v = (M_PI / 180.0) * angle_v_deg;
 
-      p_cloud->points[cl_idx].x = cos(angle_h) * cos(angle_v) * msg->ranges[i];
-      p_cloud->points[cl_idx].y = sin(angle_h) * cos(angle_v) * msg->ranges[i];
       p_cloud->points[cl_idx].z = sin(angle_v);
     }
 
