@@ -7,7 +7,8 @@
 #include "pf_driver/ros/scan_publisher.h"
 
 bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-                       std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id)
+                       std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id,
+                       const uint16_t num_layers)
 {
   config_ = config;
   info_ = info;
@@ -30,7 +31,7 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
     return false;
   }
 
-  if (!handle_version(opi.version_major, opi.version_minor, topic, frame_id))
+  if (!handle_version(opi.version_major, opi.version_minor, opi.device_family, topic, frame_id, num_layers))
   {
     ROS_ERROR("Device unsupported");
     return false;
@@ -102,37 +103,6 @@ bool PFInterface::can_change_state(PFState state)
   return true;
 }
 
-bool PFInterface::handle_version(int major_version, int minor_version, std::string topic, std::string frame_id)
-{
-  std::string expected_dev = "";
-  if (major_version == 1 && minor_version == 3)
-  {
-    expected_dev = "R2000";
-    protocol_interface_ = std::make_shared<PFSDP_2000>(info_, config_, params_, config_mutex_);
-    reader_ = std::shared_ptr<PFPacketReader>(
-        new ScanPublisherR2000(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
-  }
-  else if (major_version == 0 && minor_version == 5)
-  {
-    expected_dev = "R2300";
-    protocol_interface_ = std::make_shared<PFSDP_2300>(info_, config_, params_, config_mutex_);
-    reader_ = std::shared_ptr<PFPacketReader>(
-        new ScanPublisherR2300(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
-  }
-  else
-  {
-    return false;
-  }
-  std::string product_name = protocol_interface_->get_product();
-  if (product_name.find(expected_dev) != std::string::npos)
-  {
-    product_ = expected_dev;
-    return true;
-  }
-  return false;
-}
-
-// TODO: this function needs a thorough clean-up
 bool PFInterface::start_transmission()
 {
   if (state_ != PFState::INIT)
@@ -172,6 +142,70 @@ void PFInterface::terminate()
   pipeline_.reset();
 }
 
+void PFInterface::start_watchdog_timer(float duration)
+{
+  int feed_time = std::floor(std::min(duration, 60.0f));
+  watchdog_timer_ =
+      nh_.createTimer(ros::Duration(feed_time), std::bind(&PFInterface::feed_watchdog, this, std::placeholders::_1));
+}
+
+void PFInterface::feed_watchdog(const ros::TimerEvent& e)
+{
+  protocol_interface_->feed_watchdog(info_->handle);
+}
+
+void PFInterface::on_shutdown()
+{
+  ROS_INFO("Shutting down pipeline!");
+  stop_transmission();
+}
+
+// factory functions
+bool PFInterface::handle_version(int major_version, int minor_version, int device_family, std::string topic,
+                                 std::string frame_id, const uint16_t num_layers)
+{
+  std::string expected_dev = "";
+  if (device_family == 1 || device_family == 3 || device_family == 6)
+  {
+    expected_dev = "R2000";
+    protocol_interface_ = std::make_shared<PFSDP_2000>(info_, config_, params_, config_mutex_);
+    reader_ = std::shared_ptr<PFPacketReader>(
+        new LaserscanPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
+  }
+  else if (device_family == 5 || device_family == 7)
+  {
+    expected_dev = "R2300";
+    protocol_interface_ = std::make_shared<PFSDP_2300>(info_, config_, params_, config_mutex_);
+
+    if (device_family == 5)
+    {
+      std::string part = protocol_interface_->get_part();
+      reader_ = std::shared_ptr<PFPacketReader>(new PointcloudPublisher(
+          config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_, num_layers, part.c_str()));
+    }
+    else if (device_family == 7)
+    {
+      reader_ = std::shared_ptr<PFPacketReader>(
+          new LaserscanPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
+    }
+    else
+    {
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
+  std::string product_name = protocol_interface_->get_product();
+  if (product_name.find(expected_dev) != std::string::npos)
+  {
+    product_ = expected_dev;
+    return true;
+  }
+  return false;
+}
+
 std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet_type)
 {
   std::shared_ptr<Parser<PFPacket>> parser;
@@ -206,22 +240,4 @@ std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet
   writer = std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(std::move(transport_), parser));
   return std::unique_ptr<Pipeline<PFPacket>>(
       new Pipeline<PFPacket>(writer, reader_, std::bind(&PFInterface::on_shutdown, this)));
-}
-
-void PFInterface::start_watchdog_timer(float duration)
-{
-  int feed_time = std::floor(std::min(duration, 60.0f));
-  watchdog_timer_ =
-      nh_.createTimer(ros::Duration(feed_time), std::bind(&PFInterface::feed_watchdog, this, std::placeholders::_1));
-}
-
-void PFInterface::feed_watchdog(const ros::TimerEvent& e)
-{
-  protocol_interface_->feed_watchdog(info_->handle);
-}
-
-void PFInterface::on_shutdown()
-{
-  ROS_INFO("Shutting down pipeline!");
-  stop_transmission();
 }

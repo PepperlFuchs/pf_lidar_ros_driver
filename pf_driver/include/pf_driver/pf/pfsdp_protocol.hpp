@@ -31,6 +31,7 @@ struct ProtocolInfo
   std::vector<std::string> commands;  // list of available commands
                                       // Since R2300 may not give correct error reports
                                       // it is safer to keep the list of commands
+  uint16_t device_family;
 };
 
 struct HandleInfo
@@ -76,6 +77,7 @@ struct ScanParameters
   uint16_t layers_enabled = 0;
   double scan_freq = 0.0;        // needed to calculate scan resolution in R2300
   uint16_t h_enabled_layer = 0;  // highest enabled layer
+  bool apply_correction = true;
 
   // void print()
   // {
@@ -310,6 +312,7 @@ public:
     opi.version_major = atoi(resp["version_major"].c_str());
     opi.version_minor = atoi(resp["version_minor"].c_str());
     opi.protocol_name = resp["protocol_name"];
+    opi.device_family = get_parameter_int("device_family");
 
     return opi;
   }
@@ -474,6 +477,11 @@ public:
   }
 
   virtual std::string get_product()
+  {
+    return std::string("");
+  }
+
+  virtual std::string get_part()
   {
     return std::string("");
   }

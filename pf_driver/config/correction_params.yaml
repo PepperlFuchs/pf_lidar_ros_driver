@@ -1,0 +1,10 @@
+# DO NOT EDIT FILE! THE PARAMETERS ARE PROVIDED BY THE MANUFACTURER
+correction_params:
+  - ang: -45000
+    coeff: [0.01001, -0.02909, -0.08687]
+  - ang: -15000
+    coeff: [0.002797, -0.009898, -0.02897]
+  - ang: 15000
+    coeff: [-0.004447, 0.009305, 0.02893]
+  - ang: 45000
+    coeff: [-0.01167, 0.02849, 0.08683]

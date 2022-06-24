@@ -16,6 +16,11 @@ public:
     return get_parameter_str("product");
   }
 
+  virtual std::string get_part()
+  {
+    return get_parameter_str("product");
+  }
+
   virtual void get_scan_parameters()
   {
     auto resp = get_parameter("angular_fov", "radial_range_min", "radial_range_max", "measure_start_angle",
