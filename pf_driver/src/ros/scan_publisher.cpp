@@ -210,14 +210,10 @@ void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs
     }
     double angle_h = msg->angle_min + msg->angle_increment * (double)i;
 
-    // the correction parameters have been calculated for vertical angles in degrees
-    // this needs to be fixed while calculating the quadratic equation parameters
     if (apply_correction)
     {
-      double angle_v_deg = correction_params_[layer_inclination][0] * angle_h * angle_h +
-                           correction_params_[layer_inclination][1] * angle_h +
-                           correction_params_[layer_inclination][2];
-      double angle_v = (M_PI / 180.0) * angle_v_deg;
+      double angle_v = correction_params_[layer_inclination][0] * angle_h * angle_h +
+                       correction_params_[layer_inclination][1] * angle_h + correction_params_[layer_inclination][2];
 
       // from https://www.youtube.com/watch?v=LHaZ3l4q5eM
       p_cloud->points[cl_idx].z = sin(angle_v) * msg->ranges[i];
