@@ -39,7 +39,7 @@ public:
     boost::array<uint8_t, 4096> buf;
     size_t read = 0;
     size_t used = 0;
-    if (transport_->read(buf, read))
+    if (transport_->readWithTimeout(buf, read, 2))
     {
       persistent_buffer_.insert(persistent_buffer_.end(), buf.begin(), buf.begin() + read);
       parser_->parse(persistent_buffer_.data(), persistent_buffer_.size(), packets, used);

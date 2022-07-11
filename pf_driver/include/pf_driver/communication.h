@@ -38,6 +38,10 @@ public:
   virtual bool connect() = 0;
   virtual bool disconnect() = 0;
   virtual bool read(boost::array<uint8_t, 4096>& buf, size_t& len) = 0;
+  virtual bool readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len, const uint32_t expiry_time)
+  {
+    return false;
+  }
 
   Transport(std::string address, transport_type typ) : address_(address), type_(typ), is_connected_(false)
   {
@@ -80,6 +84,8 @@ protected:
   bool is_connected_;
   transport_type type_;
   std::shared_ptr<boost::asio::io_service> io_service_;
+  std::shared_ptr<boost::asio::deadline_timer> timer_;
+  boost::optional<boost::system::error_code> timer_result_;
 };
 
 class TCPTransport : public Transport
@@ -89,6 +95,7 @@ public:
   {
     io_service_ = std::make_shared<boost::asio::io_service>();
     socket_ = std::make_unique<tcp::socket>(*io_service_);
+    timer_ = std::make_shared<boost::asio::deadline_timer>(*io_service_.get());
   }
 
   ~TCPTransport()
@@ -99,6 +106,7 @@ public:
   virtual bool connect();
   virtual bool disconnect();
   virtual bool read(boost::array<uint8_t, 4096>& buf, size_t& len);
+  virtual bool readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len, const uint32_t expiry_time);
 
 private:
   std::unique_ptr<tcp::socket> socket_;
@@ -111,6 +119,7 @@ public:
   {
     io_service_ = std::make_shared<boost::asio::io_service>();
     socket_ = std::make_unique<udp::socket>(*io_service_, udp::endpoint(udp::v4(), 0));
+    timer_ = std::make_shared<boost::asio::deadline_timer>(*io_service_.get());
   }
 
   ~UDPTransport()
@@ -121,6 +130,7 @@ public:
   virtual bool connect();
   virtual bool disconnect();
   virtual bool read(boost::array<uint8_t, 4096>& buf, size_t& len);
+  virtual bool readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len, const uint32_t expiry_time);
 
 private:
   std::unique_ptr<udp::socket> socket_;

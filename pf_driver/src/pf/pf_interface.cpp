@@ -14,6 +14,10 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
   info_ = info;
   params_ = params;
 
+  topic_ = topic;
+  frame_id_ = frame_id;
+  num_layers_ = num_layers;
+
   config_mutex_ = std::make_shared<std::mutex>();
 
   protocol_interface_ = std::make_shared<PFSDPBase>(info, config, params, config_mutex_);
@@ -38,6 +42,12 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
   }
   ROS_INFO("Device found: %s", product_.c_str());
 
+  // release previous handles
+  if (!prev_handle_.empty())
+  {
+    protocol_interface_->release_handle(prev_handle_);
+  }
+
   if (info->handle_type == HandleInfo::HANDLE_TYPE_UDP)
   {
     transport_ = std::make_unique<UDPTransport>(info->hostname);
@@ -58,7 +68,11 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
     // if initially port was not set, request_handle sets it
     // set the updated port in transport
     transport_->set_port(info_->port);
-    transport_->connect();
+    if (!transport_->connect())
+    {
+      ROS_ERROR("Unable to establish TCP connection");
+      return false;
+    }
   }
   else
   {
@@ -72,7 +86,10 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
     return false;
   }
 
+  prev_handle_ = info_->handle;
+
   protocol_interface_->setup_param_server();
+  protocol_interface_->set_connection_failure_cb(std::bind(&PFInterface::connection_failure_cb, this));
   //   protocol_interface_->update_scanoutput_config();
   change_state(PFState::INIT);
   return true;
@@ -103,7 +120,8 @@ bool PFInterface::can_change_state(PFState state)
   return true;
 }
 
-bool PFInterface::start_transmission()
+bool PFInterface::start_transmission(std::shared_ptr<std::mutex> net_mtx,
+                                     std::shared_ptr<std::condition_variable> net_cv, bool& net_fail)
 {
   if (state_ != PFState::INIT)
     return false;
@@ -111,7 +129,7 @@ bool PFInterface::start_transmission()
   if (pipeline_ && pipeline_->is_running())
     return true;
 
-  pipeline_ = get_pipeline(config_->packet_type);
+  pipeline_ = get_pipeline(config_->packet_type, net_mtx, net_cv, net_fail);
   if (!pipeline_ || !pipeline_->start())
     return false;
 
@@ -128,18 +146,21 @@ void PFInterface::stop_transmission()
 {
   if (state_ != PFState::RUNNING)
     return;
-  pipeline_->terminate();
-  pipeline_.reset();
   protocol_interface_->stop_scanoutput(info_->handle);
-  change_state(PFState::SHUTDOWN);
+  protocol_interface_->release_handle(info_->handle);
+  change_state(PFState::INIT);
 }
 
 void PFInterface::terminate()
 {
   if (!pipeline_)
     return;
+  watchdog_timer_.stop();
   pipeline_->terminate();
   pipeline_.reset();
+  protocol_interface_.reset();
+  transport_.reset();
+  change_state(PFState::UNINIT);
 }
 
 void PFInterface::start_watchdog_timer(float duration)
@@ -157,7 +178,19 @@ void PFInterface::feed_watchdog(const ros::TimerEvent& e)
 void PFInterface::on_shutdown()
 {
   ROS_INFO("Shutting down pipeline!");
-  stop_transmission();
+  // stop_transmission();
+}
+
+void PFInterface::connection_failure_cb()
+{
+  std::cout << "handling connection failure" << std::endl;
+  terminate();
+  std::cout << "terminated" << std::endl;
+  while (!init())
+  {
+    std::cout << "trying to reconnect..." << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
 }
 
 // factory functions
@@ -206,7 +239,10 @@ bool PFInterface::handle_version(int major_version, int minor_version, int devic
   return false;
 }
 
-std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet_type)
+std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet_type,
+                                                              std::shared_ptr<std::mutex> net_mtx,
+                                                              std::shared_ptr<std::condition_variable> net_cv,
+                                                              bool& net_fail)
 {
   std::shared_ptr<Parser<PFPacket>> parser;
   std::shared_ptr<Writer<PFPacket>> writer;
@@ -238,6 +274,6 @@ std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet
     return nullptr;
   }
   writer = std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(std::move(transport_), parser));
-  return std::unique_ptr<Pipeline<PFPacket>>(
-      new Pipeline<PFPacket>(writer, reader_, std::bind(&PFInterface::on_shutdown, this)));
+  return std::unique_ptr<Pipeline<PFPacket>>(new Pipeline<PFPacket>(
+      writer, reader_, std::bind(&PFInterface::connection_failure_cb, this), net_mtx, net_cv, net_fail));
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <condition_variable>
 #include <thread>
 #include <vector>
 #include <memory>
@@ -45,8 +46,17 @@ template <typename T>
 class Pipeline
 {
 public:
-  Pipeline(std::shared_ptr<Writer<T>> writer, std::shared_ptr<Reader<T>> reader, std::function<void()> func)
-    : writer_(writer), reader_(reader), shutdown(func), running_(false), shutdown_(false), queue_{ 100 }
+  Pipeline(std::shared_ptr<Writer<T>> writer, std::shared_ptr<Reader<T>> reader, std::function<void()> func,
+           std::shared_ptr<std::mutex> net_mtx, std::shared_ptr<std::condition_variable> net_cv, bool& net_fail)
+    : writer_(writer)
+    , reader_(reader)
+    , shutdown(func)
+    , running_(false)
+    , shutdown_(false)
+    , queue_{ 100 }
+    , net_mtx_(net_mtx)
+    , net_cv_(net_cv)
+    , net_fail_(net_fail)
   {
   }
 
@@ -62,7 +72,7 @@ public:
     }
 
     running_ = true;
-    shutdown_ = false;
+    // shutdown_ = false;
     // ROS_INFO("Starting read-write pipeline!");
 
     reader_thread_ = std::thread(&Pipeline::run_reader, this);
@@ -72,12 +82,11 @@ public:
 
   void terminate()
   {
-    shutdown_ = true;
     // ROS_INFO("Stopping read-write pipeline!");
-    running_ = false;
-
     writer_->stop();
     reader_->stop();
+
+    running_ = false;
 
     if (reader_thread_.joinable() && writer_thread_.joinable())
     {
@@ -108,6 +117,9 @@ private:
   std::atomic<bool> running_, shutdown_;
   std::thread reader_thread_, writer_thread_;
   std::mutex mutex_;
+  std::shared_ptr<std::mutex> net_mtx_;
+  std::shared_ptr<std::condition_variable> net_cv_;
+  bool& net_fail_;
 
   void run_writer()
   {
@@ -127,9 +139,16 @@ private:
       std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
     writer_->stop();
-    running_ = false;
     reader_->stop();
-    on_shutdown();
+
+    running_ = false;
+
+    // notify main thread about network failure
+    {
+      std::lock_guard<std::mutex> lock(*net_mtx_);
+      net_fail_ = true;
+    }
+    net_cv_->notify_one();
   }
 
   void run_reader()
@@ -149,9 +168,5 @@ private:
         reader_->read(std::move(packet));  // here the scans will be published
       }
     }
-    reader_->stop();
-    running_ = false;
-    writer_->stop();
-    on_shutdown();
   }
 };
