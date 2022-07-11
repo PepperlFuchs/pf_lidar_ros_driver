@@ -42,6 +42,12 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
   }
   ROS_INFO("Device found: %s", product_.c_str());
 
+  // release previous handles
+  if (!prev_handle_.empty())
+  {
+    protocol_interface_->release_handle(prev_handle_);
+  }
+
   if (info->handle_type == HandleInfo::HANDLE_TYPE_UDP)
   {
     transport_ = std::make_unique<UDPTransport>(info->hostname);
@@ -75,6 +81,8 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
     ROS_ERROR("Could not acquire communication handle");
     return false;
   }
+
+  prev_handle_ = info_->handle;
 
   protocol_interface_->setup_param_server();
   protocol_interface_->set_connection_failure_cb(std::bind(&PFInterface::connection_failure_cb, this));
@@ -134,6 +142,7 @@ void PFInterface::stop_transmission()
   if (state_ != PFState::RUNNING)
     return;
   protocol_interface_->stop_scanoutput(info_->handle);
+  protocol_interface_->release_handle(info_->handle);
   change_state(PFState::INIT);
 }
 

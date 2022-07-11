@@ -49,6 +49,7 @@ private:
   std::shared_ptr<HandleInfo> info_;
   std::shared_ptr<ScanConfig> config_;
   std::shared_ptr<ScanParameters> params_;
+  std::string prev_handle_;
 
   enum class PFState
   {
