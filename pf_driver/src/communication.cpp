@@ -63,10 +63,10 @@ bool TCPTransport::readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len
   udp::endpoint sender_endpoint;
 
   socket_->async_read_some(boost::asio::buffer(buf),
-                              [&len, &read_result](const boost::system::error_code& error, size_t received) {
-                                len = received;
-                                read_result.reset(error);
-                              });
+                           [&len, &read_result](const boost::system::error_code& error, size_t received) {
+                             len = received;
+                             read_result.reset(error);
+                           });
   bool success = false;
   while (io_service_->run_one())
   {
