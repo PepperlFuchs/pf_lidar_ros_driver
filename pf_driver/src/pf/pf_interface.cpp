@@ -10,7 +10,6 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
                        std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id,
                        const uint16_t num_layers)
 {
-  std::cout << "initializing..." << std::endl;
   config_ = config;
   info_ = info;
   params_ = params;

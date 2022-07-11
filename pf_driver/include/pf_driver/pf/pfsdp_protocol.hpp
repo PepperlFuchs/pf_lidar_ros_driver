@@ -233,7 +233,6 @@ private:
 
     if (http_error.find(error_1) != std::string::npos && http_error.find(error_2) != std::string::npos)
     {
-      std::cerr << "Connection lost! Try to reconect..." << std::endl;
       return true;
     }
     return false;

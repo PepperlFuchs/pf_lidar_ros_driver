@@ -31,7 +31,7 @@ bool TCPTransport::connect()
 
 bool TCPTransport::disconnect()
 {
-  std::cout << "disconnecting..." << std::endl;
+  io_service_->stop();
   socket_->close();
   return true;
 }
@@ -60,7 +60,6 @@ bool UDPTransport::connect()
 
 bool UDPTransport::disconnect()
 {
-  std::cout << "disconnecting..." << std::endl;
   socket_->close();
   return true;
 }
