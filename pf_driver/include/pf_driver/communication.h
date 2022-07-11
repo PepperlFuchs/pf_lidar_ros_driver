@@ -95,6 +95,7 @@ public:
   {
     io_service_ = std::make_shared<boost::asio::io_service>();
     socket_ = std::make_unique<tcp::socket>(*io_service_);
+    timer_ = std::make_shared<boost::asio::deadline_timer>(*io_service_.get());
   }
 
   ~TCPTransport()
@@ -105,6 +106,7 @@ public:
   virtual bool connect();
   virtual bool disconnect();
   virtual bool read(boost::array<uint8_t, 4096>& buf, size_t& len);
+  virtual bool readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len, const uint32_t expiry_time);
 
 private:
   std::unique_ptr<tcp::socket> socket_;
