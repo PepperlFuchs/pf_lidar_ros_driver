@@ -136,7 +136,6 @@ private:
           ROS_DEBUG("Queue overflow!");
       }
       packets.clear();
-      std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
     writer_->stop();
     reader_->stop();
