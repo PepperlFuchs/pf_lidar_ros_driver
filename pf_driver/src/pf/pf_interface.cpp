@@ -68,7 +68,11 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
     // if initially port was not set, request_handle sets it
     // set the updated port in transport
     transport_->set_port(info_->port);
-    transport_->connect();
+    if (!transport_->connect())
+    {
+      ROS_ERROR("Unable to establish TCP connection");
+      return false;
+    }
   }
   else
   {
