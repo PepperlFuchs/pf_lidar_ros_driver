@@ -153,7 +153,7 @@ public:
     bool success = false;
     while (io_service_->run_one())
     {
-      if (read_result)
+      if (read_result && read_result->value() == 0)
       {
         // packets received so cancel timer
         timer_->cancel();
