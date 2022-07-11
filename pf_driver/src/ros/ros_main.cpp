@@ -90,9 +90,7 @@ int main(int argc, char* argv[])
     retrying = true;
     // wait for condition variable
     std::unique_lock<std::mutex> net_lock(*net_mtx_);
-    net_cv_->wait(net_lock, [&net_fail] {
-      return net_fail;
-    });
+    net_cv_->wait(net_lock, [&net_fail] { return net_fail; });
     ROS_ERROR("Network failure");
     pf_interface.terminate();
   }
