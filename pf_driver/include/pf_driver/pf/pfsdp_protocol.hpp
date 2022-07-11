@@ -393,14 +393,6 @@ public:
   void request_handle_tcp(const std::string port = "", const std::string packet_type = "")
   {
     param_map_type query;
-    if (!port.empty())
-    {
-      query["port"] = port;
-    }
-    else if (info_->port != "0")
-    {
-      query["port"] = info_->port;
-    }
     if (!packet_type.empty())
     {
       query["packet_type"] = packet_type;
