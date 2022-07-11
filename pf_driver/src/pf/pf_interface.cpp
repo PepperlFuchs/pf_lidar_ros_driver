@@ -116,7 +116,8 @@ bool PFInterface::can_change_state(PFState state)
   return true;
 }
 
-bool PFInterface::start_transmission()
+bool PFInterface::start_transmission(std::shared_ptr<std::mutex> net_mtx,
+                                     std::shared_ptr<std::condition_variable> net_cv, bool& net_fail)
 {
   if (state_ != PFState::INIT)
     return false;
@@ -124,7 +125,7 @@ bool PFInterface::start_transmission()
   if (pipeline_ && pipeline_->is_running())
     return true;
 
-  pipeline_ = get_pipeline(config_->packet_type);
+  pipeline_ = get_pipeline(config_->packet_type, net_mtx, net_cv, net_fail);
   if (!pipeline_ || !pipeline_->start())
     return false;
 
@@ -153,6 +154,8 @@ void PFInterface::terminate()
   watchdog_timer_.stop();
   pipeline_->terminate();
   pipeline_.reset();
+  protocol_interface_.reset();
+  transport_.reset();
   change_state(PFState::UNINIT);
 }
 
@@ -232,7 +235,10 @@ bool PFInterface::handle_version(int major_version, int minor_version, int devic
   return false;
 }
 
-std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet_type)
+std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet_type,
+                                                              std::shared_ptr<std::mutex> net_mtx,
+                                                              std::shared_ptr<std::condition_variable> net_cv,
+                                                              bool& net_fail)
 {
   std::shared_ptr<Parser<PFPacket>> parser;
   std::shared_ptr<Writer<PFPacket>> writer;
@@ -264,6 +270,6 @@ std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet
     return nullptr;
   }
   writer = std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(std::move(transport_), parser));
-  return std::unique_ptr<Pipeline<PFPacket>>(
-      new Pipeline<PFPacket>(writer, reader_, std::bind(&PFInterface::on_shutdown, this)));
+  return std::unique_ptr<Pipeline<PFPacket>>(new Pipeline<PFPacket>(
+      writer, reader_, std::bind(&PFInterface::connection_failure_cb, this), net_mtx, net_cv, net_fail));
 }

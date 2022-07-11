@@ -58,18 +58,46 @@ int main(int argc, char* argv[])
   std::shared_ptr<ScanParameters> params = std::make_shared<ScanParameters>();
   params->apply_correction = apply_correction;
 
+  ros::AsyncSpinner spinner(0);
+  spinner.start();
+
   PFInterface pf_interface;
-  if (!pf_interface.init(info, config, params, topic, frame_id, num_layers))
+
+  std::shared_ptr<std::mutex> net_mtx_ = std::make_shared<std::mutex>();
+  std::shared_ptr<std::condition_variable> net_cv_ = std::make_shared<std::condition_variable>();
+  bool net_fail = false;
+
+  bool retrying = false;
+
+  while (ros::ok())
   {
-    ROS_ERROR("Unable to initialize device");
-    return -1;
+    net_fail = false;
+    if (!pf_interface.init(info, config, params, topic, frame_id, num_layers))
+    {
+      ROS_ERROR("Unable to initialize device");
+      if (retrying)
+      {
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+        continue;
+      }
+      return -1;
+    }
+    if (!pf_interface.start_transmission(net_mtx_, net_cv_, net_fail))
+    {
+      ROS_ERROR("Unable to start scan");
+      return -1;
+    }
+    retrying = true;
+    // wait for condition variable
+    std::unique_lock<std::mutex> net_lock(*net_mtx_);
+    net_cv_->wait(net_lock, [&net_fail] {
+      return net_fail;
+    });
+    ROS_ERROR("Network failure");
+    pf_interface.terminate();
   }
-  if (!pf_interface.start_transmission())
-  {
-    ROS_ERROR("Unable to start scan");
-    return -1;
-  }
-  ros::spin();
+
+  ros::waitForShutdown();
   pf_interface.stop_transmission();
   return 0;
 }
