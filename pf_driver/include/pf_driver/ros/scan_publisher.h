@@ -15,9 +15,8 @@
 class PFDataPublisher : public PFPacketReader
 {
 public:
-  PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-                  std::shared_ptr<std::mutex> config_mutex)
-    : config_(config), params_(params), config_mutex_(config_mutex)
+  PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params)
+    : config_(config), params_(params)
   {
   }
 
@@ -63,8 +62,8 @@ class LaserscanPublisher : public PFDataPublisher
 {
 public:
   LaserscanPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params, std::string scan_topic,
-                     std::string frame_id, std::shared_ptr<std::mutex> config_mutex)
-    : PFDataPublisher(config, params, config_mutex)
+                     std::string frame_id)
+    : PFDataPublisher(config, params)
   {
     scan_publisher_ = nh_.advertise<sensor_msgs::LaserScan>(scan_topic, 1);
     header_publisher_ = nh_.advertise<pf_driver::PFR2000Header>("/r2000_header", 1);
@@ -92,9 +91,8 @@ class PointcloudPublisher : public PFDataPublisher
 {
 public:
   PointcloudPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-                      std::string scan_topic, std::string frame_id, std::shared_ptr<std::mutex> config_mutex,
-                      const uint16_t num_layers, std::string part)
-    : PFDataPublisher(config, params, config_mutex), layer_prev_(-1)
+                      std::string scan_topic, std::string frame_id, const uint16_t num_layers, std::string part)
+    : PFDataPublisher(config, params), layer_prev_(-1)
   {
     ros::NodeHandle p_nh("~/");
 

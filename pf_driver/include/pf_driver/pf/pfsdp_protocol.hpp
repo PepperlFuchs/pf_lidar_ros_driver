@@ -284,16 +284,11 @@ protected:
   std::shared_ptr<HandleInfo> info_;
   std::shared_ptr<ScanConfig> config_;
   std::shared_ptr<ScanParameters> params_;
-  std::shared_ptr<std::mutex> config_mutex_;
 
 public:
   PFSDPBase(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-            std::shared_ptr<ScanParameters> params, std::shared_ptr<std::mutex> config_mutex)
-    : config_(config)
-    , info_(info)
-    , params_(params)
-    , config_mutex_(config_mutex)
-    , http_interface(new HTTPInterface(info->hostname, "cmd"))
+            std::shared_ptr<ScanParameters> params)
+    : config_(config), info_(info), params_(params), http_interface(new HTTPInterface(info->hostname, "cmd"))
   {
   }
 
