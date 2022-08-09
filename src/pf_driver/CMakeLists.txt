@@ -51,11 +51,18 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(ros_main src/communication.cpp
+add_executable(ros_main src/communication/udp_transport.cpp
+                        src/communication/tcp_transport.cpp
                         src/pf/pf_interface.cpp
                         src/pf/pf_packet.cpp
+                        src/pf/pf_r2000_packet_a.cpp
+                        src/pf/pf_r2000_packet_b.cpp
+                        src/pf/pf_r2000_packet_c.cpp
+                        src/pf/pf_r2300_packet_c1.cpp
                         src/ros/ros_main.cpp
-                        src/ros/scan_publisher.cpp
+                        src/ros/laser_scan_publisher.cpp
+                        src/ros/point_cloud_publisher.cpp
+                        src/ros/pf_data_publisher.cpp
                         )
 target_link_libraries(ros_main
   ${catkin_LIBRARIES} curlpp curl jsoncpp

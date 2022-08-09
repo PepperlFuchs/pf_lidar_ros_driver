@@ -4,16 +4,8 @@
 
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
-//#include <laser_geometry/laser_geometry.h>
-//#include <sensor_msgs/PointCloud2.h>
-//#include <tf2_ros/static_transform_broadcaster.h>
-//#include <tf/transform_listener.h>
-//#include <pcl_conversions/pcl_conversions.h>
 
-//#include "pf_driver/PFR2000Header.h"
-//#include "pf_driver/PFR2300Header.h"
 #include "pf_driver/pf/pf_packet_reader.h"
-//#include "pf_driver/queue/readerwriterqueue.h"
 
 class PFDataPublisher : public PFPacketReader
 {
