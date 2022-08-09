@@ -1,4 +1,4 @@
-// Copyright 2019 Fraunhofer IPA
+// Copyright 2022 Fraunhofer IPA
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,177 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PF_DRIVER_PFSDP_PROTOCOL_H
-#define PF_DRIVER_PFSDP_PROTOCOL_H
-
 #pragma once
 
-#include <boost/algorithm/string.hpp>
-#include "pf_driver/pf/http_helpers.hpp"
-#include "pf_driver/PFDriverR2000Config.h"
-#include "pf_driver/PFDriverR2300Config.h"
-
-struct ProtocolInfo
-{
-  bool isError = false;
-  std::string protocol_name;          // protocol name, defaults to "pfsdp"
-  int version_major;                  // major version of protocol
-  int version_minor;                  // minor version of protocol
-  std::vector<std::string> commands;  // list of available commands
-                                      // Since R2300 may not give correct error reports
-                                      // it is safer to keep the list of commands
-  uint16_t device_family;
-};
-
-struct HandleInfo
-{
-  static const int HANDLE_TYPE_TCP = 0;
-  static const int HANDLE_TYPE_UDP = 1;
-
-  int handle_type;
-  std::string hostname;
-  std::string port;
-  std::string handle;
-  std::string endpoint;
-};
-
-struct ScanConfig
-{
-  bool watchdog = false;
-  uint watchdogtimeout = 0;
-  std::string packet_type = "";
-  int start_angle = 0;
-  uint max_num_points_scan = 0;
-  uint skip_scans = 0;
-
-  // void print()
-  // {
-  //   std::cout << "Scan output config:\n"
-  //             << "watchdogtimeout: " << watchdogtimeout << "\n"
-  //             << "packet_type: " << packet_type << "\n"
-  //             << "start_angle: " << start_angle << "\n"
-  //             << "max_num_points_scan:" << max_num_points_scan << "\n"
-  //             << "skip_scan: " << skip_scans << std::endl;
-  // }
-};
-
-#pragma pack(push, sp, 1)
-struct ScanParameters
-{
-  double angular_fov = 0.0;
-  double radial_range_min = 0.0;
-  double radial_range_max = 0.0;
-  double angle_min = 0.0;
-  double angle_max = 0.0;
-  uint16_t layers_enabled = 0;
-  double scan_freq = 0.0;        // needed to calculate scan resolution in R2300
-  uint16_t h_enabled_layer = 0;  // highest enabled layer
-  bool apply_correction = true;
-
-  // void print()
-  // {
-  //   std::cout << "Scan parameters:\n"
-  //             << "angular_fov: " << angular_fov << "\n"
-  //             << "radial_range_min: " << radial_range_min << "\n"
-  //             << "radial_range_max: " << radial_range_max << "\n"
-  //             << "angle_min: " << angle_min << "\n"
-  //             << "angle_max: " << angle_max << "\n"
-  //             << "layers enabled: ";
-  //   for(auto &layer : layers_enabled)
-  //     std::cout << layer << " ";
-  //   std::cout << std::endl;
-  // }
-};
-#pragma pack(pop, sp)
-
-class KV : public std::pair<std::string, std::string>
-{
-  template <typename T>
-  static std::string make_list(bool first, const T& t)
-  {
-    std::stringstream s;
-    if (!first)
-      s << ";";
-    s << t;
-    return s.str();
-  }
-
-  template <typename T, typename... Ts>
-  static std::string make_list(bool first, const T& t, Ts&&... list)
-  {
-    std::stringstream s;
-    s << make_list(first, t);
-    s << make_list(false, list...);
-    return s.str();
-  }
-
-  static std::string make_list(bool first, std::vector<std::string> list)
-  {
-    std::stringstream s;
-    std::copy(list.begin(), list.end() - 1, std::ostream_iterator<std::string>(s, ";"));
-    s << list.back();
-
-    return s.str();
-  }
-
-public:
-  template <typename... Ts>
-  KV(const std::string& k, const Ts&... list) : std::pair<std::string, std::string>(k, make_list(true, list...))
-  {
-  }
-};
-
-inline const std::vector<std::string> split(std::string str, const char delim = ';')
-{
-  std::vector<std::string> results;
-  boost::split(results, str, [delim](char c) { return c == delim; });
-  return results;
-}
-
-inline std::int64_t to_long(const std::string& s)
-{
-  std::int64_t int_val = 0;
-  try
-  {
-    int_val = std::stoll(s);
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "conversion of data from string failed: " << s << std::endl;
-    return std::numeric_limits<std::int64_t>::quiet_NaN();
-  }
-  return int_val;
-}
-
-inline uint16_t to_uint16(const std::string& s)
-{
-  uint16_t int_val = 0;
-  try
-  {
-    int_val = static_cast<uint16_t>(stoi(s));
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "conversion of data from string failed: " << s << std::endl;
-    return std::numeric_limits<uint16_t>::quiet_NaN();
-  }
-  return int_val;
-}
-
-inline float to_float(const std::string& s)
-{
-  float float_val = 0;
-  try
-  {
-    float_val = std::stof(s);
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "conversion of data from string failed " << s << std::endl;
-    return std::numeric_limits<float>::quiet_NaN();
-  }
-  return float_val;
-}
+#include "pf_driver/pf/http_helpers/http_interface.h"
+#include "pf_driver/pf/http_helpers/param_type.h"
+#include "pf_driver/pf/http_helpers/param_map_type.h"
+#include "pf_driver/pf/handle_info.h"
+#include "pf_driver/pf/scan_config.h"
+#include "pf_driver/pf/scan_parameters.h"
+#include "pf_driver/pf/protocol_info.h"
+#include "pf_driver/pf/parser_utils.h"
+#include "pf_driver/pf/kv.h"
 
 class PFSDPBase
 {
@@ -300,7 +140,7 @@ public:
   const std::vector<std::string> list_parameters()
   {
     auto resp = get_request("list_parameters", { "parameters" });
-    return split(resp["parameters"]);
+    return parser_utils::split(resp["parameters"]);
   }
 
   bool reboot_device()
@@ -356,7 +196,7 @@ public:
     {
       return std::numeric_limits<std::int64_t>::quiet_NaN();
     }
-    return to_long(resp[param]);
+    return parser_utils::to_long(resp[param]);
   }
 
   float get_parameter_float(const std::string param)
@@ -366,7 +206,7 @@ public:
     {
       return std::numeric_limits<float>::quiet_NaN();
     }
-    return to_float(resp[param]);
+    return parser_utils::to_float(resp[param]);
   }
 
   std::string get_parameter_str(const std::string param)
@@ -426,11 +266,11 @@ public:
         { "start_angle", "packet_type", "watchdogtimeout", "skip_scans", "watchdog", "max_num_points_scan" },
         { KV("handle", handle) });
     config_->packet_type = resp["packet_type"];
-    config_->start_angle = to_long(resp["start_angle"]);
-    config_->watchdogtimeout = to_long(resp["watchdogtimeout"]);
+    config_->start_angle = parser_utils::to_long(resp["start_angle"]);
+    config_->watchdogtimeout = parser_utils::to_long(resp["watchdogtimeout"]);
     config_->watchdog = (resp["watchdog"] == "off") ? false : true;
-    config_->skip_scans = to_long(resp["skip_scans"]);
-    config_->max_num_points_scan = to_long(resp["max_num_points_scan"]);
+    config_->skip_scans = parser_utils::to_long(resp["skip_scans"]);
+    config_->max_num_points_scan = parser_utils::to_long(resp["max_num_points_scan"]);
   }
 
   bool set_scanoutput_config(std::string handle, ScanConfig config)
@@ -506,5 +346,3 @@ public:
   {
   }
 };
-
-#endif

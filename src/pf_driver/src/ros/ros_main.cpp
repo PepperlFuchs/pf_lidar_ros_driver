@@ -3,7 +3,6 @@
 #include <utility>
 #include <ros/ros.h>
 
-#include "pf_driver/communication.h"
 #include "pf_driver/pf/pf_interface.h"
 
 int main(int argc, char* argv[])

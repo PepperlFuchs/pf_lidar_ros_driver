@@ -4,7 +4,10 @@
 #include <utility>
 
 #include "pf_driver/pf/pf_interface.h"
-#include "pf_driver/ros/scan_publisher.h"
+#include "pf_driver/ros/laser_scan_publisher.h"
+#include "pf_driver/ros/point_cloud_publisher.h"
+#include "pf_driver/communication/udp_transport.h"
+#include "pf_driver/communication/tcp_transport.h"
 
 bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
                        std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id,

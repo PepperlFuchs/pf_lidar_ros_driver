@@ -1,14 +1,11 @@
 #pragma once
 
 #include <ros/ros.h>
-#include "pf_driver/pf/pf_packet.h"
-
-template <typename T>
-class Parser
-{
-public:
-  virtual bool parse(uint8_t* buf, size_t buf_len, std::vector<std::unique_ptr<T>>& results, size_t& used) = 0;
-};
+#include "pf_driver/pf/parser.h"
+#include "pf_driver/pf/pf_packet/pf_r2000_packet_a.h"
+#include "pf_driver/pf/pf_packet/pf_r2000_packet_b.h"
+#include "pf_driver/pf/pf_packet/pf_r2000_packet_c.h"
+#include "pf_driver/pf/pf_packet/pf_r2300_packet_c1.h"
 
 template <typename T>
 class PFParser : public Parser<PFPacket>
@@ -54,8 +51,8 @@ public:
   }
 };
 
-typedef PFParser<PFR2000Packet_A> PFR2000_A_Parser;
-typedef PFParser<PFR2000Packet_B> PFR2000_B_Parser;
-typedef PFParser<PFR2000Packet_C> PFR2000_C_Parser;
+using PFR2000_A_Parser = PFParser<PFR2000Packet_A>;
+using PFR2000_B_Parser = PFParser<PFR2000Packet_B>;
+using PFR2000_C_Parser = PFParser<PFR2000Packet_C>;
 
-typedef PFParser<PFR2300Packet_C1> PFR2300_C1_Parser;
+using PFR2300_C1_Parser = PFParser<PFR2300Packet_C1>;

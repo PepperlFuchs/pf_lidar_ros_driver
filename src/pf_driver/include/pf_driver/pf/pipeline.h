@@ -8,39 +8,8 @@
 #include <mutex>
 #include <ros/ros.h>
 #include "pf_driver/queue/readerwriterqueue.h"
-#include "pf_driver/pf/pfsdp_protocol.hpp"
-
-// R2000 / R2300 parser
-template <typename T>
-class Reader
-{
-public:
-  virtual void read(std::shared_ptr<T> packet) = 0;
-  virtual void set_scanoutput_config(ScanConfig config)
-  {
-  }
-  virtual void set_scan_params(ScanParameters params)
-  {
-  }
-  virtual bool start()
-  {
-    return false;
-  }
-  virtual bool stop()
-  {
-    return false;
-  }
-};
-
-// TCP / UDP
-template <typename T>
-class Writer
-{
-public:
-  virtual bool get(std::vector<std::unique_ptr<T>>& packets) = 0;
-  virtual bool start() = 0;
-  virtual bool stop() = 0;
-};
+#include "pf_driver/pf/writer.h"
+#include "pf_driver/pf/reader.h"
 
 template <typename T>
 class Pipeline

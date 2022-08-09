@@ -1,7 +1,10 @@
 #include <algorithm>
 
-#include "pf_driver/pf/pf_packet.h"
-#include "pf_driver/pf/reader.h"
+#include "pf_driver/pf/pf_packet/pf_r2000_packet_a.h"
+#include "pf_driver/pf/pf_packet/pf_r2000_packet_b.h"
+#include "pf_driver/pf/pf_packet/pf_r2000_packet_c.h"
+#include "pf_driver/pf/pf_packet/pf_r2300_packet_c1.h"
+#include "pf_driver/pf/pf_packet_reader.h"
 
 bool PFPacket::parse_buf(uint8_t* buf, size_t buf_len, size_t& remainder, size_t& packet_size)
 {

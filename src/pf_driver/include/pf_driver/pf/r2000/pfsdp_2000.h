@@ -1,6 +1,7 @@
 #pragma once
 
-#include "pf_driver/pf/pfsdp_protocol.hpp"
+#include "pf_driver/pf/pfsdp_base.h"
+#include "pf_driver/PFDriverR2000Config.h"
 
 class PFSDP_2000 : public PFSDPBase
 {
@@ -19,13 +20,13 @@ public:
   virtual void get_scan_parameters()
   {
     auto resp = get_parameter("angular_fov", "radial_range_min", "radial_range_max", "scan_frequency");
-    params_->angular_fov = to_float(resp["angular_fov"]) * M_PI / 180.0;
-    params_->radial_range_max = to_float(resp["radial_range_max"]);
-    params_->radial_range_min = to_float(resp["radial_range_min"]);
+    params_->angular_fov = parser_utils::to_float(resp["angular_fov"]) * M_PI / 180.0;
+    params_->radial_range_max = parser_utils::to_float(resp["radial_range_max"]);
+    params_->radial_range_min = parser_utils::to_float(resp["radial_range_min"]);
 
     params_->angle_min = config_->start_angle / 10000.0f * M_PI / 180.0;
     params_->angle_max = params_->angle_min + params_->angular_fov;
-    params_->scan_freq = to_float(resp["scan_frequency"]);
+    params_->scan_freq = parser_utils::to_float(resp["scan_frequency"]);
   }
 
   void setup_param_server()

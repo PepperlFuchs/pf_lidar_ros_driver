@@ -2,7 +2,15 @@
 #include <limits>
 #include <utility>
 
-#include "pf_driver/ros/scan_publisher.h"
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl_conversions/pcl_conversions.h>
+
+#include "pf_driver/ros/pf_data_publisher.h"
+#include "pf_driver/ros/point_cloud_publisher.h"
+#include "pf_driver/pf/pf_packet/pf_r2000_packet_a.h"
+#include "pf_driver/pf/pf_packet/pf_r2000_packet_b.h"
+#include "pf_driver/pf/pf_packet/pf_r2000_packet_c.h"
+#include "pf_driver/pf/pf_packet/pf_r2300_packet_c1.h"
 
 void PFDataPublisher::read(PFR2000Packet_A& packet)
 {

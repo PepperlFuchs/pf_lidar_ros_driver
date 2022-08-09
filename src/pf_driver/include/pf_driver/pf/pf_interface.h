@@ -1,6 +1,3 @@
-#ifndef PF_DRIVER_PF_INTERFACE_H
-#define PF_DRIVER_PF_INTERFACE_H
-
 #pragma once
 
 #include <string>
@@ -9,11 +6,12 @@
 #include <dynamic_reconfigure/server.h>
 
 #include "pf_driver/pf/pf_parser.h"
-#include "pf_driver/pf/writer.h"
-#include "pf_driver/pf/reader.h"
-#include "pf_driver/communication.h"
-#include "pf_driver/pf/r2000/pfsdp_2000.hpp"
-#include "pf_driver/pf/r2300/pfsdp_2300.hpp"
+#include "pf_driver/pf/pf_writer.h"
+#include "pf_driver/pf/pf_packet_reader.h"
+#include "pf_driver/pf/pipeline.h"
+#include "pf_driver/communication/transport.h"
+#include "pf_driver/pf/r2000/pfsdp_2000.h"
+#include "pf_driver/pf/r2300/pfsdp_2300.h"
 #include "pf_driver/PFDriverR2000Config.h"
 #include "pf_driver/PFDriverR2300Config.h"
 
@@ -80,5 +78,3 @@ private:
                            std::shared_ptr<std::condition_variable> net_cv, bool& net_fail);
   void connection_failure_cb();
 };
-
-#endif

@@ -12,25 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PF_DRIVER_COMMUNICATION_H
-#define PF_DRIVER_COMMUNICATION_H
-
 #pragma once
 
-#include <iostream>
-#include <thread>
-#include <boost/thread.hpp>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
+#include <boost/optional.hpp>
 
-using boost::asio::ip::tcp;
-using boost::asio::ip::udp;
-
-enum transport_type
-{
-  tcp,
-  udp
-};
+#include "pf_driver/communication/transport_type.h"
 
 class Transport
 {
@@ -88,52 +76,3 @@ protected:
   boost::optional<boost::system::error_code> timer_result_;
 };
 
-class TCPTransport : public Transport
-{
-public:
-  TCPTransport(std::string address) : Transport(address, transport_type::tcp)
-  {
-    io_service_ = std::make_shared<boost::asio::io_service>();
-    socket_ = std::make_unique<tcp::socket>(*io_service_);
-    timer_ = std::make_shared<boost::asio::deadline_timer>(*io_service_.get());
-  }
-
-  ~TCPTransport()
-  {
-    disconnect();
-  }
-
-  virtual bool connect();
-  virtual bool disconnect();
-  virtual bool read(boost::array<uint8_t, 4096>& buf, size_t& len);
-  virtual bool readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len, const uint32_t expiry_time);
-
-private:
-  std::unique_ptr<tcp::socket> socket_;
-};
-
-class UDPTransport : public Transport
-{
-public:
-  UDPTransport(std::string address) : Transport(address, transport_type::udp)
-  {
-    io_service_ = std::make_shared<boost::asio::io_service>();
-    socket_ = std::make_unique<udp::socket>(*io_service_, udp::endpoint(udp::v4(), 0));
-    timer_ = std::make_shared<boost::asio::deadline_timer>(*io_service_.get());
-  }
-
-  ~UDPTransport()
-  {
-    disconnect();
-  }
-
-  virtual bool connect();
-  virtual bool disconnect();
-  virtual bool read(boost::array<uint8_t, 4096>& buf, size_t& len);
-  virtual bool readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len, const uint32_t expiry_time);
-
-private:
-  std::unique_ptr<udp::socket> socket_;
-};
-
-#endif
