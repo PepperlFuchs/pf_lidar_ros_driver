@@ -158,7 +158,8 @@ void PointcloudPublisher::add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_ms
   pcl::toROSMsg(*p1_cloud.get(), c1);
 }
 
-void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg,
+void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c,
+                                        sensor_msgs::LaserScanPtr msg,
                                         const int layer_inclination)
 {
   pcl::PCLPointCloud2 p;

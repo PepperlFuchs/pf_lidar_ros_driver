@@ -24,7 +24,7 @@ class CurlResource;
 class HTTPInterface
 {
 public:
-  HTTPInterface(const std::string& host, const std::string& path = "");
+  HTTPInterface(std::string host, std::string path = "");
 
   const std::map<std::string, std::string>
   get(const std::vector<std::string>& json_keys,

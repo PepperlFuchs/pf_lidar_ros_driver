@@ -2,7 +2,7 @@
 #include "pf_driver/pf/http_helpers/curl_resource.h"
 #include "pf_driver/pf/http_helpers/http_helpers.h"
 
-HTTPInterface::HTTPInterface(const std::string& host, const std::string& path) : host(host), base_path(path)
+HTTPInterface::HTTPInterface(std::string host, std::string path) : host(std::move(host)), base_path(std::move(path))
 {
 }
 

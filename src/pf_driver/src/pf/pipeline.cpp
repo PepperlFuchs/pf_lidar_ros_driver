@@ -8,12 +8,12 @@ Pipeline::Pipeline(std::shared_ptr<Writer<PFPacket>> writer,
                    std::shared_ptr<std::mutex> net_mtx,
                    std::shared_ptr<std::condition_variable> net_cv,
                    bool &net_fail)
-  : writer_(writer)
+  : queue_{ 100 }
   , reader_(reader)
+  , writer_(writer)
   , shutdown(func)
   , running_(false)
   , shutdown_(false)
-  , queue_{ 100 }
   , net_mtx_(net_mtx)
   , net_cv_(net_cv)
   , net_fail_(net_fail)

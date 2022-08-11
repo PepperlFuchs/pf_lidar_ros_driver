@@ -129,7 +129,8 @@ bool PFInterface::can_change_state(PFState state)
 }
 
 bool PFInterface::start_transmission(std::shared_ptr<std::mutex> net_mtx,
-                                     std::shared_ptr<std::condition_variable> net_cv, bool& net_fail)
+                                     std::shared_ptr<std::condition_variable> net_cv,
+                                     bool& net_fail)
 {
   if (state_ != PFState::INIT)
     return false;
