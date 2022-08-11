@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <mutex>
 
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
