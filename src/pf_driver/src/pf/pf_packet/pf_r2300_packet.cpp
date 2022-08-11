@@ -5,7 +5,7 @@ size_t PFR2300Packet::get_size()
   return ros::serialization::serializationLength(header);
 }
 
-std::tuple<uint16_t, uint32_t, uint16_t> PFR2300Packet::read_header(ros::serialization::IStream &stream)
+std::tuple<uint16_t, uint32_t, uint16_t> PFR2300Packet::read_header(ros::serialization::IStream& stream)
 {
   ros::serialization::Serializer<pf_driver::PFR2300Header>::read(stream, header);
   return std::tuple<uint16_t, uint32_t, uint16_t>(header.header.header_size, header.header.packet_size,

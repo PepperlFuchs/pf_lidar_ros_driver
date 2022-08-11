@@ -3,7 +3,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <iostream>
 
-
 const std::vector<std::string> parser_utils::split(const std::string& str, const char delim)
 {
   std::vector<std::string> results;
@@ -11,7 +10,7 @@ const std::vector<std::string> parser_utils::split(const std::string& str, const
   return results;
 }
 
-int64_t parser_utils::to_long(const std::string &s)
+int64_t parser_utils::to_long(const std::string& s)
 {
   std::int64_t int_val = 0;
   try
@@ -26,7 +25,7 @@ int64_t parser_utils::to_long(const std::string &s)
   return int_val;
 }
 
-float parser_utils::to_float(const std::string &s)
+float parser_utils::to_float(const std::string& s)
 {
   float float_val = 0;
   try

@@ -6,7 +6,7 @@ void PFR2000Packet_C::read_with(PFPacketReader& reader)
   reader.read(*this);
 }
 
-void PFR2000Packet_C::get_type(char *c)
+void PFR2000Packet_C::get_type(char* c)
 {
   c[0] = 0x43;
   c[1] = 0x00;

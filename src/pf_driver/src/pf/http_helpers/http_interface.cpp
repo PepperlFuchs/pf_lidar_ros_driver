@@ -18,8 +18,7 @@ const std::map<std::string, std::string> HTTPInterface::get(const std::vector<st
 }
 
 const std::map<std::string, std::string> HTTPInterface::get(const std::vector<std::string>& json_keys,
-                                                            const std::string& command,
-                                                            const param_map_type& params)
+                                                            const std::string& command, const param_map_type& params)
 {
   CurlResource res(host);
   res.append_path(base_path);

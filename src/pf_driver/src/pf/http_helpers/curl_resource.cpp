@@ -1,6 +1,5 @@
 #include "pf_driver/pf/http_helpers/curl_resource.h"
 
-
 CurlResource::CurlResource(const std::string& host) : url_("http://" + host)
 {
   header_.push_back("Content-Type: application/json");

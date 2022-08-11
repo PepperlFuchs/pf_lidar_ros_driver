@@ -10,8 +10,7 @@
 class PFDataPublisher : public PFPacketReader
 {
 public:
-  PFDataPublisher(std::shared_ptr<ScanConfig> config,
-                  std::shared_ptr<ScanParameters> params,
+  PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
                   std::shared_ptr<std::mutex> config_mutex);
 
   virtual void read(PFR2000Packet_A& packet);
@@ -38,9 +37,7 @@ protected:
 
   template <typename T>
   void to_msg_queue(T& packet, uint16_t layer_idx = 0, int layer_inclination = 0);
-  virtual void handle_scan(sensor_msgs::LaserScanPtr msg,
-                           uint16_t layer_idx,
-                           int layer_inclination,
+  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, int layer_inclination,
                            bool apply_correction = true) = 0;
 
   virtual void resetCurrentScans()

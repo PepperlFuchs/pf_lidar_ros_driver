@@ -27,12 +27,10 @@ public:
   HTTPInterface(std::string host, std::string path = "");
 
   const std::map<std::string, std::string>
-  get(const std::vector<std::string>& json_keys,
-      const std::string& command,
+  get(const std::vector<std::string>& json_keys, const std::string& command,
       const std::initializer_list<param_type>& list = std::initializer_list<param_type>());
 
-  const std::map<std::string, std::string> get(const std::vector<std::string>& json_keys,
-                                               const std::string& command,
+  const std::map<std::string, std::string> get(const std::vector<std::string>& json_keys, const std::string& command,
                                                const param_map_type& params = param_map_type());
 
 private:

@@ -2,10 +2,8 @@
 
 #include "pf_driver/pf/parser_utils.h"
 
-PFSDP_2300::PFSDP_2300(std::shared_ptr<HandleInfo> info,
-                       std::shared_ptr<ScanConfig> config,
-                       std::shared_ptr<ScanParameters> params,
-                       std::shared_ptr<std::mutex> config_mutex)
+PFSDP_2300::PFSDP_2300(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
+                       std::shared_ptr<ScanParameters> params, std::shared_ptr<std::mutex> config_mutex)
   : PFSDPBase(info, config, params, config_mutex)
 {
 }
@@ -39,7 +37,7 @@ void PFSDP_2300::setup_param_server()
 {
   param_server_R2300_ = std::make_unique<dynamic_reconfigure::Server<pf_driver::PFDriverR2300Config>>();
   param_server_R2300_->setCallback(
-        boost::bind(&PFSDP_2300::reconfig_callback, this, boost::placeholders::_1, boost::placeholders::_2));
+      boost::bind(&PFSDP_2300::reconfig_callback, this, boost::placeholders::_1, boost::placeholders::_2));
 }
 
 void PFSDP_2300::get_layers_enabled(uint16_t& enabled, uint16_t& highest)

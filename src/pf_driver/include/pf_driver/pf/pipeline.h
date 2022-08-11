@@ -16,12 +16,9 @@ class PFPacket;
 class Pipeline
 {
 public:
-  Pipeline(std::shared_ptr<Writer<PFPacket>> writer,
-           std::shared_ptr<Reader<PFPacket>> reader,
-           std::function<void()> func,
-           std::shared_ptr<std::mutex> net_mtx,
-           std::shared_ptr<std::condition_variable> net_cv,
-           bool& net_fail);
+  Pipeline(std::shared_ptr<Writer<PFPacket>> writer, std::shared_ptr<Reader<PFPacket>> reader,
+           std::function<void()> func, std::shared_ptr<std::mutex> net_mtx,
+           std::shared_ptr<std::condition_variable> net_cv, bool& net_fail);
 
   bool start();
 

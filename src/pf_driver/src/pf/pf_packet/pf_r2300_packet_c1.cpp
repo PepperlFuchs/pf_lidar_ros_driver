@@ -6,7 +6,7 @@ void PFR2300Packet_C1::read_with(PFPacketReader& reader)
   reader.read(*this);
 }
 
-void PFR2300Packet_C1::get_type(char *c)
+void PFR2300Packet_C1::get_type(char* c)
 {
   c[0] = 0x43;
   c[1] = 0x31;

@@ -2,12 +2,9 @@
 
 #include "pf_driver/pf/pf_packet/pf_packet.h"
 
-Pipeline::Pipeline(std::shared_ptr<Writer<PFPacket>> writer,
-                   std::shared_ptr<Reader<PFPacket>> reader,
-                   std::function<void ()> func,
-                   std::shared_ptr<std::mutex> net_mtx,
-                   std::shared_ptr<std::condition_variable> net_cv,
-                   bool &net_fail)
+Pipeline::Pipeline(std::shared_ptr<Writer<PFPacket>> writer, std::shared_ptr<Reader<PFPacket>> reader,
+                   std::function<void()> func, std::shared_ptr<std::mutex> net_mtx,
+                   std::shared_ptr<std::condition_variable> net_cv, bool& net_fail)
   : queue_{ 100 }
   , reader_(reader)
   , writer_(writer)

@@ -29,9 +29,7 @@ private:
   tf2_ros::StaticTransformBroadcaster static_broadcaster_;
   std::vector<int> angles_;
 
-  virtual void handle_scan(sensor_msgs::LaserScanPtr msg,
-                           uint16_t layer_idx,
-                           int layer_inclination,
+  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, int layer_inclination,
                            bool apply_correction);
   void add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
   void copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);

@@ -3,10 +3,8 @@
 #include "pf_driver/pf/pfsdp_base.h"
 #include "pf_driver/pf/parser_utils.h"
 
-PFSDPBase::PFSDPBase(std::shared_ptr<HandleInfo> info,
-                     std::shared_ptr<ScanConfig> config,
-                     std::shared_ptr<ScanParameters> params,
-                     std::shared_ptr<std::mutex> config_mutex)
+PFSDPBase::PFSDPBase(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
+                     std::shared_ptr<ScanParameters> params, std::shared_ptr<std::mutex> config_mutex)
   : http_interface(new HTTPInterface(info->hostname, "cmd"))
   , info_(info)
   , config_(config)
@@ -41,8 +39,7 @@ const std::map<std::string, std::string> PFSDPBase::get_request(const std::strin
   return json_resp;
 }
 
-bool PFSDPBase::get_request_bool(const std::string& command,
-                                 const std::vector<std::string>& json_keys,
+bool PFSDPBase::get_request_bool(const std::string& command, const std::vector<std::string>& json_keys,
                                  const std::initializer_list<param_type>& query)
 {
   std::map<std::string, std::string> resp = get_request(command, json_keys, query);
@@ -65,10 +62,8 @@ bool PFSDPBase::is_connection_failure(const std::string& http_error)
   return false;
 }
 
-bool PFSDPBase::check_error(std::map<std::string, std::string> &mp,
-                            const std::string& err_code,
-                            const std::string& err_text,
-                            const std::string& err_http)
+bool PFSDPBase::check_error(std::map<std::string, std::string>& mp, const std::string& err_code,
+                            const std::string& err_text, const std::string& err_http)
 {
   const std::string http_error = mp[err_http];
   const std::string code = mp[err_code];
@@ -109,7 +104,7 @@ bool PFSDPBase::check_error(std::map<std::string, std::string> &mp,
   return true;
 }
 
-void PFSDPBase::set_connection_failure_cb(std::function<void ()> callback)
+void PFSDPBase::set_connection_failure_cb(std::function<void()> callback)
 {
   handle_connection_failure = callback;
 }
@@ -220,10 +215,10 @@ void PFSDPBase::request_handle_udp(const std::string& packet_type)
 
 void PFSDPBase::get_scanoutput_config(const std::string& handle)
 {
-  auto resp = get_request(
-                "get_scanoutput_config",
-  { "start_angle", "packet_type", "watchdogtimeout", "skip_scans", "watchdog", "max_num_points_scan" },
-  { KV("handle", handle) });
+  auto resp =
+      get_request("get_scanoutput_config",
+                  { "start_angle", "packet_type", "watchdogtimeout", "skip_scans", "watchdog", "max_num_points_scan" },
+                  { KV("handle", handle) });
   config_->packet_type = resp["packet_type"];
   config_->start_angle = parser_utils::to_long(resp["start_angle"]);
   config_->watchdogtimeout = parser_utils::to_long(resp["watchdogtimeout"]);

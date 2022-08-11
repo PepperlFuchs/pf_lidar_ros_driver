@@ -1,6 +1,5 @@
 #include "pf_driver/pf/http_helpers/http_helpers.h"
 
-
 std::string http_helpers::from_array(const Json::Value& val)
 {
   std::string s = "";

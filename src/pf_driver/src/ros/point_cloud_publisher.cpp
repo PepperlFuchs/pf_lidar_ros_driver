@@ -4,12 +4,9 @@
 #include "pf_driver/PFR2300Header.h"
 #include "pf_driver/ros/point_cloud_publisher.h"
 
-PointcloudPublisher::PointcloudPublisher(std::shared_ptr<ScanConfig> config,
-                                         std::shared_ptr<ScanParameters> params,
-                                         const std::string& scan_topic,
-                                         const std::string& frame_id,
-                                         std::shared_ptr<std::mutex> config_mutex,
-                                         const uint16_t num_layers,
+PointcloudPublisher::PointcloudPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
+                                         const std::string& scan_topic, const std::string& frame_id,
+                                         std::shared_ptr<std::mutex> config_mutex, const uint16_t num_layers,
                                          const std::string& part)
   : PFDataPublisher(config, params, config_mutex), layer_prev_(-1)
 {
@@ -57,8 +54,7 @@ void PointcloudPublisher::resetCurrentScans()
   layer_prev_ = -1;
 }
 
-void PointcloudPublisher::publish_static_transform(const std::string& parent,
-                                                   const std::string& child,
+void PointcloudPublisher::publish_static_transform(const std::string& parent, const std::string& child,
                                                    int inclination_angle)
 {
   geometry_msgs::TransformStamped transform;
@@ -89,9 +85,7 @@ void PointcloudPublisher::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t i
   scan_publishers_.at(idx).publish(msg);
 }
 
-void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg,
-                                      uint16_t layer_idx,
-                                      int layer_inclination,
+void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, int layer_inclination,
                                       bool apply_correction)
 {
   publish_scan(msg, layer_idx);
@@ -158,8 +152,7 @@ void PointcloudPublisher::add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_ms
   pcl::toROSMsg(*p1_cloud.get(), c1);
 }
 
-void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c,
-                                        sensor_msgs::LaserScanPtr msg,
+void PointcloudPublisher::project_laser(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScanPtr msg,
                                         const int layer_inclination)
 {
   pcl::PCLPointCloud2 p;

@@ -39,9 +39,9 @@ private:
   const std::map<std::string, std::string> get_request(const std::string& command,
                                                        const std::vector<std::string>& json_keys,
                                                        const std::initializer_list<param_type>& query);
-  const std::map<std::string, std::string> get_request(const std::string& command,
-                                                       const std::vector<std::string>& json_keys = std::vector<std::string>(),
-                                                       const param_map_type& query = param_map_type());
+  const std::map<std::string, std::string>
+  get_request(const std::string& command, const std::vector<std::string>& json_keys = std::vector<std::string>(),
+              const param_map_type& query = param_map_type());
 
   bool get_request_bool(const std::string& command,
                         const std::vector<std::string>& json_keys = std::vector<std::string>(),
@@ -49,9 +49,7 @@ private:
 
   bool is_connection_failure(const std::string& http_error);
 
-  bool check_error(std::map<std::string, std::string>& mp,
-                   const std::string& err_code,
-                   const std::string& err_text,
+  bool check_error(std::map<std::string, std::string>& mp, const std::string& err_code, const std::string& err_text,
                    const std::string& err_http);
 
 protected:
@@ -109,17 +107,17 @@ public:
 
   virtual void get_scanoutput_config(const std::string& handle);
 
-  bool set_scanoutput_config(const std::string &handle, const ScanConfig &config);
+  bool set_scanoutput_config(const std::string& handle, const ScanConfig& config);
 
   bool update_scanoutput_config();
 
   bool start_scanoutput();
 
-  bool stop_scanoutput(const std::string &handle);
+  bool stop_scanoutput(const std::string& handle);
 
-  std::string get_scanoutput_config(const std::string &param, const std::string &handle);
+  std::string get_scanoutput_config(const std::string& param, const std::string& handle);
 
-  bool feed_watchdog(const std::string &handle);
+  bool feed_watchdog(const std::string& handle);
 
   virtual std::string get_product();
 
