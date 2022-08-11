@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 struct ScanConfig
 {
   bool watchdog = false;

@@ -10,26 +10,18 @@
 class PFDataPublisher : public PFPacketReader
 {
 public:
-  PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-                  std::shared_ptr<std::mutex> config_mutex)
-    : config_(config), params_(params), config_mutex_(config_mutex)
-  {
-  }
+  PFDataPublisher(std::shared_ptr<ScanConfig> config,
+                  std::shared_ptr<ScanParameters> params,
+                  std::shared_ptr<std::mutex> config_mutex);
 
   virtual void read(PFR2000Packet_A& packet);
   virtual void read(PFR2000Packet_B& packet);
   virtual void read(PFR2000Packet_C& packet);
   virtual void read(PFR2300Packet_C1& packet);
 
-  virtual bool start()
-  {
-    return true;
-  }
+  virtual bool start();
 
-  virtual bool stop()
-  {
-    return true;
-  }
+  virtual bool stop();
 
 protected:
   ros::NodeHandle nh_;
@@ -46,7 +38,9 @@ protected:
 
   template <typename T>
   void to_msg_queue(T& packet, uint16_t layer_idx = 0, int layer_inclination = 0);
-  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, int layer_inclination,
+  virtual void handle_scan(sensor_msgs::LaserScanPtr msg,
+                           uint16_t layer_idx,
+                           int layer_inclination,
                            bool apply_correction = true) = 0;
 
   virtual void resetCurrentScans()

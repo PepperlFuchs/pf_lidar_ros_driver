@@ -13,11 +13,7 @@ protected:
   };
 #pragma pack(pop, pfB)
 
-  virtual void get_type(char* c)
-  {
-    c[0] = 0x42;
-    c[1] = 0x00;
-  }
+  virtual void get_type(char* c);
 
   virtual void read_data(uint8_t* buf, size_t num);
   virtual void read_with(PFPacketReader& reader);

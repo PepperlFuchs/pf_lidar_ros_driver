@@ -14,9 +14,11 @@
 
 #pragma once
 
+#include <sstream>
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
 #include <curlpp/Options.hpp>
+#include <json/json.h>
 
 #include "pf_driver/pf/http_helpers/param_map_type.h"
 #include "pf_driver/pf/http_helpers/param_type.h"
@@ -24,52 +26,17 @@
 class CurlResource
 {
 public:
-  CurlResource(std::string host) : url_("")
-  {
-    url_ = "http://" + host;
-    header_.push_back("Content-Type: application/json");
-    request_.setOpt(new curlpp::options::HttpHeader(header_));
-    request_.setOpt(curlpp::options::WriteStream(&response_));
-  }
+  CurlResource(const std::string& host);
 
-  void append_path(const std::string& path)
-  {
-    url_ += "/" + path;
-  }
+  void append_path(const std::string& path);
 
-  void append_query(const std::initializer_list<param_type>& list, bool do_encoding = false)
-  {
-    url_ += "?";
-    for (const auto& p : list)
-    {
-      url_ += p.first + "=" + p.second + "&";
-    }
-    url_.pop_back();
-  }
+  void append_query(const std::initializer_list<param_type>& list, bool do_encoding = false);
 
-  void append_query(const param_map_type& params, bool do_encoding = false)
-  {
-    url_ += "?";
-    for (const auto& p : params)
-    {
-      url_ += p.first + "=" + p.second + "&";
-    }
-    url_.pop_back();
-  }
+  void append_query(const param_map_type& params, bool do_encoding = false);
 
-  void get(Json::Value& json_resp)
-  {
-    request_.setOpt(curlpp::options::Url(url_));
-    request_.perform();
+  void get(Json::Value& json_resp);
 
-    Json::Reader reader;
-    reader.parse(response_, json_resp);
-  }
-
-  void print()
-  {
-    std::cout << url_ << std::endl;
-  }
+  void print();
 
 private:
   std::string url_;

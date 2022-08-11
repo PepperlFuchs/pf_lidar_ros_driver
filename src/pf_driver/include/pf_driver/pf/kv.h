@@ -3,6 +3,8 @@
 #include <utility>
 #include <string>
 #include <vector>
+#include <sstream>
+#include <iterator>
 
 class KV : public std::pair<std::string, std::string>
 {

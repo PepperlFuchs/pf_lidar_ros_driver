@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "pf_driver/pf/scan_config.h"
 #include "pf_driver/pf/scan_parameters.h"
 

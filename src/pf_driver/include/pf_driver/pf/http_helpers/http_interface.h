@@ -16,77 +16,27 @@
 
 #include <json/json.h>
 
-#include "pf_driver/pf/http_helpers/curl_resource.h"
 #include "pf_driver/pf/http_helpers/param_type.h"
 #include "pf_driver/pf/http_helpers/param_map_type.h"
-#include "pf_driver/pf/http_helpers/http_helpers.h"
+
+class CurlResource;
 
 class HTTPInterface
 {
 public:
-  HTTPInterface(const std::string& host, const std::string& path = "") : host(host), base_path(path)
-  {
-  }
+  HTTPInterface(const std::string& host, const std::string& path = "");
 
   const std::map<std::string, std::string>
-  get(const std::vector<std::string>& json_keys, const std::string command,
-      const std::initializer_list<param_type>& list = std::initializer_list<param_type>())
-  {
-    CurlResource res(host);
-    res.append_path(base_path);
-    res.append_path(command);
-    res.append_query(list);
-    return get_(json_keys, res);
-  }
+  get(const std::vector<std::string>& json_keys,
+      const std::string& command,
+      const std::initializer_list<param_type>& list = std::initializer_list<param_type>());
 
-  const std::map<std::string, std::string> get(const std::vector<std::string>& json_keys, const std::string command,
-                                               const param_map_type& params = param_map_type())
-  {
-    CurlResource res(host);
-    res.append_path(base_path);
-    res.append_path(command);
-    res.append_query(params);
-    return get_(json_keys, res);
-  }
+  const std::map<std::string, std::string> get(const std::vector<std::string>& json_keys,
+                                               const std::string& command,
+                                               const param_map_type& params = param_map_type());
 
 private:
-  const std::map<std::string, std::string> get_(const std::vector<std::string>& json_keys, CurlResource& res)
-  {
-    Json::Value json_resp;
-    std::map<std::string, std::string> json_kv;
-
-    try
-    {
-      res.get(json_resp);
-      json_kv[std::string("error_http")] = std::string("OK");
-    }
-    catch (curlpp::RuntimeError& e)
-    {
-      json_kv[std::string("error_http")] = std::string(e.what());
-      return json_kv;
-    }
-    catch (curlpp::LogicError& e)
-    {
-      json_kv[std::string("error_http")] = std::string(e.what());
-      return json_kv;
-    }
-
-    for (std::string key : json_keys)
-    {
-      try
-      {
-        if (json_resp[key].isArray())
-          json_kv[key] = http_helpers::from_array(json_resp[key]);
-        else
-          json_kv[key] = json_resp[key].asString();
-      }
-      catch (std::exception& e)
-      {
-        json_kv[key] = "--COULD NOT RETRIEVE VALUE--";
-      }
-    }
-    return json_kv;
-  }
+  const std::map<std::string, std::string> get_(const std::vector<std::string>& json_keys, CurlResource& res);
 
   const std::string host;
   const std::string base_path;

@@ -26,12 +26,9 @@ public:
   virtual bool connect() = 0;
   virtual bool disconnect() = 0;
   virtual bool read(boost::array<uint8_t, 4096>& buf, size_t& len) = 0;
-  virtual bool readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len, const uint32_t expiry_time)
-  {
-    return false;
-  }
+  virtual bool readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len, const uint32_t expiry_time) = 0;
 
-  Transport(std::string address, transport_type typ) : address_(address), type_(typ), is_connected_(false)
+  Transport(std::string address, transport_type typ) : address_(std::move(address)), type_(typ), is_connected_(false)
   {
   }
 
@@ -75,4 +72,3 @@ protected:
   std::shared_ptr<boost::asio::deadline_timer> timer_;
   boost::optional<boost::system::error_code> timer_result_;
 };
-

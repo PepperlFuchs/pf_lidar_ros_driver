@@ -4,8 +4,8 @@
 
 LaserscanPublisher::LaserscanPublisher(std::shared_ptr<ScanConfig> config,
                                        std::shared_ptr<ScanParameters> params,
-                                       std::string scan_topic,
-                                       std::string frame_id,
+                                       const std::string& scan_topic,
+                                       const std::string& frame_id,
                                        std::shared_ptr<std::mutex> config_mutex)
   : PFDataPublisher(config, params, config_mutex)
 {

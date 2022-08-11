@@ -6,6 +6,12 @@ void PFR2000Packet_C::read_with(PFPacketReader& reader)
   reader.read(*this);
 }
 
+void PFR2000Packet_C::get_type(char *c)
+{
+  c[0] = 0x43;
+  c[1] = 0x00;
+}
+
 void PFR2000Packet_C::read_data(uint8_t* buf, size_t num)
 {
   uint32_t* data = reinterpret_cast<uint32_t*>(buf);

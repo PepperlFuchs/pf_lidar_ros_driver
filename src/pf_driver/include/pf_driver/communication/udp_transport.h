@@ -16,22 +16,12 @@
 
 #include "pf_driver/communication/transport.h"
 
-using boost::asio::ip::udp;
-
 class UDPTransport : public Transport
 {
 public:
-  UDPTransport(std::string address) : Transport(address, transport_type::udp)
-  {
-    io_service_ = std::make_shared<boost::asio::io_service>();
-    socket_ = std::make_unique<udp::socket>(*io_service_, udp::endpoint(udp::v4(), 0));
-    timer_ = std::make_shared<boost::asio::deadline_timer>(*io_service_.get());
-  }
+  UDPTransport(std::string address);
 
-  ~UDPTransport()
-  {
-    disconnect();
-  }
+  ~UDPTransport();
 
   virtual bool connect();
   virtual bool disconnect();
@@ -39,5 +29,5 @@ public:
   virtual bool readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len, const uint32_t expiry_time);
 
 private:
-  std::unique_ptr<udp::socket> socket_;
+  std::unique_ptr<boost::asio::ip::udp::socket> socket_;
 };

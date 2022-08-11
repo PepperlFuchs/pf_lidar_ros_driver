@@ -9,8 +9,15 @@
 #include "pf_driver/communication/udp_transport.h"
 #include "pf_driver/communication/tcp_transport.h"
 
-bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-                       std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id,
+PFInterface::PFInterface() : state_(PFState::UNINIT)
+{
+}
+
+bool PFInterface::init(std::shared_ptr<HandleInfo> info,
+                       std::shared_ptr<ScanConfig> config,
+                       std::shared_ptr<ScanParameters> params,
+                       const std::string& topic,
+                       const std::string& frame_id,
                        const uint16_t num_layers)
 {
   config_ = config;
@@ -164,6 +171,11 @@ void PFInterface::terminate()
   change_state(PFState::UNINIT);
 }
 
+bool PFInterface::init()
+{
+  return init(info_, config_, params_, topic_, frame_id_, num_layers_);
+}
+
 void PFInterface::start_watchdog_timer(float duration)
 {
   int feed_time = std::floor(std::min(duration, 60.0f));
@@ -195,8 +207,12 @@ void PFInterface::connection_failure_cb()
 }
 
 // factory functions
-bool PFInterface::handle_version(int major_version, int minor_version, int device_family, std::string topic,
-                                 std::string frame_id, const uint16_t num_layers)
+bool PFInterface::handle_version(int major_version,
+                                 int minor_version,
+                                 int device_family,
+                                 const std::string& topic,
+                                 const std::string& frame_id,
+                                 const uint16_t num_layers)
 {
   std::string expected_dev = "";
   if (device_family == 1 || device_family == 3 || device_family == 6)
@@ -240,10 +256,10 @@ bool PFInterface::handle_version(int major_version, int minor_version, int devic
   return false;
 }
 
-std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet_type,
-                                                              std::shared_ptr<std::mutex> net_mtx,
-                                                              std::shared_ptr<std::condition_variable> net_cv,
-                                                              bool& net_fail)
+std::unique_ptr<Pipeline> PFInterface::get_pipeline(const std::string& packet_type,
+                                                    std::shared_ptr<std::mutex> net_mtx,
+                                                    std::shared_ptr<std::condition_variable> net_cv,
+                                                    bool& net_fail)
 {
   std::shared_ptr<Parser<PFPacket>> parser;
   std::shared_ptr<Writer<PFPacket>> writer;
@@ -275,6 +291,6 @@ std::unique_ptr<Pipeline<PFPacket>> PFInterface::get_pipeline(std::string packet
     return nullptr;
   }
   writer = std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(std::move(transport_), parser));
-  return std::unique_ptr<Pipeline<PFPacket>>(new Pipeline<PFPacket>(
-      writer, reader_, std::bind(&PFInterface::connection_failure_cb, this), net_mtx, net_cv, net_fail));
+  return std::make_unique<Pipeline>(
+      writer, reader_, std::bind(&PFInterface::connection_failure_cb, this), net_mtx, net_cv, net_fail);
 }

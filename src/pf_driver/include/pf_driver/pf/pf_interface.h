@@ -18,20 +18,23 @@
 class PFInterface
 {
 public:
-  PFInterface() : state_(PFState::UNINIT)
-  {
-  }
+  PFInterface();
 
-  bool init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-            std::shared_ptr<ScanParameters> params, std::string topic, std::string frame_id, const uint16_t num_layers);
+  bool init(std::shared_ptr<HandleInfo> info,
+            std::shared_ptr<ScanConfig> config,
+            std::shared_ptr<ScanParameters> params,
+            const std::string& topic,
+            const std::string& frame_id,
+            const uint16_t num_layers);
 
-  bool start_transmission(std::shared_ptr<std::mutex> net_mtx, std::shared_ptr<std::condition_variable> net_cv,
+  bool start_transmission(std::shared_ptr<std::mutex> net_mtx,
+                          std::shared_ptr<std::condition_variable> net_cv,
                           bool& net_fail);
   void stop_transmission();
   void terminate();
 
 private:
-  using PipelinePtr = std::unique_ptr<Pipeline<PFPacket>>;
+  using PipelinePtr = std::unique_ptr<Pipeline>;
 
   ros::NodeHandle nh_;
   ros::Timer watchdog_timer_;
@@ -59,10 +62,7 @@ private:
   };
   PFState state_;
 
-  bool init()
-  {
-    return init(info_, config_, params_, topic_, frame_id_, num_layers_);
-  }
+  bool init();
 
   void change_state(PFState state);
   bool can_change_state(PFState state);
@@ -72,9 +72,15 @@ private:
   void on_shutdown();
 
   // factory functions
-  bool handle_version(int major_version, int minor_version, int device_family, std::string topic, std::string frame_id,
+  bool handle_version(int major_version,
+                      int minor_version,
+                      int device_family,
+                      const std::string& topic,
+                      const std::string& frame_id,
                       const uint16_t num_layers);
-  PipelinePtr get_pipeline(std::string packet_type, std::shared_ptr<std::mutex> net_mtx,
-                           std::shared_ptr<std::condition_variable> net_cv, bool& net_fail);
+  PipelinePtr get_pipeline(const std::string& packet_type,
+                           std::shared_ptr<std::mutex> net_mtx,
+                           std::shared_ptr<std::condition_variable> net_cv,
+                           bool& net_fail);
   void connection_failure_cb();
 };

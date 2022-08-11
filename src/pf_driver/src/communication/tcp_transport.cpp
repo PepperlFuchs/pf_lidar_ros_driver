@@ -2,6 +2,20 @@
 
 #include "pf_driver/communication/tcp_transport.h"
 
+using boost::asio::ip::tcp;
+
+TCPTransport::TCPTransport(std::string address) : Transport(address, transport_type::tcp)
+{
+  io_service_ = std::make_shared<boost::asio::io_service>();
+  socket_ = std::make_unique<tcp::socket>(*io_service_);
+  timer_ = std::make_shared<boost::asio::deadline_timer>(*io_service_.get());
+}
+
+TCPTransport::~TCPTransport()
+{
+  disconnect();
+}
+
 bool TCPTransport::connect()
 {
   try

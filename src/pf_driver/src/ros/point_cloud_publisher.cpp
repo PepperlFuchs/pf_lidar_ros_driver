@@ -1,7 +1,3 @@
-//#include <exception>
-//#include <limits>
-//#include <utility>
-
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
 
@@ -10,11 +6,11 @@
 
 PointcloudPublisher::PointcloudPublisher(std::shared_ptr<ScanConfig> config,
                                          std::shared_ptr<ScanParameters> params,
-                                         std::string scan_topic,
-                                         std::string frame_id,
+                                         const std::string& scan_topic,
+                                         const std::string& frame_id,
                                          std::shared_ptr<std::mutex> config_mutex,
                                          const uint16_t num_layers,
-                                         std::string part)
+                                         const std::string& part)
   : PFDataPublisher(config, params, config_mutex), layer_prev_(-1)
 {
   ros::NodeHandle p_nh("~/");
@@ -61,7 +57,9 @@ void PointcloudPublisher::resetCurrentScans()
   layer_prev_ = -1;
 }
 
-void PointcloudPublisher::publish_static_transform(const std::string parent, const std::string child, int inclination_angle)
+void PointcloudPublisher::publish_static_transform(const std::string& parent,
+                                                   const std::string& child,
+                                                   int inclination_angle)
 {
   geometry_msgs::TransformStamped transform;
 
@@ -91,7 +89,9 @@ void PointcloudPublisher::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t i
   scan_publishers_.at(idx).publish(msg);
 }
 
-void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, int layer_inclination,
+void PointcloudPublisher::handle_scan(sensor_msgs::LaserScanPtr msg,
+                                      uint16_t layer_idx,
+                                      int layer_inclination,
                                       bool apply_correction)
 {
   publish_scan(msg, layer_idx);

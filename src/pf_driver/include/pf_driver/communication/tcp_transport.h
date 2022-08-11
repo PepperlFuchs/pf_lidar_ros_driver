@@ -16,22 +16,12 @@
 
 #include "pf_driver/communication/transport.h"
 
-using boost::asio::ip::tcp;
-
 class TCPTransport : public Transport
 {
 public:
-  TCPTransport(std::string address) : Transport(address, transport_type::tcp)
-  {
-    io_service_ = std::make_shared<boost::asio::io_service>();
-    socket_ = std::make_unique<tcp::socket>(*io_service_);
-    timer_ = std::make_shared<boost::asio::deadline_timer>(*io_service_.get());
-  }
+  TCPTransport(std::string address);
 
-  ~TCPTransport()
-  {
-    disconnect();
-  }
+  ~TCPTransport();
 
   virtual bool connect();
   virtual bool disconnect();
@@ -39,5 +29,5 @@ public:
   virtual bool readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len, const uint32_t expiry_time);
 
 private:
-  std::unique_ptr<tcp::socket> socket_;
+  std::unique_ptr<boost::asio::ip::tcp::socket> socket_;
 };

@@ -8,6 +8,11 @@
 #include "pf_driver/pf/pf_packet/pf_r2000_packet_c.h"
 #include "pf_driver/pf/pf_packet/pf_r2300_packet_c1.h"
 
+PFDataPublisher::PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params, std::shared_ptr<std::mutex> config_mutex)
+  : config_(config), params_(params), config_mutex_(config_mutex)
+{
+}
+
 void PFDataPublisher::read(PFR2000Packet_A& packet)
 {
   header_publisher_.publish(packet.header);
@@ -30,6 +35,16 @@ void PFDataPublisher::read(PFR2300Packet_C1& packet)
 {
   header_publisher_.publish(packet.header);
   to_msg_queue<PFR2300Packet_C1>(packet, packet.header.layer_index, packet.header.layer_inclination);
+}
+
+bool PFDataPublisher::start()
+{
+  return true;
+}
+
+bool PFDataPublisher::stop()
+{
+  return true;
 }
 
 // What are validation checks required here?

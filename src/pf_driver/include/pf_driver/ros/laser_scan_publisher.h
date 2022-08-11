@@ -5,13 +5,18 @@
 class LaserscanPublisher : public PFDataPublisher
 {
 public:
-  LaserscanPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params, std::string scan_topic,
-                     std::string frame_id, std::shared_ptr<std::mutex> config_mutex);
+  LaserscanPublisher(std::shared_ptr<ScanConfig> config,
+                     std::shared_ptr<ScanParameters> params,
+                     const std::string& scan_topic,
+                     const std::string& frame_id,
+                     std::shared_ptr<std::mutex> config_mutex);
 
 private:
   ros::Publisher scan_publisher_;
 
-  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, int layer_inclination,
+  virtual void handle_scan(sensor_msgs::LaserScanPtr msg,
+                           uint16_t layer_idx,
+                           int layer_inclination,
                            bool apply_correction);
 
   void publish_scan(sensor_msgs::LaserScanPtr msg);

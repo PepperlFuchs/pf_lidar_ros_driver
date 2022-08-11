@@ -18,14 +18,5 @@
 
 namespace http_helpers
 {
-  inline std::string from_array(Json::Value& val)
-  {
-    std::string s = "";
-    for (int i = 0; i < val.size() - 1; i++)
-    {
-      s += val[i].asString() + ";";
-    }
-    s += val[val.size() - 1].asString();
-    return s;
-  }
+  std::string from_array(const Json::Value& val);
 }

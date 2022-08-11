@@ -2,6 +2,20 @@
 
 #include "pf_driver/communication/udp_transport.h"
 
+using boost::asio::ip::udp;
+
+UDPTransport::UDPTransport(std::string address) : Transport(address, transport_type::udp)
+{
+  io_service_ = std::make_shared<boost::asio::io_service>();
+  socket_ = std::make_unique<udp::socket>(*io_service_, udp::endpoint(udp::v4(), 0));
+  timer_ = std::make_shared<boost::asio::deadline_timer>(*io_service_.get());
+}
+
+UDPTransport::~UDPTransport()
+{
+  disconnect();
+}
+
 bool UDPTransport::connect()
 {
   udp::endpoint udp_endpoint = udp::endpoint(boost::asio::ip::address::from_string(address_), 0);

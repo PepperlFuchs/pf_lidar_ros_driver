@@ -51,14 +51,25 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(ros_main src/communication/udp_transport.cpp
+add_executable(ros_main src/pf/pf_interface.cpp
+                        src/pf/parser_utils.cpp
+                        src/pf/pf_packet_reader.cpp
+                        src/pf/pfsdp_base.cpp
+                        src/pf/pipeline.cpp
+                        src/pf/http_helpers/curl_resource.cpp
+                        src/pf/http_helpers/http_helpers.cpp
+                        src/pf/http_helpers/http_interface.cpp
+                        src/pf/pf_packet/pf_packet.cpp
+                        src/pf/pf_packet/pf_r2000_packet.cpp
+                        src/pf/pf_packet/pf_r2000_packet_a.cpp
+                        src/pf/pf_packet/pf_r2000_packet_b.cpp
+                        src/pf/pf_packet/pf_r2000_packet_c.cpp
+                        src/pf/pf_packet/pf_r2300_packet.cpp
+                        src/pf/pf_packet/pf_r2300_packet_c1.cpp
+                        src/pf/r2000/pfsdp_2000.cpp
+                        src/pf/r2300/pfsdp_2300.cpp
+                        src/communication/udp_transport.cpp
                         src/communication/tcp_transport.cpp
-                        src/pf/pf_interface.cpp
-                        src/pf/pf_packet.cpp
-                        src/pf/pf_r2000_packet_a.cpp
-                        src/pf/pf_r2000_packet_b.cpp
-                        src/pf/pf_r2000_packet_c.cpp
-                        src/pf/pf_r2300_packet_c1.cpp
                         src/ros/ros_main.cpp
                         src/ros/laser_scan_publisher.cpp
                         src/ros/point_cloud_publisher.cpp
