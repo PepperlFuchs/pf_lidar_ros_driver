@@ -2,9 +2,16 @@
 <launch>
   <arg name="device" default="R2300"/>
 
-  <include file="$(find pf_description)/launch/pf_bringup.launch" >
-    <arg name="scanner" value="r2300" />
-  </include>
+  <arg name="launch_pf_description" default="true"
+       doc="Whether to include the pf_description bringup with this launch file." />
+  <arg name="launch_rviz" default="true"
+       doc="Whether to start RViz with this launch file." />
+
+  <group if="$(arg launch_pf_description)">
+    <include file="$(find pf_description)/launch/pf_bringup.launch" >
+      <arg name="scanner" value="r2300" />
+    </include>
+  <group>
 
   <!-- R2300 Driver -->
   <node pkg="pf_driver" type="ros_main" name="r2300_node" output="screen">
@@ -13,5 +20,7 @@
     <rosparam file="$(find pf_driver)/config/correction_params.yaml" command="load"/>
   </node>
 
-  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find pf_driver)/rviz/r2300.rviz" />
+  <group if="$(arg launch_rviz)">
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find pf_driver)/rviz/r2300.rviz" />
+  </group>
 </launch>
