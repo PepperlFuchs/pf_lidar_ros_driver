@@ -102,6 +102,10 @@ void PFSDP_2000::reconfig_callback(pf_driver::PFDriverR2000Config& config, uint3
   {
     set_parameter({ KV("user_notes", config.user_notes) });
   }
+  else if (level == 27)
+  {
+    set_parameter({ KV("hmi_application_bitmap", config.hmi_application_bitmap) });
+  }
   else if (level == 18)
   {
     config_->packet_type = config.packet_type;
