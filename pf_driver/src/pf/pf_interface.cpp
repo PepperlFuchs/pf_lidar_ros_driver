@@ -18,9 +18,7 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
   frame_id_ = frame_id;
   num_layers_ = num_layers;
 
-  config_mutex_ = std::make_shared<std::mutex>();
-
-  protocol_interface_ = std::make_shared<PFSDPBase>(info, config, params, config_mutex_);
+  protocol_interface_ = std::make_shared<PFSDPBase>(info, config, params);
   // This is the first time ROS communicates with the device
   auto opi = protocol_interface_->get_protocol_info();
   if (opi.isError)
@@ -201,25 +199,25 @@ bool PFInterface::handle_version(int major_version, int minor_version, int devic
   if (device_family == 1 || device_family == 3 || device_family == 6)
   {
     expected_dev = "R2000";
-    protocol_interface_ = std::make_shared<PFSDP_2000>(info_, config_, params_, config_mutex_);
-    reader_ = std::shared_ptr<PFPacketReader>(
-        new LaserscanPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
+    protocol_interface_ = std::make_shared<PFSDP_2000>(info_, config_, params_);
+    reader_ =
+        std::shared_ptr<PFPacketReader>(new LaserscanPublisher(config_, params_, topic.c_str(), frame_id.c_str()));
   }
   else if (device_family == 5 || device_family == 7)
   {
     expected_dev = "R2300";
-    protocol_interface_ = std::make_shared<PFSDP_2300>(info_, config_, params_, config_mutex_);
+    protocol_interface_ = std::make_shared<PFSDP_2300>(info_, config_, params_);
 
     if (device_family == 5)
     {
       std::string part = protocol_interface_->get_part();
-      reader_ = std::shared_ptr<PFPacketReader>(new PointcloudPublisher(
-          config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_, num_layers, part.c_str()));
+      reader_ = std::shared_ptr<PFPacketReader>(
+          new PointcloudPublisher(config_, params_, topic.c_str(), frame_id.c_str(), num_layers, part.c_str()));
     }
     else if (device_family == 7)
     {
-      reader_ = std::shared_ptr<PFPacketReader>(
-          new LaserscanPublisher(config_, params_, topic.c_str(), frame_id.c_str(), config_mutex_));
+      reader_ =
+          std::shared_ptr<PFPacketReader>(new LaserscanPublisher(config_, params_, topic.c_str(), frame_id.c_str()));
     }
     else
     {

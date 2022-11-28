@@ -44,11 +44,6 @@ void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx, int layer_incl
     d_queue_.pop_front();
   if (packet.header.header.packet_number == 1)
   {
-    if (layer_idx == 0)
-    {
-      config_mutex_->lock();
-    }
-
     msg.reset(new sensor_msgs::LaserScan());
     msg->header.frame_id.assign(frame_id_);
     msg->header.seq = packet.header.header.scan_number;
@@ -111,12 +106,6 @@ void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx, int layer_incl
     {
       handle_scan(msg, layer_idx, layer_inclination, params_->apply_correction);
       d_queue_.pop_back();
-      // in case of single layered device (R2000),
-      // h_enabled_layer = 0 and layer_idx is always 0
-      if (layer_idx == params_->h_enabled_layer)
-      {
-        config_mutex_->unlock();
-      }
     }
   }
 }

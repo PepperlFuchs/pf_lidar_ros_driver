@@ -41,7 +41,6 @@ private:
   std::shared_ptr<PFSDPBase> protocol_interface_;
   PipelinePtr pipeline_;
   std::shared_ptr<Reader<PFPacket>> reader_;
-  std::shared_ptr<std::mutex> config_mutex_;
   std::string topic_;
   std::string frame_id_;
   uint16_t num_layers_;
