@@ -5,10 +5,7 @@
 
 PFSDPBase::PFSDPBase(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
                      std::shared_ptr<ScanParameters> params)
-  : http_interface(new HTTPInterface(info->hostname, "cmd"))
-  , info_(info)
-  , config_(config)
-  , params_(params)
+  : http_interface(new HTTPInterface(info->hostname, "cmd")), info_(info), config_(config), params_(params)
 {
 }
 

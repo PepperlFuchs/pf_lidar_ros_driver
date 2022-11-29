@@ -5,8 +5,8 @@
 #include "pf_driver/ros/point_cloud_publisher.h"
 
 PointcloudPublisher::PointcloudPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-                                         const std::string& scan_topic, const std::string& frame_id, const uint16_t num_layers,
-                                         const std::string& part)
+                                         const std::string& scan_topic, const std::string& frame_id,
+                                         const uint16_t num_layers, const std::string& part)
   : PFDataPublisher(config, params), layer_prev_(-1)
 {
   ros::NodeHandle p_nh("~/");
