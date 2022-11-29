@@ -34,7 +34,6 @@ void PFSDP_2000::setup_param_server()
 
 void PFSDP_2000::reconfig_callback(pf_driver::PFDriverR2000Config& config, uint32_t level)
 {
-
   if (level == 1)
   {
     set_parameter({ KV("ip_mode", config.ip_mode) });
@@ -133,5 +132,4 @@ void PFSDP_2000::reconfig_callback(pf_driver::PFDriverR2000Config& config, uint3
     config_->skip_scans = config.skip_scans;
   }
   update_scanoutput_config();
-
 }

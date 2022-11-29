@@ -58,8 +58,7 @@ protected:
   std::shared_ptr<ScanParameters> params_;
 
 public:
-  PFSDPBase(std::shared_ptr<HandleInfo> info,
-            std::shared_ptr<ScanConfig> config,
+  PFSDPBase(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
             std::shared_ptr<ScanParameters> params);
 
   void set_connection_failure_cb(std::function<void()> callback);
