@@ -62,10 +62,7 @@ public:
             std::shared_ptr<ScanConfig> config,
             std::shared_ptr<ScanParameters> params);
 
-  void set_connection_failure_cb(std::function<void()> callback)
-  {
-    handle_connection_failure = callback;
-  }
+  void set_connection_failure_cb(std::function<void()> callback);
 
   const std::vector<std::string> list_parameters();
 
