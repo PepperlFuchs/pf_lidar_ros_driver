@@ -11,8 +11,7 @@
 class PFDataPublisher : public PFPacketReader
 {
 public:
-  PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-                  std::shared_ptr<std::mutex> config_mutex);
+  PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params);
 
   virtual void read(PFR2000Packet_A& packet);
   virtual void read(PFR2000Packet_B& packet);
@@ -30,7 +29,6 @@ protected:
   std::deque<sensor_msgs::LaserScanPtr> d_queue_;
   std::mutex q_mutex_;
 
-  std::shared_ptr<std::mutex> config_mutex_;
   std::shared_ptr<ScanConfig> config_;
   std::shared_ptr<ScanParameters> params_;
 

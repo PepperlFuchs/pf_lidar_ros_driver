@@ -3,8 +3,8 @@
 #include "pf_driver/pf/parser_utils.h"
 
 PFSDP_2300::PFSDP_2300(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-                       std::shared_ptr<ScanParameters> params, std::shared_ptr<std::mutex> config_mutex)
-  : PFSDPBase(info, config, params, config_mutex)
+                       std::shared_ptr<ScanParameters> params)
+  : PFSDPBase(info, config, params)
 {
 }
 
@@ -74,8 +74,6 @@ std::string PFSDP_2300::get_start_angle_str()
 
 void PFSDP_2300::reconfig_callback(pf_driver::PFDriverR2300Config& config, uint32_t level)
 {
-  config_mutex_->lock();
-
   if (level == 1)
   {
     set_parameter({ KV("ip_mode", config.ip_mode) });
@@ -166,6 +164,4 @@ void PFSDP_2300::reconfig_callback(pf_driver::PFDriverR2300Config& config, uint3
     config_->skip_scans = config.skip_scans;
   }
   update_scanoutput_config();
-
-  config_mutex_->unlock();
 }

@@ -3,9 +3,8 @@
 #include "pf_driver/PFR2000Header.h"
 
 LaserscanPublisher::LaserscanPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-                                       const std::string& scan_topic, const std::string& frame_id,
-                                       std::shared_ptr<std::mutex> config_mutex)
-  : PFDataPublisher(config, params, config_mutex)
+                                       const std::string& scan_topic, const std::string& frame_id)
+  : PFDataPublisher(config, params)
 {
   scan_publisher_ = nh_.advertise<sensor_msgs::LaserScan>(scan_topic, 1);
   header_publisher_ = nh_.advertise<pf_driver::PFR2000Header>("/r2000_header", 1);

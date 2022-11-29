@@ -8,9 +8,8 @@
 #include "pf_driver/pf/pf_packet/pf_r2000_packet_c.h"
 #include "pf_driver/pf/pf_packet/pf_r2300_packet_c1.h"
 
-PFDataPublisher::PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-                                 std::shared_ptr<std::mutex> config_mutex)
-  : config_mutex_(config_mutex), config_(config), params_(params)
+PFDataPublisher::PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params)
+  : config_(config), params_(params)
 {
 }
 

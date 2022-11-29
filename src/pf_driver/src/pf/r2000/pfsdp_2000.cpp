@@ -3,8 +3,8 @@
 #include "pf_driver/pf/parser_utils.h"
 
 PFSDP_2000::PFSDP_2000(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-                       std::shared_ptr<ScanParameters> params, std::shared_ptr<std::mutex> config_mutex)
-  : PFSDPBase(info, config, params, config_mutex)
+                       std::shared_ptr<ScanParameters> params)
+  : PFSDPBase(info, config, params)
 {
 }
 
@@ -34,7 +34,6 @@ void PFSDP_2000::setup_param_server()
 
 void PFSDP_2000::reconfig_callback(pf_driver::PFDriverR2000Config& config, uint32_t level)
 {
-  config_mutex_->lock();
 
   if (level == 1)
   {
@@ -135,5 +134,4 @@ void PFSDP_2000::reconfig_callback(pf_driver::PFDriverR2000Config& config, uint3
   }
   update_scanoutput_config();
 
-  config_mutex_->unlock();
 }
