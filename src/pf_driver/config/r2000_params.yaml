@@ -1,6 +1,7 @@
 R2000:
   transport: "udp"
   scanner_ip: "169.254.253.4"
+  port: "3000"
   device: "R2000"
   start_angle: -1800000
   max_num_points_scan: 0

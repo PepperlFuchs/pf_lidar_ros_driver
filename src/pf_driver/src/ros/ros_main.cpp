@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
   // selecting TCP as default if not UDP
   info->handle_type = transport_str == "udp" ? HandleInfo::HANDLE_TYPE_UDP : HandleInfo::HANDLE_TYPE_TCP;
   init_valid &= dev_nh.getParam("scanner_ip", info->hostname);
-  dev_nh.getParam("port", info->port);
+  dev_nh.param<std::string>("port", info->port, "0");
 
   if (!init_valid)
   {

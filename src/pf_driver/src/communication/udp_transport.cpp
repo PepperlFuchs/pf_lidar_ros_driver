@@ -4,10 +4,12 @@
 
 using boost::asio::ip::udp;
 
-UDPTransport::UDPTransport(std::string address) : Transport(address, transport_type::udp)
+UDPTransport::UDPTransport(std::string address, std::string port) : Transport(address, transport_type::udp)
 {
   io_service_ = std::make_shared<boost::asio::io_service>();
-  socket_ = std::make_unique<udp::socket>(*io_service_, udp::endpoint(udp::v4(), 0));
+  udp::endpoint local_endpoint = local_endpoint = udp::endpoint(udp::v4(), stoi(port));
+
+  socket_ = std::make_unique<udp::socket>(*io_service_, local_endpoint);
   timer_ = std::make_shared<boost::asio::deadline_timer>(*io_service_.get());
 }
 
