@@ -4,16 +4,16 @@
     <xacro:macro name="r2000" params="prefix" >
         <link name="${prefix}scanner_link" >
             <visual>
-                <origin xyz="0 0 0" rpy="1.57 0 1.57" />
+                <origin xyz="0 0 0" rpy="0 0 0" />
                 <geometry>
-                    <mesh filename="package://pf_description/meshes/R2000.stl" scale="0.001 0.001 0.001" />
+                    <mesh filename="$(find pf_description)/meshes/R2000.dae" />
                 </geometry>
             </visual>
 
             <collision>
-                <origin xyz="0 0 0.045" rpy="0 0 0" />
+                <origin xyz="-0.0058 0 -0.03885" rpy="0 0 0" />
                 <geometry>
-                    <box size="0.108 0.118 0.128" />
+                    <box size="0.118 0.108 0.117" />
                 </geometry>
             </collision>
         </link>
