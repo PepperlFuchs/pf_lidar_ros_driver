@@ -1,17 +1,23 @@
 #pragma once
 
-#include <ros/serialization.h>
-#include "pf_driver/PFHeader.h"
+# include <boost/smart_ptr.hpp>
+#include <vector>
+
+#include <rclcpp/serialization.hpp>
+#include <rclcpp/serialized_message.hpp>
+#include <rclcpp/time.hpp>
+#include "pf_interfaces/msg/pf_header.hpp"
 
 class PFPacketReader;
 
 class PFPacket
 {
 public:
-  ros::Time last_acquired_point_stamp;
-  pf_driver::PFHeader header;
+  rclcpp::Time last_acquired_point_stamp;
+  pf_interfaces::msg::PFHeader header;
   std::vector<uint32_t> distance;
   std::vector<uint16_t> amplitude;
+  rclcpp::Serialization<pf_interfaces::msg::PFHeader> serialization;
 
   virtual void read_with(PFPacketReader& reader)
   {
@@ -23,6 +29,6 @@ public:
 protected:
   virtual size_t get_size() = 0;
   virtual void get_type(char* p_type) = 0;
-  virtual std::tuple<uint16_t, uint32_t, uint16_t> read_header(ros::serialization::IStream& stream) = 0;
+  virtual std::tuple<uint16_t, uint32_t, uint16_t> read_header(rclcpp::SerializedMessage &serialized_msg) = 0;
   virtual void read_data(uint8_t* buf, size_t num) = 0;
 };

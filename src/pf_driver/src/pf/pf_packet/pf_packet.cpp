@@ -7,11 +7,11 @@ bool PFPacket::parse_buf(uint8_t* buf, size_t buf_len, size_t& remainder, size_t
   const size_t SIZE = get_size();
   boost::shared_array<uint8_t> buffer(new uint8_t[SIZE]);
   std::copy(buf, buf + SIZE, buffer.get());
-  ros::serialization::IStream stream(buffer.get(), SIZE);
+  rclcpp::SerializedMessage serialized_msg(*buffer.get());
   uint16_t h_size;
   uint32_t p_size;
   uint16_t num;
-  std::tie(h_size, p_size, num) = read_header(stream);
+  std::tie(h_size, p_size, num) = read_header(serialized_msg);
 
   auto data_size = p_size - h_size;
   if (buf_len < p_size)
