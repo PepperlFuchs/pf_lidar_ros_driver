@@ -8,7 +8,7 @@ class PFR2000Packet : public PFPacket
 public:
   virtual size_t get_size();
 
-  virtual std::tuple<uint16_t, uint32_t, uint16_t> read_header(rclcpp::SerializedMessage &serialized_msg);
+  virtual std::tuple<uint16_t, uint32_t, uint16_t> read_header(rclcpp::SerializedMessage& serialized_msg);
 
   pf_interfaces::msg::PFR2000Header header;
 };
