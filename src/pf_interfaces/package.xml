@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>pf_interfaces</name>
+  <version>2.0.0</version>
+  <description>The Pepperl+Fuchs LiDAR interfaces package</description>
+
+  <maintainer email="harshavardhan.deshpande@ipa.fraunhofer.de">Harsh Deshpande</maintainer>
+  <author email="harshavardhan.deshpande@ipa.fraunhofer.de">Harsh Deshpande</author>
+  <license>Apache2.0</license>
+  <url type="website">https://github.com/PepperlFuchs/pf_lidar_ros_driver</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+
+  <exec_depend>rosidl_default_runtime</exec_depend>
+
+  <member_of_group>rosidl_interface_packages</member_of_group>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
