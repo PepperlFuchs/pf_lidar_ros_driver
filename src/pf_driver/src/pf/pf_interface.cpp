@@ -26,7 +26,7 @@ num_layers_ = num_layers;
 
 protocol_interface_ = std::make_shared<PFSDPBase>(info, config, params);
 // This is the first time ROS communicates with the device
-auto opi = protocol_interface_->get_protocol_info();
+auto opi = protocol_interface_ -> get_protocol_info();
 if (opi.isError)
 {
   RCLCPP_ERROR(node_->get_logger(), "Unable to communicate with device. Please check the IP address");
