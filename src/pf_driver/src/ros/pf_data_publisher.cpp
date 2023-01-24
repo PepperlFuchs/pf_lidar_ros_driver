@@ -1,7 +1,7 @@
 //#include <exception>
 //#include <limits>
 //#include <utility>
-
+#include <rclcpp/duration.hpp>
 #include "pf_driver/ros/pf_data_publisher.h"
 #include "pf_driver/pf/pf_packet/pf_r2000_packet_a.h"
 #include "pf_driver/pf/pf_packet/pf_r2000_packet_b.h"
@@ -63,7 +63,7 @@ void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx, int layer_incl
     d_queue_.pop_front();
   if (packet.header.header.packet_number == 1)
   {
-    const auto scan_time = ros::Duration(1000.0 / packet.header.scan_frequency);
+    const auto scan_time = rclcpp::Duration(1000.0 / packet.header.scan_frequency);
     msg.reset(new sensor_msgs::LaserScan());
     msg->header.frame_id.assign(frame_id_);
     msg->header.seq = packet.header.header.scan_number;

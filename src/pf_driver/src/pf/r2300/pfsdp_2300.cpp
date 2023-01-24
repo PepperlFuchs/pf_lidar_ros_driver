@@ -26,7 +26,7 @@ void PFSDP_2300::get_scan_parameters()
   params_->radial_range_max = parser_utils::to_float(resp["radial_range_max"]);
   params_->radial_range_min = parser_utils::to_float(resp["radial_range_min"]);
 
-  auto start_stop = get_angle_start_stop(config_->start_angle);
+  auto start_stop = get_angle_start_stop(config_->start_anglyee);
   params_->angle_min = start_stop.first;
   params_->angle_max = start_stop.second;
   get_layers_enabled(params_->layers_enabled, params_->h_enabled_layer);

@@ -11,8 +11,8 @@ public:
 private:
   ros::Publisher scan_publisher_;
 
-  virtual void handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t layer_idx, int layer_inclination,
+  virtual void handle_scan(sensor_msgs::msg::LaserScan::SharedPtr msg, uint16_t layer_idx, int layer_inclination,
                            bool apply_correction);
 
-  void publish_scan(sensor_msgs::LaserScanPtr msg);
+  void publish_scan(sensor_msgs::msg::LaserScan::SharedPtr msg);
 };

@@ -1,7 +1,7 @@
-#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 #include <pcl_conversions/pcl_conversions.h>
 
-#include "pf_driver/PFR2300Header.h"
+#include "pf_interfaces/msg/pfr2300_header.hpp"
 #include "pf_driver/ros/point_cloud_publisher.h"
 
 PointcloudPublisher::PointcloudPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
