@@ -3,7 +3,6 @@
 #include <string>
 #include <memory>
 #include <future>
-#include <dynamic_reconfigure/server.h>
 
 #include "pf_driver/pf/pf_parser.h"
 #include "pf_driver/pf/pf_writer.h"
@@ -12,8 +11,6 @@
 #include "pf_driver/communication/transport.h"
 #include "pf_driver/pf/r2000/pfsdp_2000.h"
 #include "pf_driver/pf/r2300/pfsdp_2300.h"
-#include "pf_driver/PFDriverR2000Config.h"
-#include "pf_driver/PFDriverR2300Config.h"
 
 class PFInterface
 {
