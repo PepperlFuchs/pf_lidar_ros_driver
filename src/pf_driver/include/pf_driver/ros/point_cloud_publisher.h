@@ -18,7 +18,7 @@ public:
                       const std::string& part);
 
 private:
-  sensor_msgs::PointCloud2::SharedPtr cloud_;
+  sensor_msgs::msg::PointCloud2::SharedPtr cloud_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
   laser_geometry::LaserProjection projector_;
@@ -31,17 +31,17 @@ private:
   std::shared_ptr<tf2_ros::StaticTransformBroadcaster> tf_static_broadcaster_;
   std::vector<int> angles_;
 
-  virtual void handle_scan(sensor_msgs::LaserScan::SharedPtr msg, uint16_t layer_idx, int layer_inclination,
+  virtual void handle_scan(sensor_msgs::msg::LaserScan::SharedPtr msg, uint16_t layer_idx, int layer_inclination,
                            bool apply_correction);
-  void add_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
-  void copy_pointcloud(sensor_msgs::PointCloud2& c1, sensor_msgs::PointCloud2 c2);
+  void add_pointcloud(sensor_msgs::msg::PointCloud2& c1, sensor_msgs::msg::PointCloud2 c2);
+  void copy_pointcloud(sensor_msgs::msg::PointCloud2& c1, sensor_msgs::msg::PointCloud2 c2);
 
-  void project_laser(sensor_msgs::PointCloud2& c, sensor_msgs::LaserScan::SharedPtr msg, const int layer_inclination);
+  void project_laser(sensor_msgs::msg::PointCloud2& c, sensor_msgs::msg::LaserScan::SharedPtr msg, const int layer_inclination);
 
   virtual void resetCurrentScans();
 
   void publish_static_transform(const std::string& parent, const std::string& child, int inclination_angle);
 
   virtual void publish_header(pf_interfaces::msg::PFR2300Header& header);
-  void publish_scan(sensor_msgs::LaserScan::SharedPtr msg, uint16_t idx);
+  void publish_scan(sensor_msgs::msg::LaserScan::SharedPtr msg, uint16_t idx);
 };
