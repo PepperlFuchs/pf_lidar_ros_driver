@@ -1,6 +1,11 @@
-#include "pf_driver/pf/r2300/pfsdp_2300.h"
+#include <cmath>
 
+#include "pf_driver/pf/r2300/pfsdp_2300.h"
 #include "pf_driver/pf/parser_utils.h"
+
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
 
 PFSDP_2300::PFSDP_2300(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
                        std::shared_ptr<ScanParameters> params)
@@ -26,7 +31,7 @@ void PFSDP_2300::get_scan_parameters()
   params_->radial_range_max = parser_utils::to_float(resp["radial_range_max"]);
   params_->radial_range_min = parser_utils::to_float(resp["radial_range_min"]);
 
-  auto start_stop = get_angle_start_stop(config_->start_anglyee);
+  auto start_stop = get_angle_start_stop(config_->start_angle);
   params_->angle_min = start_stop.first;
   params_->angle_max = start_stop.second;
   get_layers_enabled(params_->layers_enabled, params_->h_enabled_layer);
@@ -47,7 +52,7 @@ void PFSDP_2300::get_layers_enabled(uint16_t& enabled, uint16_t& highest)
   {
     if (vals[i].compare("on") == 0)
     {
-      enabled += pow(2, i);
+      enabled += std::pow(2, i);
       highest = i;
     }
   }
