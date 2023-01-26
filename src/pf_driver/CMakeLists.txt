@@ -11,6 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(pf_interfaces REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS  thread system)
 find_package(jsoncpp REQUIRED)
@@ -58,6 +59,7 @@ ament_target_dependencies(ros_main
   laser_geometry
   tf2_ros
   pcl_ros
+  pf_interfaces
 )
 
 #roslint_cpp(src/ros/ros_main.cpp
