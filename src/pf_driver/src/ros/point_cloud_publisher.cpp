@@ -90,8 +90,8 @@ void PointcloudPublisher::publish_scan(sensor_msgs::msg::LaserScan::SharedPtr ms
   scan_publishers_.at(idx)->publish(*msg);
 }
 
-void PointcloudPublisher::handle_scan(sensor_msgs::msg::LaserScan::SharedPtr msg, uint16_t layer_idx, int layer_inclination,
-                                      bool apply_correction)
+void PointcloudPublisher::handle_scan(sensor_msgs::msg::LaserScan::SharedPtr msg, uint16_t layer_idx,
+                                      int layer_inclination, bool apply_correction)
 {
   publish_scan(msg, layer_idx);
 

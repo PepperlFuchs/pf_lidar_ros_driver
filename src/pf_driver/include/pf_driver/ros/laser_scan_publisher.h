@@ -4,7 +4,6 @@
 
 #include "pf_driver/ros/pf_data_publisher.h"
 
-
 class LaserscanPublisher : public PFDataPublisher, public rclcpp::Node
 {
 public:
