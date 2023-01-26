@@ -10,7 +10,7 @@
 #include "pf_driver/communication/udp_transport.h"
 #include "pf_driver/communication/tcp_transport.h"
 
-PFInterface::PFInterface() : state_(PFState::UNINIT)
+PFInterface::PFInterface(std::shared_ptr<rclcpp::Node> node) : node_(node), state_(PFState::UNINIT)
 {
 }
 

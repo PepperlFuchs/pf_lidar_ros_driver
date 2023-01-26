@@ -1,5 +1,6 @@
-#include "pf_driver/pf/pipeline.h"
+#include <rclcpp/rclcpp.hpp>
 
+#include "pf_driver/pf/pipeline.h"
 #include "pf_driver/pf/pf_packet/pf_packet.h"
 
 Pipeline::Pipeline(std::shared_ptr<Writer<PFPacket>> writer, std::shared_ptr<Reader<PFPacket>> reader,
@@ -24,7 +25,7 @@ bool Pipeline::start()
 
   if (!writer_->start() || !reader_->start())
   {
-    ROS_ERROR("Unable to establish connection");
+    RCLCPP_ERROR(rclcpp::get_logger("pipeline"), "Unable to establish connection");
     return false;
   }
 
@@ -78,7 +79,7 @@ void Pipeline::run_writer()
     for (auto& p : packets)
     {
       if (!queue_.try_enqueue(std::move(p)))
-        ROS_DEBUG("Queue overflow!");
+        RCLCPP_DEBUG(rclcpp::get_logger("pipeline"), "Queue overflow!");
     }
     packets.clear();
   }

@@ -1,13 +1,12 @@
 #include "pf_driver/ros/laser_scan_publisher.h"
 
-#include "pf_interfaces/msg/pfr2000_header.hpp"
 
 LaserscanPublisher::LaserscanPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
                                        const std::string& scan_topic, const std::string& frame_id)
-  : PFDataPublisher(config, params)
+  : PFDataPublisher(config, params), rclcpp::Node("laser_scan_publisher")
 {
-  scan_publisher_ = nh_.advertise<sensor_msgs::msg::LaserScan>(scan_topic, 1);
-  header_publisher_ = nh_.advertise<pf_interfaces::msg::PFR2000Header>("/r2000_header", 1);
+  scan_publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>(scan_topic, 1);
+  header_publisher_ = this->create_publisher<pf_interfaces::msg::PFR2000Header>("/r2000_header", 1);
   frame_id_ = frame_id;
 }
 
@@ -17,7 +16,12 @@ void LaserscanPublisher::handle_scan(sensor_msgs::msg::LaserScan::SharedPtr msg,
   publish_scan(msg);
 }
 
+void LaserscanPublisher::publish_header(pf_interfaces::msg::PFR2000Header& header)
+{
+  header_publisher_->publish(header);
+}
+
 void LaserscanPublisher::publish_scan(sensor_msgs::msg::LaserScan::SharedPtr msg)
 {
-  scan_publisher_.publish(msg);
+  scan_publisher_->publish(*msg);
 }

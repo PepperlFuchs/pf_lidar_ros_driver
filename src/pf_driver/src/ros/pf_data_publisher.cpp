@@ -8,6 +8,10 @@
 #include "pf_driver/pf/pf_packet/pf_r2000_packet_c.h"
 #include "pf_driver/pf/pf_packet/pf_r2300_packet_c1.h"
 
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+
 PFDataPublisher::PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params)
   : config_(config), params_(params)
 {
@@ -15,25 +19,25 @@ PFDataPublisher::PFDataPublisher(std::shared_ptr<ScanConfig> config, std::shared
 
 void PFDataPublisher::read(PFR2000Packet_A& packet)
 {
-  header_publisher_->publish(packet.header);
+  publish_header(packet.header);
   to_msg_queue<PFR2000Packet_A>(packet);
 }
 
 void PFDataPublisher::read(PFR2000Packet_B& packet)
 {
-  header_publisher_->publish(packet.header);
+  publish_header(packet.header);
   to_msg_queue<PFR2000Packet_B>(packet);
 }
 
 void PFDataPublisher::read(PFR2000Packet_C& packet)
 {
-  header_publisher_->publish(packet.header);
+  publish_header(packet.header);
   to_msg_queue<PFR2000Packet_C>(packet);
 }
 
 void PFDataPublisher::read(PFR2300Packet_C1& packet)
 {
-  header_publisher_.publish(packet.header);
+  publish_header(packet.header);
   to_msg_queue<PFR2300Packet_C1>(packet, packet.header.layer_index, packet.header.layer_inclination);
 }
 

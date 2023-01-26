@@ -3,10 +3,11 @@
 #include <deque>
 #include <mutex>
 
-#include <ros/ros.h>
 #include <sensor_msgs/msg/laser_scan.hpp>
 
 #include "pf_driver/pf/pf_packet_reader.h"
+#include "pf_interfaces/msg/pfr2000_header.hpp"
+#include "pf_interfaces/msg/pfr2300_header.hpp"
 
 class PFDataPublisher : public PFPacketReader
 {
@@ -23,9 +24,7 @@ public:
   virtual bool stop();
 
 protected:
-  ros::NodeHandle nh_;
   std::string frame_id_;
-  ros::Publisher header_publisher_;
   std::deque<sensor_msgs::msg::LaserScan::SharedPtr> d_queue_;
   std::mutex q_mutex_;
 
@@ -40,6 +39,14 @@ protected:
                            bool apply_correction = true) = 0;
 
   virtual void resetCurrentScans()
+  {
+  }
+
+  virtual void publish_header(pf_interfaces::msg::PFR2000Header& header)
+  {
+  }
+
+  virtual void publish_header(pf_interfaces::msg::PFR2300Header& header)
   {
   }
 };

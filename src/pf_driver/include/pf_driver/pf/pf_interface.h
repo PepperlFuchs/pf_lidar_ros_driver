@@ -4,6 +4,8 @@
 #include <memory>
 #include <future>
 
+#include <rclcpp/rclcpp.hpp>
+
 #include "pf_driver/pf/pf_parser.h"
 #include "pf_driver/pf/pf_writer.h"
 #include "pf_driver/pf/pf_packet_reader.h"
@@ -15,7 +17,7 @@
 class PFInterface
 {
 public:
-  PFInterface();
+  PFInterface(std::shared_ptr<rclcpp::Node> node);
 
   bool init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
             std::shared_ptr<ScanParameters> params, const std::string& topic, const std::string& frame_id,
@@ -29,8 +31,8 @@ public:
 private:
   using PipelinePtr = std::unique_ptr<Pipeline>;
 
-  ros::NodeHandle nh_;
-  ros::Timer watchdog_timer_;
+  std::shared_ptr<rclcpp::Node> node_;
+  rclcpp::TimerBase::SharedPtr watchdog_timer_;
   std::unique_ptr<Transport> transport_;
   std::shared_ptr<PFSDPBase> protocol_interface_;
   PipelinePtr pipeline_;
@@ -61,7 +63,7 @@ private:
   bool can_change_state(PFState state);
 
   void start_watchdog_timer(float duration);
-  void feed_watchdog(const ros::TimerEvent& e);  // timer based
+  void feed_watchdog();  // timer based
   void on_shutdown();
 
   // factory functions

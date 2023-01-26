@@ -6,7 +6,6 @@
 #include <vector>
 #include <memory>
 #include <mutex>
-#include <ros/ros.h>
 #include "pf_driver/queue/readerwriterqueue.h"
 #include "pf_driver/pf/writer.h"
 #include "pf_driver/pf/reader.h"
