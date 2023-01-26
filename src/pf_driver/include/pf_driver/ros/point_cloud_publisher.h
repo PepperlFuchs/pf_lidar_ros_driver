@@ -9,7 +9,6 @@
 
 #include "pf_driver/ros/pf_data_publisher.h"
 
-
 class PointcloudPublisher : public PFDataPublisher, public rclcpp::Node
 {
 public:
@@ -19,7 +18,7 @@ public:
 
 private:
   sensor_msgs::msg::PointCloud2::SharedPtr cloud_;
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_{ nullptr };
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
   laser_geometry::LaserProjection projector_;
   rclcpp::Publisher<pf_interfaces::msg::PFR2300Header>::SharedPtr header_publisher_;
@@ -36,7 +35,8 @@ private:
   void add_pointcloud(sensor_msgs::msg::PointCloud2& c1, sensor_msgs::msg::PointCloud2 c2);
   void copy_pointcloud(sensor_msgs::msg::PointCloud2& c1, sensor_msgs::msg::PointCloud2 c2);
 
-  void project_laser(sensor_msgs::msg::PointCloud2& c, sensor_msgs::msg::LaserScan::SharedPtr msg, const int layer_inclination);
+  void project_laser(sensor_msgs::msg::PointCloud2& c, sensor_msgs::msg::LaserScan::SharedPtr msg,
+                     const int layer_inclination);
 
   virtual void resetCurrentScans();
 
