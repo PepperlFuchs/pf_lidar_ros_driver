@@ -19,7 +19,7 @@
 class UDPTransport : public Transport
 {
 public:
-  UDPTransport(std::string address);
+  UDPTransport(std::string address, std::string port = "0");
 
   ~UDPTransport();
 
