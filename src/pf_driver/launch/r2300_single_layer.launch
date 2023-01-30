@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="device" default="R2300"/>
+
+  <include file="$(find pf_description)/launch/pf_bringup.launch" >
+    <arg name="scanner" value="r2300" />
+  </include>
+
+  <!-- R2300 Driver -->
+  <node pkg="pf_driver" type="ros_main" name="r2300_node" output="screen">
+    <param name="device" value="$(arg device)"/>
+    <rosparam file="$(find pf_driver)/config/r2300_single_layer_params.yaml" command="load"/>
+    <rosparam file="$(find pf_driver)/config/correction_params.yaml" command="load"/>
+  </node>
+
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find pf_driver)/rviz/r2300_single_layer.rviz" />
+</launch>
