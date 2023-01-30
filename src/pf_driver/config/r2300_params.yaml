@@ -1,6 +1,7 @@
 R2300:
   transport: "udp"
   scanner_ip: "10.0.10.76"
+  # port: "3000" # optional
   start_angle: -450000
   max_num_points_scan: 0
   packet_type: "C1"
