@@ -11,7 +11,7 @@
     <include file="$(find pf_description)/launch/pf_bringup.launch" >
       <arg name="scanner" value="r2300" />
     </include>
-  <group>
+  </group>
 
   <!-- R2300 Driver -->
   <node pkg="pf_driver" type="ros_main" name="r2300_node" output="screen">
