@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 
   auto node = std::make_shared<rclcpp::Node>("pf_driver");
 
-  node->declare_parameter<std::string>("device");
+  node->declare_parameter<std::string>("device", "");
   std::string device = node->get_parameter("device").get_parameter_value().get<std::string>();
 
   bool init_valid = true;
