@@ -18,6 +18,9 @@
 #include <memory>
 #include <functional>
 
+#include <rclcpp/node.hpp>
+#include <boost/algorithm/string.hpp>
+
 #include "pf_driver/pf/http_helpers/http_interface.h"
 #include "pf_driver/pf/http_helpers/param_type.h"
 #include "pf_driver/pf/http_helpers/param_map_type.h"
@@ -53,12 +56,13 @@ private:
                    const std::string& err_http);
 
 protected:
+  std::shared_ptr<rclcpp::Node> node_;
   std::shared_ptr<HandleInfo> info_;
   std::shared_ptr<ScanConfig> config_;
   std::shared_ptr<ScanParameters> params_;
 
 public:
-  PFSDPBase(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
+  PFSDPBase(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
             std::shared_ptr<ScanParameters> params);
 
   void set_connection_failure_cb(std::function<void()> callback);
@@ -121,5 +125,20 @@ public:
 
   virtual void get_scan_parameters();
 
-  virtual void setup_param_server();
+  void setup_parameters_callback();
+
+  void declare_critical_parameters();
+
+  void declare_common_parameters();
+
+  virtual void declare_specific_parameters()
+  {
+  }
+
+  virtual bool reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters);
+
+  rcl_interfaces::msg::SetParametersResult reconfig_callback(const std::vector<rclcpp::Parameter>& parameters);
+
+private:
+  rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr parameters_handle_;
 };

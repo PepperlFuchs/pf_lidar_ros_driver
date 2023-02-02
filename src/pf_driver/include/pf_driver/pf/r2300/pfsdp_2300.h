@@ -5,7 +5,7 @@
 class PFSDP_2300 : public PFSDPBase
 {
 public:
-  PFSDP_2300(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
+  PFSDP_2300(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
              std::shared_ptr<ScanParameters> params);
 
   virtual std::string get_product();
@@ -22,4 +22,8 @@ private:
   virtual std::pair<float, float> get_angle_start_stop(int start_angle);
 
   virtual std::string get_start_angle_str();
+
+  virtual bool reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters) override;
+
+  virtual void declare_specific_parameters() override;
 };

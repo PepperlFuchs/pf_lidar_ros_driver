@@ -7,10 +7,11 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-PFSDP_2300::PFSDP_2300(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
-                       std::shared_ptr<ScanParameters> params)
-  : PFSDPBase(info, config, params)
+PFSDP_2300::PFSDP_2300(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<HandleInfo> info,
+                       std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params)
+  : PFSDPBase(node, info, config, params)
 {
+  declare_specific_parameters();
 }
 
 std::string PFSDP_2300::get_product()
@@ -36,10 +37,6 @@ void PFSDP_2300::get_scan_parameters()
   params_->angle_max = start_stop.second;
   get_layers_enabled(params_->layers_enabled, params_->h_enabled_layer);
   params_->scan_freq = parser_utils::to_float(resp["scan_frequency"]);
-}
-
-void PFSDP_2300::setup_param_server()
-{
 }
 
 void PFSDP_2300::get_layers_enabled(uint16_t& enabled, uint16_t& highest)
@@ -72,4 +69,25 @@ std::pair<float, float> PFSDP_2300::get_angle_start_stop(int start_angle)
 std::string PFSDP_2300::get_start_angle_str()
 {
   return std::string("start_angle");
+}
+
+void PFSDP_2300::declare_specific_parameters()
+{
+}
+
+bool PFSDP_2300::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters)
+{
+  bool successful = PFSDPBase::reconfig_callback_impl(parameters);
+
+  for (const auto& parameter : parameters)
+  {
+    if (parameter.get_name() == "measure_start_angle" || parameter.get_name() == "measure_stop_angle" ||
+        parameter.get_name() == "pilot_start_angle" || parameter.get_name() == "pilot_stop_angle" ||
+        parameter.get_name() == "layer_enable" || parameter.get_name() == "pilot_laser")
+    {
+      set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
+    }
+  }
+
+  return successful;
 }

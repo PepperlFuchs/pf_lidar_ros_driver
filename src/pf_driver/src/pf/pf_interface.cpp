@@ -26,7 +26,7 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
   frame_id_ = frame_id;
   num_layers_ = num_layers;
 
-  protocol_interface_ = std::make_shared<PFSDPBase>(info, config, params);
+  protocol_interface_ = std::make_shared<PFSDPBase>(node_, info, config, params);
   // This is the first time ROS communicates with the device
   auto opi = protocol_interface_->get_protocol_info();
   if (opi.isError)
@@ -94,9 +94,7 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
 
   prev_handle_ = info_->handle;
 
-  protocol_interface_->setup_param_server();
   protocol_interface_->set_connection_failure_cb(std::bind(&PFInterface::connection_failure_cb, this));
-  //   protocol_interface_->update_scanoutput_config();
   change_state(PFState::INIT);
   return true;
 }
@@ -213,14 +211,14 @@ bool PFInterface::handle_version(int major_version, int minor_version, int devic
   if (device_family == 1 || device_family == 3 || device_family == 6)
   {
     expected_dev = "R2000";
-    protocol_interface_ = std::make_shared<PFSDP_2000>(info_, config_, params_);
+    protocol_interface_ = std::make_shared<PFSDP_2000>(node_, info_, config_, params_);
     reader_ =
         std::shared_ptr<PFPacketReader>(new LaserscanPublisher(config_, params_, topic.c_str(), frame_id.c_str()));
   }
   else if (device_family == 5 || device_family == 7)
   {
     expected_dev = "R2300";
-    protocol_interface_ = std::make_shared<PFSDP_2300>(info_, config_, params_);
+    protocol_interface_ = std::make_shared<PFSDP_2300>(node_, info_, config_, params_);
 
     if (device_family == 5)
     {

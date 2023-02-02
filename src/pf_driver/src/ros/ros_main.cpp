@@ -25,6 +25,18 @@ int main(int argc, char* argv[])
   // transport_str_desc.name = "transport";
   // transport_str_desc.type = rcl_interfaces::msg::ParameterType::PARAMETER_STRING;
 
+  rcl_interfaces::msg::ParameterDescriptor descriptorScanTopic;
+  descriptorScanTopic.name = "Scan topic";
+  descriptorScanTopic.description = "Topic on which the LaserScan messages will be published";
+  descriptorScanTopic.read_only = true;
+  node->declare_parameter<std::string>("scan_topic", "/scan", descriptorScanTopic);
+
+  rcl_interfaces::msg::ParameterDescriptor descriptorFrameId;
+  descriptorFrameId.name = "Scan frame ID";
+  descriptorFrameId.description = "Frame ID in which the LaserScan messages will be published";
+  descriptorFrameId.read_only = true;
+  node->declare_parameter<std::string>("frame_id", "scanner", descriptorScanTopic);
+
   // declare parameters with device-specific namespace
   std::map<std::string, std::string> device_params = { { "transport", "udp" },
                                                        { "scanner_ip", "" },
