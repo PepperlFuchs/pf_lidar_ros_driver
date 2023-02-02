@@ -375,10 +375,9 @@ void PFSDPBase::declare_common_parameters()
 
   rcl_interfaces::msg::ParameterDescriptor descriptorScanFreqency;
   descriptorScanFreqency.name = "Scan frequency";
-  descriptorScanFreqency.description =
-      "The parameter scan_frequency defines the set point for the rotational speed of "
-      "the sensor head and therefore the number of scans recorded per second. For the "
-      "R2000 valid values range from 10 Hz to 50 Hz with steps of 1 Hz.";
+  descriptorScanFreqency.description = "The parameter scan_frequency defines the set point for the rotational speed of "
+                                       "the sensor head and therefore the number of scans recorded per second. For the "
+                                       "R2000 valid values range from 10 Hz to 50 Hz with steps of 1 Hz.";
   rcl_interfaces::msg::IntegerRange rangeScanFrequency;
   rangeScanFrequency.from_value = 10;
   rangeScanFrequency.to_value = 50;

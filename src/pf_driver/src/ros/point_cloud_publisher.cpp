@@ -18,7 +18,9 @@ PointcloudPublisher::PointcloudPublisher(std::shared_ptr<ScanConfig> config, std
   // ROS 2 does not supported mixed type nested params at the momemt
   // Parsing the config YAML file directly
   std::string correction_params_file =
-      ament_index_cpp::get_package_share_directory("pf_driver") + "/config/correction_params.yaml";
+      ament_index_cpp::get_package_share_directory("pf_driver") + "/config/"
+                                                                  "correction_params."
+                                                                  "yaml";
 
   YAML::Node angles_param_yaml = YAML::LoadFile(correction_params_file);
   auto angles_param = angles_param_yaml["correction_params"];
