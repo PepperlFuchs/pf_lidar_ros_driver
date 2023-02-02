@@ -1,5 +1,7 @@
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <pcl_conversions/pcl_conversions.h>
+#include <yaml-cpp/yaml.h>
 
 #include "pf_interfaces/msg/pfr2300_header.hpp"
 #include "pf_driver/ros/point_cloud_publisher.h"
@@ -12,21 +14,24 @@ PointcloudPublisher::PointcloudPublisher(std::shared_ptr<ScanConfig> config, std
   tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
   tf_static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
-  // ros::NodeHandle p_nh("~/");
 
-  // XmlRpc::XmlRpcValue angles_param;
-  // p_nh.getParam("correction_params", angles_param);
+  // ROS 2 does not supported mixed type nested params at the momemt
+  // Parsing the config YAML file directly
+  std::string correction_params_file =
+      ament_index_cpp::get_package_share_directory("pf_driver") + "/config/correction_params.yaml";
+
+  YAML::Node angles_param_yaml = YAML::LoadFile(correction_params_file);
+  auto angles_param = angles_param_yaml["correction_params"];
 
   angles_.resize(num_layers);
 
   for (size_t i = 0; i < angles_param.size(); i++)
   {
-    angles_[i] = angles_param[i]["ang"];
-    auto coeff_param = angles_param[i]["coeff"];
+    angles_[i] = angles_param[i]["ang"].as<int>();
     std::vector<double> coeffs;
-    for (size_t j = 0; j < coeff_param.size(); j++)
+    for (auto c : angles_param[i]["coeff"])
     {
-      coeffs.push_back(coeff_param[j]);
+      coeffs.push_back(c.as<double>());
     }
 
     correction_params_[angles_[i]] = coeffs;

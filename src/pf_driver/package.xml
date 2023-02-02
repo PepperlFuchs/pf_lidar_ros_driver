@@ -23,6 +23,7 @@
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
   <depend>tf2</depend>
+  <depend>yaml-cpp</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

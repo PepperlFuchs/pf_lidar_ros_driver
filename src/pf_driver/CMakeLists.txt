@@ -15,6 +15,7 @@ find_package(pf_interfaces REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS  thread system)
 find_package(jsoncpp REQUIRED)
+find_package(yaml-cpp REQUIRED)
 get_target_property(jsoncpp_INCLUDE_DIRS jsoncpp_lib INTERFACE_INCLUDE_DIRECTORIES)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(CURLPP REQUIRED curlpp)
@@ -52,6 +53,7 @@ target_link_libraries(ros_main
   curlpp
   curl
   jsoncpp
+  yaml-cpp
 )
 ament_target_dependencies(ros_main
   rclcpp
