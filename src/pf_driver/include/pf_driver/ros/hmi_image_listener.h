@@ -1,22 +1,21 @@
 #pragma once
 
-#include <rclcpp/node.hpp>
-#include <rclcpp/subscription.hpp>
-#include <sensor_msgs/msg/image.hpp>
+#include <ros/ros.h>
+#include <sensor_msgs/Image.h>
 
 class PFSDPBase;
 
 class HmiImageListener
 {
   public:
-    HmiImageListener(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<PFSDPBase> protocol);
+    HmiImageListener(std::shared_ptr<PFSDPBase> protocol);
 
 
   private:
-    void on_image_published(sensor_msgs::msg::Image::SharedPtr image);
+    void on_image_published(sensor_msgs::ImagePtr image);
 
-    std::shared_ptr<rclcpp::Node> node_;
-    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscriber_;
+    ros::NodeHandle nh_;
+    ros::Subscriber hmi_image_subscriber_;
     std::shared_ptr<PFSDPBase> protocol_;
 };
 

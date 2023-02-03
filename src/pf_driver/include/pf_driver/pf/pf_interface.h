@@ -14,6 +14,7 @@
 #include "pf_driver/pf/r2300/pfsdp_2300.h"
 #include "pf_driver/PFDriverR2000Config.h"
 #include "pf_driver/PFDriverR2300Config.h"
+#include "pf_driver/ros/hmi_image_listener.h"
 
 class PFInterface
 {
@@ -33,6 +34,7 @@ private:
   using PipelinePtr = std::unique_ptr<Pipeline>;
 
   ros::NodeHandle nh_;
+  std::shared_ptr<HmiImageListener> hmi_image_listener_;
   ros::Timer watchdog_timer_;
   std::unique_ptr<Transport> transport_;
   std::shared_ptr<PFSDPBase> protocol_interface_;

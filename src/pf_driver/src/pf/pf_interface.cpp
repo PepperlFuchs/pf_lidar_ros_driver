@@ -95,7 +95,10 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
 
   protocol_interface_->setup_param_server();
   protocol_interface_->set_connection_failure_cb(std::bind(&PFInterface::connection_failure_cb, this));
-  hmi_listener_ = std::make_shared<HmiImageListener>(node_, protocol_interface_);
+
+  // this is the only ROS interface in this class
+  // Maybe need a better solution
+  hmi_image_listener_ = std::make_shared<HmiImageListener>(protocol_interface_);
   //   protocol_interface_->update_scanoutput_config();
   change_state(PFState::INIT);
   return true;

@@ -74,7 +74,7 @@ add_executable(ros_main src/pf/pf_interface.cpp
                         src/ros/laser_scan_publisher.cpp
                         src/ros/point_cloud_publisher.cpp
                         src/ros/pf_data_publisher.cpp
-                        )
+                        src/ros/hmi_image_listener.cpp)
 target_link_libraries(ros_main
   ${catkin_LIBRARIES} curlpp curl jsoncpp
 )

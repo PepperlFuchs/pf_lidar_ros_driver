@@ -1,21 +1,16 @@
 #include "pf_driver/ros/hmi_image_listener.h"
 
 #include <b64/encode.h>
-#include <sensor_msgs/image_encodings.hpp>
-#include "pf_driver/pf/pfsdp_protocol.hpp"
+#include <sensor_msgs/image_encodings.h>
+#include "pf_driver/pf/pfsdp_base.h"
 
-HmiImageListener::HmiImageListener(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<PFSDPBase> protocol)
-  : node_(node)
-  , subscriber_(node_->create_subscription<sensor_msgs::msg::Image>("/hmi_image",
-                                                                    10,
-                                                                    std::bind(&HmiImageListener::on_image_published,
-                                                                              this,
-                                                                              std::placeholders::_1)))
-  , protocol_(protocol)
+HmiImageListener::HmiImageListener(std::shared_ptr<PFSDPBase> protocol) : protocol_(protocol)
 {
+  hmi_image_subscriber_ =
+      nh_.subscribe("/hmi_image", 10, &HmiImageListener::on_image_published, this);
 }
 
-void HmiImageListener::on_image_published(sensor_msgs::msg::Image::SharedPtr image)
+void HmiImageListener::on_image_published(sensor_msgs::ImagePtr image)
 {
   const int byte_depth = sensor_msgs::image_encodings::bitDepth(image->encoding) / 8;
   const int channels = sensor_msgs::image_encodings::numChannels(image->encoding);
@@ -32,15 +27,15 @@ void HmiImageListener::on_image_published(sensor_msgs::msg::Image::SharedPtr ima
   char raw_data[raw_data_size];
   memset(raw_data, 0, raw_data_size);
 
-  for(size_t x = 0 ; x < scanner_image_width && x < image_width ; ++x)
+  for (size_t x = 0; x < scanner_image_width && x < image_width; ++x)
   {
-    for(size_t y = 0 ; y < scanner_image_height && y < image_height ; ++y)
+    for (size_t y = 0; y < scanner_image_height && y < image_height; ++y)
     {
-      for(size_t channel = 0 ; channel < channels ; ++channel)
+      for (size_t channel = 0; channel < channels; ++channel)
       {
-        for(size_t byte = 0 ; byte < byte_depth ; ++byte)
+        for (size_t byte = 0; byte < byte_depth; ++byte)
         {
-          if(image->data[y * step + x * channels * byte_depth + channel * byte_depth + byte])
+          if (image->data[y * step + x * channels * byte_depth + channel * byte_depth + byte])
           {
             size_t byte_index = (x * scanner_image_height_bytes) + (2 - y / 8);
             raw_data[byte_index] |= (1 << (y % 8));
