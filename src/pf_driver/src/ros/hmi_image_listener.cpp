@@ -6,8 +6,7 @@
 
 HmiImageListener::HmiImageListener(std::shared_ptr<PFSDPBase> protocol) : protocol_(protocol)
 {
-  hmi_image_subscriber_ =
-      nh_.subscribe("/hmi_image", 10, &HmiImageListener::on_image_published, this);
+  hmi_image_subscriber_ = nh_.subscribe("/hmi_image", 10, &HmiImageListener::on_image_published, this);
 }
 
 void HmiImageListener::on_image_published(sensor_msgs::ImagePtr image)
