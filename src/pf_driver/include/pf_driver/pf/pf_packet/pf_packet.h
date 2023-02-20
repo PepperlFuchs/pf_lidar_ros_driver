@@ -8,6 +8,7 @@ class PFPacketReader;
 class PFPacket
 {
 public:
+  ros::Time last_acquired_point_stamp;
   pf_driver::PFHeader header;
   std::vector<uint32_t> distance;
   std::vector<uint16_t> amplitude;

@@ -78,8 +78,6 @@ void PointcloudPublisher::publish_static_transform(const std::string& parent, co
 
 void PointcloudPublisher::publish_scan(sensor_msgs::LaserScanPtr msg, uint16_t idx)
 {
-  ros::Time t = ros::Time::now();
-  msg->header.stamp = t;
   msg->header.frame_id = frame_ids_.at(idx);
   scan_publishers_.at(idx).publish(msg);
 }

@@ -19,7 +19,5 @@ void LaserscanPublisher::handle_scan(sensor_msgs::LaserScanPtr msg, uint16_t lay
 
 void LaserscanPublisher::publish_scan(sensor_msgs::LaserScanPtr msg)
 {
-  ros::Time t = ros::Time::now();
-  msg->header.stamp = t;
-  scan_publisher_.publish(std::move(msg));
+  scan_publisher_.publish(msg);
 }
