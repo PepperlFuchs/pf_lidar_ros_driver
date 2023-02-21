@@ -87,14 +87,21 @@ int main(int argc, char* argv[])
       return -1;
     }
     retrying = true;
-    // wait for condition variable
-    std::unique_lock<std::mutex> net_lock(*net_mtx_);
-    net_cv_->wait(net_lock, [&net_fail] { return net_fail; });
-    ROS_ERROR("Network failure");
+    {
+      // wait for condition variable
+      std::unique_lock<std::mutex> net_lock(*net_mtx_);
+      while (ros::ok() &&
+             !net_cv_->wait_for(net_lock, std::chrono::milliseconds(1000), [&net_fail] { return net_fail; }))
+      {
+      };
+      if (ros::ok())
+      {
+        ROS_ERROR("Network failure");
+      }
+    }
     pf_interface.terminate();
   }
 
-  ros::waitForShutdown();
   pf_interface.stop_transmission();
   return 0;
 }
