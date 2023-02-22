@@ -41,7 +41,8 @@ public:
   virtual bool get(std::vector<std::unique_ptr<T>>& packets)
   {
     std::unique_lock<std::mutex> lck(mtx_);
-    if (!is_running_){
+    if (!is_running_)
+    {
       return false;
     }
     boost::array<uint8_t, 4096> buf;
