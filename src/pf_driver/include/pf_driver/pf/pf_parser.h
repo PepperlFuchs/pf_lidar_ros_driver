@@ -35,6 +35,7 @@ public:
       size_t p_size = 0;
       if (!packet->parse_buf(buf, buf_len, remainder, p_size))
         break;
+      packet->last_acquired_point_stamp = ros::Time::now();
       results.push_back(std::move(packet));
       ++count;
 
