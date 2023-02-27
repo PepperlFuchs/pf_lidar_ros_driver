@@ -1,8 +1,9 @@
 #include "pf_driver/pf/pf_packet/pf_r2000_packet.h"
+#include <iostream>
 
 size_t PFR2000Packet::get_size()
 {
-  return 0;  // ros::serialization::serializationLength(header);
+  return header_size;
 }
 
 std::tuple<uint16_t, uint32_t, uint16_t> PFR2000Packet::read_header(rclcpp::SerializedMessage& serialized_msg)

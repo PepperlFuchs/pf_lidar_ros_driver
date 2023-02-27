@@ -27,6 +27,7 @@ public:
   bool parse_buf(uint8_t* buf, size_t buf_len, size_t& remainder, size_t& p_size);
 
 protected:
+  size_t header_size;
   virtual size_t get_size() = 0;
   virtual void get_type(char* p_type) = 0;
   virtual std::tuple<uint16_t, uint32_t, uint16_t> read_header(rclcpp::SerializedMessage& serialized_msg) = 0;
