@@ -32,11 +32,6 @@ void PFSDP_2000::get_scan_parameters()
 
 void PFSDP_2000::declare_specific_parameters()
 {
-  rcl_interfaces::msg::ParameterDescriptor descriptorPacketType;
-  descriptorPacketType.name = "Packet type";
-  descriptorPacketType.description = "Packet type for scan data output";
-  descriptorPacketType.read_only = true;
-  node_->declare_parameter<std::string>("packet_type", "C", descriptorPacketType);
 }
 
 bool PFSDP_2000::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters)
