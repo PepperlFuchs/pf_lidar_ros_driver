@@ -175,7 +175,8 @@ bool PFInterface::init()
 void PFInterface::start_watchdog_timer(float duration)
 {
   // dividing the watchdogtimeout by 2 to have a “safe” feed time within the defined timeout
-  float feed_time = std::min(duration, 60.0f) / 2.0f;
+  float feed_time_sec = std::min(duration, 60.0f) / 2.0f;
+  int feed_time = feed_time_sec * 1000;
   watchdog_timer_ =
       node_->create_wall_timer(std::chrono::milliseconds(feed_time), std::bind(&PFInterface::feed_watchdog, this));
 }
