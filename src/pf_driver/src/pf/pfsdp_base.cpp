@@ -245,6 +245,8 @@ bool PFSDPBase::set_scanoutput_config(const std::string& handle, const ScanConfi
 
 bool PFSDPBase::update_scanoutput_config()
 {
+  set_parameter({ KV("samples_per_scan", std::to_string(config_->samples_per_scan)) });
+  set_parameter({ KV("scan_frequency", std::to_string(config_->scan_frequency)) });
   param_map_type query = { KV("handle", info_->handle),
                            KV("start_angle", config_->start_angle),
                            KV("packet_type", config_->packet_type),

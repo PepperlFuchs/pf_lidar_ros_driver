@@ -10,6 +10,8 @@ struct ScanConfig
   int start_angle = 0;
   uint max_num_points_scan = 0;
   uint skip_scans = 0;
+  int scan_frequency = 0;
+  int samples_per_scan = 0;
 
   // void print()
   // {

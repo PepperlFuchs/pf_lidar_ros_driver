@@ -8,7 +8,7 @@ bool PFPacket::parse_buf(uint8_t* buf, size_t buf_len, size_t& remainder, size_t
   const size_t SIZE = get_size();
   boost::shared_array<uint8_t> buffer(new uint8_t[SIZE]);
   std::copy(buf, buf + SIZE, buffer.get());
-
+  /*
   rcl_serialized_message_t msg = rmw_get_zero_initialized_serialized_message();
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   rcl_ret_t ret = rmw_serialized_message_init(&msg, 0u, &allocator);
@@ -22,12 +22,12 @@ bool PFPacket::parse_buf(uint8_t* buf, size_t buf_len, size_t& remainder, size_t
   msg.buffer = buf;
 
   rclcpp::SerializedMessage serialized_msg(msg);
-
+  */
   uint16_t h_size;
   uint32_t p_size;
   uint16_t num;
-  std::tie(h_size, p_size, num) = read_header(serialized_msg);
-
+  // std::tie(h_size, p_size, num) = read_header(serialized_msg);
+  std::tie(h_size, p_size, num) = read_header(buf, buf_len, (size_t)(76));
   auto data_size = p_size - h_size;
   if (buf_len < p_size)
     return false;

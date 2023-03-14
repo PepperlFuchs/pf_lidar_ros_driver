@@ -93,7 +93,7 @@ bool PFInterface::init(std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanCon
   }
 
   prev_handle_ = info_->handle;
-
+  protocol_interface_->update_scanoutput_config();
   protocol_interface_->set_connection_failure_cb(std::bind(&PFInterface::connection_failure_cb, this));
   change_state(PFState::INIT);
   return true;
