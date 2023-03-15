@@ -11,7 +11,6 @@ int main(int argc, char* argv[])
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<rclcpp::Node>("pf_driver");
-  RCLCPP_INFO(node->get_logger(), "Unable to initialize device");
 
   std::string device, transport_str, scanner_ip, port, topic, frame_id, packet_type;
   int scan_frequency, samples_per_scan, start_angle, max_num_points_scan, watchdogtimeout, num_layers;
