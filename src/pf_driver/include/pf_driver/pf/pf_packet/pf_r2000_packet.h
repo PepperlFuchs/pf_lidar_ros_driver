@@ -6,7 +6,8 @@
 class PFR2000Packet : public PFPacket
 {
 public:
-  PFR2000Packet() {
+  PFR2000Packet()
+  {
     auto serializer = rclcpp::Serialization<pf_interfaces::msg::PFR2000Header>();  
     rclcpp::SerializedMessage serialized_msg;
     serialization.serialize_message(&header, &serialized_msg);

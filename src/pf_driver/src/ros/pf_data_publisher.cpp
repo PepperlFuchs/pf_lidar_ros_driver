@@ -73,7 +73,7 @@ void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx, int layer_incl
     msg->header.frame_id.assign(frame_id_);
     // msg->header.seq = packet.header.header.scan_number;
     // msg->scan_time = static_cast<float>(scan_time.seconds());
-    msg->header.stamp = packet.last_acquired_point_stamp; // - scan_time; TODO: calculate time of first point 
+    msg->header.stamp = packet.last_acquired_point_stamp;  // - scan_time; TODO: calculate time of first point
     msg->angle_increment = packet.header.angular_increment / 10000.0 * (M_PI / 180.0);
 
     {

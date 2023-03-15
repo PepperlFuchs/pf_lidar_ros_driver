@@ -36,7 +36,7 @@ public:
       if (!packet->parse_buf(buf, buf_len, remainder, p_size))
         break;
       // packet->last_acquired_point_stamp = ros::Time::now();
-      packet->last_acquired_point_stamp = rclcpp::Clock().now();;
+      packet->last_acquired_point_stamp = rclcpp::Clock().now();
       results.push_back(std::move(packet));
       ++count;
 

@@ -15,6 +15,5 @@ std::tuple<uint16_t, uint32_t, uint16_t> PFR2300Packet::read_header(rclcpp::Seri
 // TODO
 std::tuple<uint16_t, uint32_t, uint16_t> PFR2300Packet::read_header(uint8_t* buf, size_t buf_len, size_t header_len)
 {
-  return std::tuple<uint16_t, uint32_t, uint16_t>(0, 0,
-                                                  0);
+  return std::tuple<uint16_t, uint32_t, uint16_t>(0, 0, 0);
 }

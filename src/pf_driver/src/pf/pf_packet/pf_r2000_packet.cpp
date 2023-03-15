@@ -16,9 +16,10 @@ std::tuple<uint16_t, uint32_t, uint16_t> PFR2000Packet::read_header(rclcpp::Seri
 std::tuple<uint16_t, uint32_t, uint16_t> PFR2000Packet::read_header(uint8_t* buf, size_t buf_len, size_t header_len)
 {
   char buffer[65536];
-  PacketHeaderData * p = reinterpret_cast<PacketHeaderData *>(buffer);
-  char * pp = reinterpret_cast<char *>(p);
-  if (buf_len < header_len) {
+  PacketHeaderData* p = reinterpret_cast<PacketHeaderData*>(buffer);
+  char* pp = reinterpret_cast<char*>(p);
+  if (buf_len < header_len)
+  {
     throw std::exception();
   }
 
@@ -39,6 +40,5 @@ std::tuple<uint16_t, uint32_t, uint16_t> PFR2000Packet::read_header(uint8_t* buf
   header.first_index = p->first_index;
   header.first_angle = p->first_angle;
   header.angular_increment = p->angular_increment;
-  return std::tuple<uint16_t, uint32_t, uint16_t>(p->header_size, p->packet_size,
-                                                  p->num_points_packet);
+  return std::tuple<uint16_t, uint32_t, uint16_t>(p->header_size, p->packet_size, p->num_points_packet);
 }
