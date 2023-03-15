@@ -30,7 +30,6 @@ std::tuple<uint16_t, uint32_t, uint16_t> PFR2000Packet::read_header(uint8_t* buf
   header.header.header_size = p->header_size;
   header.header.scan_number = p->scan_number;
   header.header.packet_number = p->packet_number;
-  
   header.timestamp_raw = p->timestamp_raw;
   header.timestamp_sync = p->timestamp_sync;
   header.status_flags = p->status_flags;
