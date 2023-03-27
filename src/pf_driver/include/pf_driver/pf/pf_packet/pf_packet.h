@@ -30,6 +30,6 @@ protected:
   size_t header_size;
   virtual size_t get_size() = 0;
   virtual void get_type(char* p_type) = 0;
-  virtual std::tuple<uint16_t, uint32_t, uint16_t> read_header(rclcpp::SerializedMessage& serialized_msg) = 0;
+  virtual std::tuple<uint16_t, uint32_t, uint16_t> read_header(boost::shared_array<uint8_t> buffer) = 0;
   virtual void read_data(uint8_t* buf, size_t num) = 0;
 };
