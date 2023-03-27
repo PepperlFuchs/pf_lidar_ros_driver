@@ -6,7 +6,8 @@
 class PFR2000Packet : public PFPacket
 {
 public:
-  PFR2000Packet() {
+  PFR2000Packet()
+  {
     header_size = sizeof(pf_interfaces::msg::PFR2000Header);
   }
 

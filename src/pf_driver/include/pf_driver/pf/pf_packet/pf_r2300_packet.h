@@ -6,7 +6,8 @@
 class PFR2300Packet : public PFPacket
 {
 public:
-  PFR2300Packet() {
+  PFR2300Packet()
+  {
     header_size = sizeof(pf_interfaces::msg::PFR2300Header);
   }
   virtual size_t get_size();
