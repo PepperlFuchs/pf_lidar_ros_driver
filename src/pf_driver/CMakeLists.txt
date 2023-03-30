@@ -75,14 +75,42 @@ ament_target_dependencies(ros_main
 #            src/pf/pf_packet.cpp
 #            src/communication.cpp)
 
-#if (CATKIN_ENABLE_TESTING)
-#  set(${PROJECT_NAME}_TEST_SOURCES
-#    tests/http_request.cpp
-#    tests/pfsdp_protocol.cpp)
+if (BUILD_TESTING)
+  # Automatic inclusion of lint-related tests
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
 
-#  catkin_add_gtest(pf_driver_test ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_TEST_SOURCES} tests/main.cpp)
-#  target_link_libraries(pf_driver_test ${catkin_LIBRARIES} cpprestsdk::cpprest)
-#endif()
+  find_package(ament_cmake_gtest REQUIRED)
+
+  set(${PROJECT_NAME}_TEST_SOURCES
+  #  tests/http_request.cpp
+  #  tests/pfsdp_protocol.cpp)
+    tests/parse_packet.cpp
+  )
+
+  # Add gtests
+  ament_add_gtest(${PROJECT_NAME}_test
+    ${${PROJECT_NAME}_SOURCES}
+    ${${PROJECT_NAME}_TEST_SOURCES}
+    tests/main.cpp)
+  target_include_directories(${PROJECT_NAME}_test PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  target_link_libraries(${PROJECT_NAME}_test
+    curlpp
+    curl
+    jsoncpp
+    yaml-cpp
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test
+    ${THIS_PACKAGE_INCLUDE_DEPENDS}
+    laser_geometry
+    pcl_ros
+    pf_interfaces
+    rclcpp
+  )
+endif()
 
 install(TARGETS ros_main
         DESTINATION lib/${PROJECT_NAME})
