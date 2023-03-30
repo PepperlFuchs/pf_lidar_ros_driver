@@ -111,7 +111,7 @@ endif()
 install(TARGETS ros_main
         DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY launch config
+install(DIRECTORY launch config dumps
         DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY include/
