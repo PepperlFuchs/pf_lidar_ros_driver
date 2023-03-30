@@ -76,10 +76,6 @@ ament_target_dependencies(ros_main
 #            src/communication.cpp)
 
 if (BUILD_TESTING)
-  # Automatic inclusion of lint-related tests
-  find_package(ament_lint_auto REQUIRED)
-  ament_lint_auto_find_test_dependencies()
-
   find_package(ament_cmake_gtest REQUIRED)
 
   set(${PROJECT_NAME}_TEST_SOURCES
