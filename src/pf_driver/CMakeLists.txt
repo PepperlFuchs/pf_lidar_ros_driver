@@ -81,6 +81,7 @@ if (BUILD_TESTING)
   set(${PROJECT_NAME}_TEST_SOURCES
   #  tests/http_request.cpp
   #  tests/pfsdp_protocol.cpp)
+    tests/pipeline.cpp
     tests/parse_packet.cpp
   )
 
