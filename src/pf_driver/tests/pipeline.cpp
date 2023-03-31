@@ -7,20 +7,20 @@
 #include "pf_driver/tests/test_helper.h"
 #include "pf_driver/communication/transport.h"
 
+auto logger_pipeline = rclcpp::get_logger("pf_pipeline");
+
 void connection_cb()
 {
-  std::cout << "connection failure" << std::endl;
+  RCLCPP_ERROR(logger_pipeline, "connection failure");
 }
 
 std::unique_ptr<Pipeline> get_pipeline(std::unique_ptr<Transport> transport, std::shared_ptr<Reader<PFPacket>> reader,
                                        std::shared_ptr<std::mutex> net_mtx,
                                        std::shared_ptr<std::condition_variable> net_cv, bool net_fail)
 {
-  auto logger = rclcpp::get_logger("pf_pipeline");
-
   std::shared_ptr<Parser<PFPacket>> parser = std::unique_ptr<Parser<PFPacket>>(new PFR2000_C_Parser);
   std::shared_ptr<Writer<PFPacket>> writer =
-      std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(std::move(transport), parser, logger));
+      std::shared_ptr<Writer<PFPacket>>(new PFWriter<PFPacket>(std::move(transport), parser, logger_pipeline));
 
   return std::make_unique<Pipeline>(writer, reader, &connection_cb, net_mtx, net_cv, net_fail);
 }
@@ -55,7 +55,7 @@ TEST(PFPipeline_TestSuite, testPipelineReadWrite)
     std::unique_lock<std::mutex> net_lock(*net_mtx);
     net_cv->wait(net_lock, [&net_fail] { return net_fail; });
 
-    std::cout << "pipeline shutdown" << std::endl;
+    RCLCPP_INFO(logger_pipeline, "Pipeline shutdown");
     pipeline->terminate();
   }
 
