@@ -4,6 +4,7 @@
 #include "pf_driver/ros/laser_scan_publisher.h"
 #include "pf_driver/pf/pf_interface.h"
 #include "pf_driver/communication/tcp_transport.h"
+#include "pf_driver/tests/tcp_server.h"
 #include "pf_driver/tests/test_helper.h"
 #include "pf_driver/communication/transport.h"
 
@@ -16,7 +17,7 @@ void connection_cb()
 
 std::unique_ptr<Pipeline> get_pipeline(std::unique_ptr<Transport> transport, std::shared_ptr<Reader<PFPacket>> reader,
                                        std::shared_ptr<std::mutex> net_mtx,
-                                       std::shared_ptr<std::condition_variable> net_cv, bool net_fail)
+                                       std::shared_ptr<std::condition_variable> net_cv, bool& net_fail)
 {
   std::shared_ptr<Parser<PFPacket>> parser = std::unique_ptr<Parser<PFPacket>>(new PFR2000_C_Parser);
   std::shared_ptr<Writer<PFPacket>> writer =
@@ -28,6 +29,8 @@ std::unique_ptr<Pipeline> get_pipeline(std::unique_ptr<Transport> transport, std
 TEST(PFPipeline_TestSuite, testPipelineReadWrite)
 {
   rclcpp::init(0, nullptr);
+
+  std::thread t([] { start_server(1234); });
 
   std::shared_ptr<ScanParameters> params = std::make_shared<ScanParameters>();
   std::shared_ptr<ScanConfig> config = std::make_shared<ScanConfig>();
@@ -58,6 +61,7 @@ TEST(PFPipeline_TestSuite, testPipelineReadWrite)
     RCLCPP_INFO(logger_pipeline, "Pipeline shutdown");
     pipeline->terminate();
   }
+  t.join();
 
   rclcpp::shutdown();
 }
