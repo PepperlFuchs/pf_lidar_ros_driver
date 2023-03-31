@@ -4,7 +4,7 @@
 #include "pf_driver/ros/laser_scan_publisher.h"
 #include "pf_driver/pf/pf_interface.h"
 #include "pf_driver/communication/tcp_transport.h"
-#include "pf_driver/test_helper.h"
+#include "pf_driver/tests/test_helper.h"
 #include "pf_driver/communication/transport.h"
 
 void connection_cb()

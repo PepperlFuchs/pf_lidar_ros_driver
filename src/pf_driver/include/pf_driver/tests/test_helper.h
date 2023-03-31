@@ -1,10 +1,13 @@
+#ifndef TESTHELPER
+#define TESTHELPER
+
 #include <fstream>
 #include <iostream>
 #include <vector>
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
-std::vector<uint8_t> hex_to_bytes(const std::string& hex)
+inline std::vector<uint8_t> hex_to_bytes(const std::string& hex)
 {
   std::vector<uint8_t> bytes;
   for (unsigned int i = 0; i < hex.length(); i += 2)
@@ -16,13 +19,13 @@ std::vector<uint8_t> hex_to_bytes(const std::string& hex)
   return bytes;
 }
 
-std::string get_dump_path()
+inline std::string get_dump_path()
 {
   std::string dump_dir = ament_index_cpp::get_package_share_directory("pf_driver") + "/dumps/";
   return dump_dir;
 }
 
-std::vector<uint8_t> read_dump(std::string& FILENAME)
+inline std::vector<uint8_t> read_dump(std::string& FILENAME)
 {
   std::string filepath = get_dump_path() + FILENAME;
   std::ifstream file(filepath, std::fstream::in);
@@ -38,3 +41,5 @@ std::vector<uint8_t> read_dump(std::string& FILENAME)
   }
   return vec;
 }
+
+#endif // TESTHELPER

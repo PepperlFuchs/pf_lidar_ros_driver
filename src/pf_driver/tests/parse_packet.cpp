@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "pf_driver/pf/pf_interface.h"
-#include "pf_driver/test_helper.h"
+#include "pf_driver/tests/test_helper.h"
 
 TEST(R2000Packet_TestSuite, testParseR2000Packet)
 {
