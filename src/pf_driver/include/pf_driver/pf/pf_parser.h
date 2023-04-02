@@ -37,7 +37,6 @@ public:
         break;
       packet->last_acquired_point_stamp = rclcpp::Clock().now();
       results.push_back(std::move(packet));
-      RCLCPP_INFO_STREAM(rclcpp::get_logger("parser"), "result packets: " << results.size());
       ++count;
 
       buf += p_size;
