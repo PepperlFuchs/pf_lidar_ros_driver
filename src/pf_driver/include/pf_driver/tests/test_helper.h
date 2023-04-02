@@ -42,4 +42,4 @@ inline std::vector<uint8_t> read_dump(std::string& FILENAME)
   return vec;
 }
 
-#endif // TESTHELPER
+#endif  // TESTHELPER
