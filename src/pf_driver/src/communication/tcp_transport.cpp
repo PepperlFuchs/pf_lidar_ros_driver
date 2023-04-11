@@ -1,8 +1,13 @@
 #include <iostream>
 
+#include <rclcpp/logging.hpp>
+#include <rclcpp/rclcpp.hpp>
+
 #include "pf_driver/communication/tcp_transport.h"
 
 using boost::asio::ip::tcp;
+
+auto tcp_logger = rclcpp::get_logger("transport");
 
 TCPTransport::TCPTransport(std::string address) : Transport(address, transport_type::tcp)
 {
@@ -70,7 +75,7 @@ bool TCPTransport::readWithTimeout(boost::array<uint8_t, 4096>& buf, size_t& len
     timer_result_.reset(error);
     if (error.message() == "Success")
     {
-      std::cout << "Time out: No packets received in " << expiry_time << " seconds" << std::endl;
+      RCLCPP_ERROR_STREAM(tcp_logger, "Time out: No packets received in " << expiry_time << " seconds");
     }
   });
 
