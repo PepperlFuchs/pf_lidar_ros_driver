@@ -14,7 +14,7 @@ def launch_setup(context, *args, **kwargs):
         package=package_name).find(package_name)
     scanner_description_path = os.path.join(
         pkg_share, 'urdf', scanner_arg + '_world.urdf.xacro')
-    rviz_config_path = os.path.join(pkg_share, 'config', scanner_arg + '.rviz')
+    rviz_config_path = os.path.join(pkg_share, 'rviz', scanner_arg + '.rviz')
 
     robot_state_publisher_node = launch_ros.actions.Node(
         package='robot_state_publisher',

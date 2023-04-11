@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="r2300" >
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="r2000" >
     <xacro:include filename="$(find pf_description)/urdf/r2000.urdf.xacro" />
 
     <!-- create a virtual root link -->
