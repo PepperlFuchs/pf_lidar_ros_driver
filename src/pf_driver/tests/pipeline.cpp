@@ -29,6 +29,7 @@ std::unique_ptr<Pipeline> get_pipeline(std::unique_ptr<Transport> transport, std
 TEST(PFPipeline_TestSuite, testPipelineReadWrite)
 {
   rclcpp::init(0, nullptr);
+  std::shared_ptr<rclcpp::Node> node = std::make_shared<rclcpp::Node>("pipeline_test");
 
   std::thread t([] { start_server(1234); });
 
@@ -41,7 +42,7 @@ TEST(PFPipeline_TestSuite, testPipelineReadWrite)
   config->watchdog = true;
 
   std::shared_ptr<Reader<PFPacket>> reader =
-      std::shared_ptr<PFPacketReader>(new LaserscanPublisher(config, params, "/scan", "scanner"));
+      std::shared_ptr<PFPacketReader>(new LaserscanPublisher(node, config, params, "/scan", "scanner"));
 
   std::shared_ptr<std::mutex> net_mtx = std::make_shared<std::mutex>();
   std::shared_ptr<std::condition_variable> net_cv = std::make_shared<std::condition_variable>();

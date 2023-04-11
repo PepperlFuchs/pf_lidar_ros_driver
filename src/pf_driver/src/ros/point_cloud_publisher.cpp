@@ -6,20 +6,22 @@
 #include "pf_interfaces/msg/pfr2300_header.hpp"
 #include "pf_driver/ros/point_cloud_publisher.h"
 
-PointcloudPublisher::PointcloudPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-                                         const std::string& scan_topic, const std::string& frame_id,
-                                         const uint16_t num_layers, const std::string& part)
-  : PFDataPublisher(config, params), rclcpp::Node("point_cloud_publisher"), layer_prev_(-1)
+PointcloudPublisher::PointcloudPublisher(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<ScanConfig> config,
+                                         std::shared_ptr<ScanParameters> params, const std::string& scan_topic,
+                                         const std::string& frame_id, const uint16_t num_layers,
+                                         const std::string& part)
+  : PFDataPublisher(config, params), node_(node), layer_prev_(-1)
 {
-  tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+  tf_buffer_ = std::make_unique<tf2_ros::Buffer>(node_->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
-  tf_static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
+  tf_static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(node_);
 
   // ROS 2 does not supported mixed type nested params at the momemt
   // Parsing the config YAML file directly
-  std::string correction_params_file = ament_index_cpp::get_package_share_directory("pf_driver") + "/config/"
-                                                                                                   "correction_params."
-                                                                                                   "yaml";
+  std::string correction_params_file = ament_index_cpp::get_package_share_directory("pf_driver") +
+                                       "/config/"
+                                       "correction_params."
+                                       "yaml";
 
   YAML::Node angles_param_yaml = YAML::LoadFile(correction_params_file);
   auto angles_param = angles_param_yaml["correction_params"];
@@ -46,13 +48,13 @@ PointcloudPublisher::PointcloudPublisher(std::shared_ptr<ScanConfig> config, std
     // init frames for each layer
     publish_static_transform(frame_id, id, angles_[i]);
 
-    scan_publishers_.push_back(this->create_publisher<sensor_msgs::msg::LaserScan>(topic.c_str(), 100));
+    scan_publishers_.push_back(node_->create_publisher<sensor_msgs::msg::LaserScan>(topic.c_str(), 100));
     frame_ids_.push_back(id);
   }
 
   cloud_.reset(new sensor_msgs::msg::PointCloud2());
-  pcl_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(scan_topic, 1);
-  header_publisher_ = this->create_publisher<pf_interfaces::msg::PFR2300Header>("/r2300_header", 1);
+  pcl_publisher_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>(scan_topic, 1);
+  header_publisher_ = node_->create_publisher<pf_interfaces::msg::PFR2300Header>("/r2300_header", 1);
   frame_id_.assign(frame_id);
 }
 
@@ -67,7 +69,7 @@ void PointcloudPublisher::publish_static_transform(const std::string& parent, co
 {
   geometry_msgs::msg::TransformStamped transform;
 
-  transform.header.stamp = this->now();
+  transform.header.stamp = node_->now();
   transform.header.frame_id = parent.c_str();
   transform.child_frame_id = child.c_str();
   transform.transform.translation.x = 0;

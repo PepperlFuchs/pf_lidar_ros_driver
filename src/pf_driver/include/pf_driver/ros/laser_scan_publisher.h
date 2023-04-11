@@ -4,13 +4,15 @@
 
 #include "pf_driver/ros/pf_data_publisher.h"
 
-class LaserscanPublisher : public PFDataPublisher, public rclcpp::Node
+class LaserscanPublisher : public PFDataPublisher
 {
 public:
-  LaserscanPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-                     const std::string& scan_topic, const std::string& frame_id);
+  LaserscanPublisher(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<ScanConfig> config,
+                     std::shared_ptr<ScanParameters> params, const std::string& scan_topic,
+                     const std::string& frame_id);
 
 private:
+  std::shared_ptr<rclcpp::Node> node_;
   rclcpp::Publisher<pf_interfaces::msg::PFR2000Header>::SharedPtr header_publisher_;
   rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_publisher_;
 

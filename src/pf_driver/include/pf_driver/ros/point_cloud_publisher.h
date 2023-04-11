@@ -9,14 +9,15 @@
 
 #include "pf_driver/ros/pf_data_publisher.h"
 
-class PointcloudPublisher : public PFDataPublisher, public rclcpp::Node
+class PointcloudPublisher : public PFDataPublisher
 {
 public:
-  PointcloudPublisher(std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params,
-                      const std::string& scan_topic, const std::string& frame_id, const uint16_t num_layers,
-                      const std::string& part);
+  PointcloudPublisher(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<ScanConfig> config,
+                      std::shared_ptr<ScanParameters> params, const std::string& scan_topic,
+                      const std::string& frame_id, const uint16_t num_layers, const std::string& part);
 
 private:
+  std::shared_ptr<rclcpp::Node> node_;
   sensor_msgs::msg::PointCloud2::SharedPtr cloud_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_{ nullptr };
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
