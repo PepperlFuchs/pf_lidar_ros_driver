@@ -103,6 +103,11 @@ int main(int argc, char* argv[])
   bool net_fail = false;
   bool retrying = false;
 
+  rclcpp::executors::MultiThreadedExecutor executor;
+  executor.add_node(node);
+
+  std::thread t([&executor] { executor.spin(); });
+
   while (rclcpp::ok())
   {
     net_fail = false;
@@ -131,5 +136,6 @@ int main(int argc, char* argv[])
 
   rclcpp::shutdown();
   pf_interface.stop_transmission();
+  t.join();
   return 0;
 }
