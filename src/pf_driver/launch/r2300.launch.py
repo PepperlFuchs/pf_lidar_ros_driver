@@ -29,5 +29,12 @@ def generate_launch_description():
         output='screen',
         parameters=[config, correction_params]
     )
+
+    include_desc = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            FindPackageShare("pf_description"), '/launch', '/pf_bringup.launch.py'],
+            launch_arguments = {'scanner': 'r2300'}
+        )
+    )
     ld.add_action(node)
     return ld
