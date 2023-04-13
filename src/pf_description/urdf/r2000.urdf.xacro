@@ -6,7 +6,7 @@
             <visual>
                 <origin xyz="0 0 0" rpy="0 0 0" />
                 <geometry>
-                    <mesh filename="$(find pf_description)/meshes/R2000.dae" />
+                    <mesh filename="package://pf_description/meshes/R2000.stl" scale="0.001 0.001 0.001" />
                 </geometry>
             </visual>
 
