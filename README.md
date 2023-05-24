@@ -27,7 +27,7 @@ source <path/to/workspace>/install/setup.bash
 ```
   
 **Usage:**  
-Now you are ready to use the driver. Make the necessary power and ethernet connections. Make sure your computer's IP address is on the same subnet mask as that of the device. Change the `scanner_ip` argument in the respective launch file as necessary. You can now launch one of the drivers in the following manner:  
+Now you are ready to use the driver. Make the necessary power and ethernet connections. Make sure your computer's IP address is on the same subnet mask as that of the device. Change the `scanner_ip` value in the respective yaml config file that can be found in: `src/pf_lidar_ros_driver/src/pf_driver/config/`. You can now launch one of the drivers in the following manner:  
 ```
 ros2 launch pf_driver r2000.launch.py
 ```
