@@ -8,7 +8,7 @@ Ubuntu 20.04 / ROS Foxy OR Ubuntu 20.04 / ROS Galactic
 **Clone the repository:**  
 Clone the repository in the `src` folder of your ROS workspace
 ```
-git clone --branch=ros2 https://github.com/PepperlFuchs/pf_lidar_ros_driver.git
+git clone --branch=porting-ros2 https://github.com/PepperlFuchs/pf_lidar_ros_driver.git
 ```
   
 **Install the missing dependencies:**  
@@ -16,11 +16,12 @@ git clone --branch=ros2 https://github.com/PepperlFuchs/pf_lidar_ros_driver.git
 export ROS_DISTRO=foxy OR export ROS_DISTRO=galactic
 cd <path/to/workspace>
 rosdep update
-rosdep install --from-paths src --ignore-src --rosdistro=ROS_DISTRO -y
+rosdep install --from-paths src --ignore-src --rosdistro=$ROS_DISTRO -y
 ```
   
 **Build the workspace:**  
 ```
+source /opt/ros/$ROS_DISTRO/setup.bash
 colcon build --symlink-install
 source <path/to/workspace>/install/setup.bash
 ```
