@@ -8,7 +8,7 @@ ros_main:
     packet_type: "C1"
     scan_topic: "/cloud"
     frame_id: "scanner_link"
-    watchdogtimeout: 0
+    watchdogtimeout: 60000  # DO NOT MODIFY - this is the only valid value
     watchdog: false
     num_layers: 4
     apply_correction: true
