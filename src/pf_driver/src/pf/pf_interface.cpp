@@ -160,7 +160,12 @@ void PFInterface::terminate()
 {
   if (!pipeline_)
     return;
-  watchdog_timer_->cancel();
+
+  if (config_->watchdog)
+  {
+    watchdog_timer_->cancel();
+  }
+
   pipeline_->terminate();
   pipeline_.reset();
   protocol_interface_.reset();
