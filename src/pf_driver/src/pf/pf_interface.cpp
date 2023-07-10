@@ -138,10 +138,12 @@ bool PFInterface::start_transmission(std::shared_ptr<std::mutex> net_mtx,
     return false;
 
   protocol_interface_->start_scanoutput();
-  if (config_->watchdog)
-
+  // start watchdog timer is watchdog is true in config AND if the device is not R2000
+  // since watchdog for R2300 is always off
+  if (config_->watchdog && protocol_interface_->get_product().find("R2000") != std::string::npos)
+  {
     start_watchdog_timer(config_->watchdogtimeout / 1000.0);
-
+  }
   change_state(PFState::RUNNING);
   return true;
 }
