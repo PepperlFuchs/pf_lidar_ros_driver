@@ -17,6 +17,8 @@ public:
   void setup_param_server();
 
 private:
+  std::shared_ptr<rclcpp::Node> node_;
+
   void get_layers_enabled(uint16_t& enabled, uint16_t& highest);
 
   virtual std::pair<float, float> get_angle_start_stop(int start_angle);

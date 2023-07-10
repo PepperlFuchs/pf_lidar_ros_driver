@@ -11,12 +11,13 @@ PFSDP_2300::PFSDP_2300(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<Handl
                        std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params)
   : PFSDPBase(node, info, config, params)
 {
+  node_ = node;
   declare_specific_parameters();
 }
 
 std::string PFSDP_2300::get_product()
 {
-  return get_parameter_str("product");
+  return get_parameter_str("part");
 }
 
 std::string PFSDP_2300::get_part()
@@ -73,6 +74,18 @@ std::string PFSDP_2300::get_start_angle_str()
 
 void PFSDP_2300::declare_specific_parameters()
 {
+  float measure_start_angle, measure_stop_angle, pilot_start_angle, pilot_stop_angle;
+  std::string user_tag, layer_enable, locator_indication, operating_mode, pilot_laser;
+
+  node_->declare_parameter("measure_start_angle", measure_start_angle);
+  node_->declare_parameter("measure_stop_angle", measure_stop_angle);
+  node_->declare_parameter("pilot_start_angle", pilot_start_angle);
+  node_->declare_parameter("pilot_stop_angle", pilot_stop_angle);
+  node_->declare_parameter("user_tag", user_tag);
+  node_->declare_parameter("layer_enable", layer_enable);
+  node_->declare_parameter("locator_indication", locator_indication);
+  node_->declare_parameter("operating_mode", operating_mode);
+  node_->declare_parameter("pilot_laser", pilot_laser);
 }
 
 bool PFSDP_2300::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters)
@@ -83,7 +96,9 @@ bool PFSDP_2300::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& pa
   {
     if (parameter.get_name() == "measure_start_angle" || parameter.get_name() == "measure_stop_angle" ||
         parameter.get_name() == "pilot_start_angle" || parameter.get_name() == "pilot_stop_angle" ||
-        parameter.get_name() == "layer_enable" || parameter.get_name() == "pilot_laser")
+        parameter.get_name() == "layer_enable" || parameter.get_name() == "pilot_laser" ||
+        parameter.get_name() == "user_tag" || parameter.get_name() == "locator_indication" ||
+        parameter.get_name() == "operating_mode")
     {
       set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
     }
