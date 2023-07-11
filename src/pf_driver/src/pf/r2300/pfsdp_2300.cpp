@@ -96,9 +96,7 @@ bool PFSDP_2300::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& pa
   {
     if (parameter.get_name() == "measure_start_angle" || parameter.get_name() == "measure_stop_angle" ||
         parameter.get_name() == "pilot_start_angle" || parameter.get_name() == "pilot_stop_angle" ||
-        parameter.get_name() == "layer_enable" || parameter.get_name() == "pilot_laser" ||
-        parameter.get_name() == "user_tag" || parameter.get_name() == "locator_indication" ||
-        parameter.get_name() == "operating_mode")
+        parameter.get_name() == "layer_enable" || parameter.get_name() == "pilot_laser")
     {
       set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
     }
