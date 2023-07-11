@@ -321,12 +321,12 @@ bool PFSDPBase::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& par
         parameter.get_name() == "scan_direction" || parameter.get_name() == "locator_indication" ||
         parameter.get_name() == "user_tag" || parameter.get_name() == "operating_mode")
     {
-      set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
+      return set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
     }
     else if (parameter.get_name() == "ip_address")
     {
       info_->hostname = parameter.as_string();
-      set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
+      return set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
     }
     else if (parameter.get_name() == "port")
     {
