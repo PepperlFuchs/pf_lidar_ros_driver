@@ -17,7 +17,7 @@ PFSDP_2300::PFSDP_2300(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<Handl
 
 std::string PFSDP_2300::get_product()
 {
-  return get_parameter_str("part");
+  return get_parameter_str("product");
 }
 
 std::string PFSDP_2300::get_part()
