@@ -15,7 +15,7 @@ git clone --branch=porting-ros2 https://github.com/PepperlFuchs/pf_lidar_ros_dri
 ```
 export ROS_DISTRO=foxy OR export ROS_DISTRO=galactic
 cd <path/to/workspace>
-rosdep update
+rosdep update --include-eol-distros
 rosdep install --from-paths src --ignore-src --rosdistro=$ROS_DISTRO -y
 ```
   
