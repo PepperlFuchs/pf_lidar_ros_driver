@@ -36,10 +36,6 @@ int main(int argc, char* argv[])
   node->get_parameter("scan_frequency", scan_frequency);
   RCLCPP_INFO(node->get_logger(), "scan_frequency: %d", scan_frequency);
 
-  node->declare_parameter("samples_per_scan", samples_per_scan);
-  node->get_parameter("samples_per_scan", samples_per_scan);
-  RCLCPP_INFO(node->get_logger(), "samples_per_scan: %d", samples_per_scan);
-
   node->declare_parameter("start_angle", start_angle);
   node->get_parameter("start_angle", start_angle);
   RCLCPP_INFO(node->get_logger(), "start_angle: %d", start_angle);

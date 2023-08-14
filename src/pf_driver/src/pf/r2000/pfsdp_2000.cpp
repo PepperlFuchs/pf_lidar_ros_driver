@@ -10,6 +10,7 @@ PFSDP_2000::PFSDP_2000(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<Handl
                        std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params)
   : PFSDPBase(node, info, config, params)
 {
+  node_ = node;
   declare_specific_parameters();
 }
 
@@ -32,6 +33,30 @@ void PFSDP_2000::get_scan_parameters()
 
 void PFSDP_2000::declare_specific_parameters()
 {
+  std::string samples_per_scan, hmi_application_bitmap, operating_mode, hmi_display_mode, hmi_language, hmi_button_lock,
+      hmi_parameter_lock, hmi_static_text_1, hmi_static_text_2, user_notes, filter_type, filter_error_handling,
+      filter_remission_threshold, lcm_detection_sensitivity, lcm_sector_enable;
+
+  int filter_width, filter_maximum_margin, lcm_detection_period;
+
+  node_->declare_parameter("samples_per_scan", samples_per_scan);
+  node_->declare_parameter("hmi_application_bitmap", hmi_application_bitmap);
+  node_->declare_parameter("operating_mode", operating_mode);
+  node_->declare_parameter("hmi_display_mode", hmi_display_mode);
+  node_->declare_parameter("hmi_language", hmi_language);
+  node_->declare_parameter("hmi_button_lock", hmi_button_lock);
+  node_->declare_parameter("hmi_parameter_lock", hmi_parameter_lock);
+  node_->declare_parameter("hmi_static_text_1", hmi_static_text_1);
+  node_->declare_parameter("hmi_static_text_2", hmi_static_text_2);
+  node_->declare_parameter("user_notes", user_notes);
+  node_->declare_parameter("filter_type", filter_type);
+  node_->declare_parameter("filter_width", filter_width);
+  node_->declare_parameter("filter_error_handling", filter_error_handling);
+  node_->declare_parameter("filter_maximum_margin", filter_maximum_margin);
+  node_->declare_parameter("filter_remission_threshold", filter_remission_threshold);
+  node_->declare_parameter("lcm_detection_sensitivity", lcm_detection_sensitivity);
+  node_->declare_parameter("lcm_detection_period", lcm_detection_period);
+  node_->declare_parameter("lcm_sector_enable", lcm_sector_enable);
 }
 
 bool PFSDP_2000::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters)
@@ -43,7 +68,10 @@ bool PFSDP_2000::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& pa
     if (parameter.get_name() == "samples_per_scan" || parameter.get_name() == "hmi_display_mode" ||
         parameter.get_name() == "hmi_language" || parameter.get_name() == "hmi_button_lock" ||
         parameter.get_name() == "hmi_parameter_lock" || parameter.get_name() == "hmi_static_text_1" ||
-        parameter.get_name() == "hmi_static_text_2" || parameter.get_name() == "user_notes")
+        parameter.get_name() == "hmi_static_text_2" || parameter.get_name() == "user_notes" ||
+        parameter.get_name() == "operating_mode" || parameter.get_name() == "filter_type" ||
+        parameter.get_name() == "filter_error_handling" || parameter.get_name() == "filter_remission_threshold" ||
+        parameter.get_name() == "lcm_detection_sensitivity" || parameter.get_name() == "lcm_sector_enable")
     {
       set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
     }
@@ -58,6 +86,11 @@ bool PFSDP_2000::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& pa
       {
         successful = false;
       }
+    }
+    else if (parameter.get_name() == "filter_width" || parameter.get_name() == "filter_maximum_margin" ||
+             parameter.get_name() == "lcm_detection_period")
+    {
+      return set_parameter({ KV(parameter.get_name(), parameter.as_int()) });
     }
   }
 

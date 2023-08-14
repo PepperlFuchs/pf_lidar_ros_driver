@@ -17,4 +17,7 @@ public:
   virtual void declare_specific_parameters() override;
 
   virtual bool reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters) override;
+
+private:
+  std::shared_ptr<rclcpp::Node> node_;
 };

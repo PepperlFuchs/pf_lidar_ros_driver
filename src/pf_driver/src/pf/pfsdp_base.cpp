@@ -10,6 +10,7 @@ PFSDPBase::PFSDPBase(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<HandleI
                      std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params)
   : http_interface(new HTTPInterface(info->hostname, "cmd")), node_(node), info_(info), config_(config), params_(params)
 {
+  declare_common_parameters();
 }
 
 const std::map<std::string, std::string> PFSDPBase::get_request(const std::string& command,
@@ -319,8 +320,8 @@ bool PFSDPBase::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& par
     if (parameter.get_name() == "ip_mode" || parameter.get_name() == "scan_frequency" ||
         parameter.get_name() == "subnet_mask" || parameter.get_name() == "gateway" ||
         parameter.get_name() == "scan_direction" || parameter.get_name() == "locator_indication" ||
-        parameter.get_name() == "user_tag" || parameter.get_name() == "operating_mode" ||
-        parameter.get_name() == "samples_per_scan")
+        parameter.get_name() == "user_tag" || parameter.get_name() == "ip_address" ||
+        parameter.get_name() == "subnet_mask" || parameter.get_name() == "gateway")
     {
       return set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
     }
@@ -328,6 +329,10 @@ bool PFSDPBase::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& par
     {
       info_->hostname = parameter.as_string();
       return set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
+    }
+    else if (parameter.get_name() == "packet_crc")
+    {
+      return set_parameter({ KV(parameter.get_name(), parameter.as_int()) });
     }
     else if (parameter.get_name() == "port")
     {
@@ -366,6 +371,9 @@ bool PFSDPBase::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& par
 
 void PFSDPBase::declare_common_parameters()
 {
+  std::string locator_indication, ip_mode, ip_address, subnet_mask, gateway, scan_direction, user_tag;
+  int packet_crc, skip_scans;
+
   rcl_interfaces::msg::ParameterDescriptor descriptorSubnetMask;
   descriptorSubnetMask.name = "IP netmask";
   node_->declare_parameter<std::string>("subnet_mask", "255.0.0.0", descriptorSubnetMask);
@@ -385,16 +393,7 @@ void PFSDPBase::declare_common_parameters()
   rangeScanFrequency.step = 1;
   descriptorScanFreqency.integer_range.push_back(rangeScanFrequency);
   node_->declare_parameter<int>("scan_frequency", 35, descriptorScanFreqency);
-}
 
-void PFSDPBase::setup_parameters_callback()
-{
-  parameters_handle_ =
-      node_->add_on_set_parameters_callback(std::bind(&PFSDPBase::reconfig_callback, this, std::placeholders::_1));
-}
-
-void PFSDPBase::declare_critical_parameters()
-{
   rcl_interfaces::msg::ParameterDescriptor descriptorIpAddress;
   descriptorIpAddress.name = "IP address";
   node_->declare_parameter<std::string>("ip_address", "10.0.10.9", descriptorIpAddress);
@@ -403,4 +402,20 @@ void PFSDPBase::declare_critical_parameters()
   descriptorPort.name = "Initial IP port";
   descriptorPort.description = "See address";
   node_->declare_parameter<int>("port", 0, descriptorPort);
+
+  node_->declare_parameter("locator_indication", locator_indication);
+  node_->declare_parameter("packet_crc", packet_crc);
+  node_->declare_parameter("ip_mode", ip_mode);
+  node_->declare_parameter("ip_address", ip_address);
+  node_->declare_parameter("subnet_mask", subnet_mask);
+  node_->declare_parameter("gateway", gateway);
+  node_->declare_parameter("scan_direction", scan_direction);
+  node_->declare_parameter("skip_scans", skip_scans);
+  node_->declare_parameter("user_tag", user_tag);
+}
+
+void PFSDPBase::setup_parameters_callback()
+{
+  parameters_handle_ =
+      node_->add_on_set_parameters_callback(std::bind(&PFSDPBase::reconfig_callback, this, std::placeholders::_1));
 }

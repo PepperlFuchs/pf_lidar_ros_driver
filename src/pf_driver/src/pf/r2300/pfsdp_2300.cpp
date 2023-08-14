@@ -75,16 +75,13 @@ std::string PFSDP_2300::get_start_angle_str()
 void PFSDP_2300::declare_specific_parameters()
 {
   float measure_start_angle, measure_stop_angle, pilot_start_angle, pilot_stop_angle;
-  std::string user_tag, layer_enable, locator_indication, operating_mode, pilot_laser;
+  std::string layer_enable, pilot_laser;
 
   node_->declare_parameter("measure_start_angle", measure_start_angle);
   node_->declare_parameter("measure_stop_angle", measure_stop_angle);
   node_->declare_parameter("pilot_start_angle", pilot_start_angle);
   node_->declare_parameter("pilot_stop_angle", pilot_stop_angle);
-  node_->declare_parameter("user_tag", user_tag);
   node_->declare_parameter("layer_enable", layer_enable);
-  node_->declare_parameter("locator_indication", locator_indication);
-  node_->declare_parameter("operating_mode", operating_mode);
   node_->declare_parameter("pilot_laser", pilot_laser);
 }
 
