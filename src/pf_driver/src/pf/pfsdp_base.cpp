@@ -374,14 +374,6 @@ void PFSDPBase::declare_common_parameters()
   std::string locator_indication, ip_mode, ip_address, subnet_mask, gateway, scan_direction, user_tag;
   int packet_crc, skip_scans;
 
-  rcl_interfaces::msg::ParameterDescriptor descriptorSubnetMask;
-  descriptorSubnetMask.name = "IP netmask";
-  node_->declare_parameter<std::string>("subnet_mask", "255.0.0.0", descriptorSubnetMask);
-
-  rcl_interfaces::msg::ParameterDescriptor descriptorGateway;
-  descriptorGateway.name = "IP gateway";
-  node_->declare_parameter<std::string>("gateway", "0.0.0.0", descriptorGateway);
-
   rcl_interfaces::msg::ParameterDescriptor descriptorScanFreqency;
   descriptorScanFreqency.name = "Scan frequency";
   descriptorScanFreqency.description = "The parameter scan_frequency defines the set point for the rotational speed of "
