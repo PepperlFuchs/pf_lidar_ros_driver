@@ -394,15 +394,6 @@ void PFSDPBase::declare_common_parameters()
   descriptorScanFreqency.integer_range.push_back(rangeScanFrequency);
   node_->declare_parameter<int>("scan_frequency", 35, descriptorScanFreqency);
 
-  rcl_interfaces::msg::ParameterDescriptor descriptorIpAddress;
-  descriptorIpAddress.name = "IP address";
-  node_->declare_parameter<std::string>("ip_address", "10.0.10.9", descriptorIpAddress);
-
-  rcl_interfaces::msg::ParameterDescriptor descriptorPort;
-  descriptorPort.name = "Initial IP port";
-  descriptorPort.description = "See address";
-  node_->declare_parameter<int>("port", 0, descriptorPort);
-
   node_->declare_parameter("locator_indication", locator_indication);
   node_->declare_parameter("packet_crc", packet_crc);
   node_->declare_parameter("ip_mode", ip_mode);
