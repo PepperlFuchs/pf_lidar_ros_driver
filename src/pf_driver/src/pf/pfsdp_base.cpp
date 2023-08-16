@@ -10,7 +10,6 @@ PFSDPBase::PFSDPBase(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<HandleI
                      std::shared_ptr<ScanConfig> config, std::shared_ptr<ScanParameters> params)
   : http_interface(new HTTPInterface(info->hostname, "cmd")), node_(node), info_(info), config_(config), params_(params)
 {
-  declare_common_parameters();
 }
 
 const std::map<std::string, std::string> PFSDPBase::get_request(const std::string& command,
@@ -371,30 +370,6 @@ bool PFSDPBase::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& par
 
 void PFSDPBase::declare_common_parameters()
 {
-  std::string locator_indication, ip_mode, ip_address, subnet_mask, gateway, scan_direction, user_tag;
-  int packet_crc, skip_scans;
-
-  rcl_interfaces::msg::ParameterDescriptor descriptorScanFreqency;
-  descriptorScanFreqency.name = "Scan frequency";
-  descriptorScanFreqency.description = "The parameter scan_frequency defines the set point for the rotational speed of "
-                                       "the sensor head and therefore the number of scans recorded per second. For the "
-                                       "R2000 valid values range from 10 Hz to 50 Hz with steps of 1 Hz.";
-  rcl_interfaces::msg::IntegerRange rangeScanFrequency;
-  rangeScanFrequency.from_value = 10;
-  rangeScanFrequency.to_value = 50;
-  rangeScanFrequency.step = 1;
-  descriptorScanFreqency.integer_range.push_back(rangeScanFrequency);
-  node_->declare_parameter<int>("scan_frequency", 35, descriptorScanFreqency);
-
-  node_->declare_parameter("locator_indication", locator_indication);
-  node_->declare_parameter("packet_crc", packet_crc);
-  node_->declare_parameter("ip_mode", ip_mode);
-  node_->declare_parameter("ip_address", ip_address);
-  node_->declare_parameter("subnet_mask", subnet_mask);
-  node_->declare_parameter("gateway", gateway);
-  node_->declare_parameter("scan_direction", scan_direction);
-  node_->declare_parameter("skip_scans", skip_scans);
-  node_->declare_parameter("user_tag", user_tag);
 }
 
 void PFSDPBase::setup_parameters_callback()

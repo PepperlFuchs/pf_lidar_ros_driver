@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
   auto node = std::make_shared<rclcpp::Node>("pf_driver");
 
   std::string device, transport_str, scanner_ip, port, topic, frame_id, packet_type;
-  int scan_frequency, samples_per_scan, start_angle, max_num_points_scan, watchdogtimeout, num_layers;
+  int samples_per_scan, start_angle, max_num_points_scan, watchdogtimeout, num_layers;
   num_layers = 0;
   bool watchdog, apply_correction = 0;
   node->declare_parameter("device", device);
@@ -67,6 +67,20 @@ int main(int argc, char* argv[])
   node->declare_parameter("apply_correction", apply_correction);
   node->get_parameter("apply_correction", apply_correction);
   RCLCPP_INFO(node->get_logger(), "apply_correction: %d", apply_correction);
+
+  std::string locator_indication, ip_mode, ip_address, subnet_mask, gateway, scan_direction, user_tag;
+  int packet_crc, skip_scans, scan_frequency;
+
+  node->declare_parameter("scan_frequency", scan_frequency);
+  node->declare_parameter("locator_indication", locator_indication);
+  node->declare_parameter("packet_crc", packet_crc);
+  node->declare_parameter("ip_mode", ip_mode);
+  node->declare_parameter("ip_address", ip_address);
+  node->declare_parameter("subnet_mask", subnet_mask);
+  node->declare_parameter("gateway", gateway);
+  node->declare_parameter("scan_direction", scan_direction);
+  node->declare_parameter("skip_scans", skip_scans);
+  node->declare_parameter("user_tag", user_tag);
 
   std::shared_ptr<HandleInfo> info = std::make_shared<HandleInfo>();
 
