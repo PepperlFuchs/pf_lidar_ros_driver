@@ -2,6 +2,13 @@
 Changelog for package pf_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.1 (2023-08-17)
+-----------
+* Merge pull request `#87 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/87>`_ from wawanbreton/code_refactoring
+  Code refactoring
+* Moved sources to src folder
+* Contributors: Erwan MATHIEU
+
 1.2.0 (2022-05-03)
 -------------------
 * fix xacro filename cases `#70 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/70>`_ from PepperlFuchs/fix_xacro_filenames

@@ -2,6 +2,64 @@
 Changelog for package pf_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.1 (2023-08-17)
+-----------
+* Merge pull request `#108 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/108>`_ from ValerioMa/terminate_cleanly
+  Clean rosnode termination.
+* Merge pull request `#106 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/106>`_ from kalectro/main
+  Fixes type of port parameter in cfg files
+* Merge pull request `#104 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/104>`_ from ValerioMa/main
+  Move stamping closer to data reading.
+* Merge pull request `#109 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/109>`_ from PepperlFuchs/safe_feed_time
+  safe feed time within the defined timeout
+* clang format applied
+* Clean termination of ros_main node.
+  Closes: `PepperlFuchs/pf_lidar_ros_driver#105 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/105>`_
+* Fixes type of port parameter in cfg files
+  The port parameter was declared as an int_t in the cfg files but in the
+  code it is expected to be a string. When the dynamic_reconfigure server
+  is started, the data type on the parameter server was changed from
+  string to int. This resulted in getParam of the release 1.2.0 to return
+  False effectively killing any respawn functionality.
+* Move stamping close to data reading.
+  Before this commit the scan message was stamped just before publishing the
+  data. In the LaserScan message of ros the timestamp in the header is
+  the acquisition time of the first ray in the scan.
+* safe feed time within the defined timeout
+* Update r2300.launch
+  fixed typo
+* Merge pull request `#101 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/101>`_ from PepperlFuchs/r2300_single_layer
+  R2300 single layer
+* Merge branch 'main' into r2300_single_layer
+* added config files for R2300 device family 7 (single layer)
+* default packet type is C (R2000)
+* added optional port parameter to yaml config files
+* Merge pull request `#94 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/94>`_ from MichaelGrupp/application_bitmap
+  Allow to set hmi_application_bitmap with dynamic_reconfigure
+* Merge branch 'main' into application_bitmap
+* Merge pull request `#93 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/93>`_ from MichaelGrupp/launch-args
+  Allow to disable RViz & pf_bringup in launch file.
+* Allow to disable RViz & pf_bringup in launch file.
+  This allows better integration in headless systems and robots that
+  already have a robot_state_publisher.
+* Allow to set hmi_application_bitmap
+* Merge pull request `#99 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/99>`_ from PepperlFuchs/fix_udp_port
+  Fix udp port
+* utilize port specified in config for UDP connection
+* Merge pull request `#87 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/87>`_ from wawanbreton/code_refactoring
+  Code refactoring
+* apply clang formatting
+* header only has function declaration
+* remove references to mutex after refactoring
+* Fixed missing include
+* Applied clang formatting
+* Code cleaning and minor optimizations
+* Added cpp files for each header when possible
+* Splitted existing cpp files to match headers
+* Splitted headers to have a single class by file
+* Moved sources to src folder
+* Contributors: Erwan MATHIEU, Harsh Deshpande, Kai Franke, Michael Grupp, Valerio Magnago
+
 1.2.0 (2022-05-03)
 -------------------
 * fix focal point to world link of r2300 `#72 <https://github.com/PepperlFuchs/pf_lidar_ros_driver/issues/72>`_ 
