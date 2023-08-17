@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>pf_description</name>
-  <version>1.2.0</version>
+  <version>1.2.1</version>
   <description>The pf_description package</description>
 
   <maintainer email="harshavardhan.deshpande@ipa.fraunhofer.de">Harsh Deshpande</maintainer>
