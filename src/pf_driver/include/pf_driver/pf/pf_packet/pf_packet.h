@@ -26,6 +26,8 @@ public:
   int find_packet_start(uint8_t* buf, size_t buf_len);
   bool parse_buf(uint8_t* buf, size_t buf_len, size_t& remainder, size_t& p_size);
 
+  virtual ~PFPacket() = default;
+
 protected:
   size_t header_size;
   virtual size_t get_size() = 0;
