@@ -67,7 +67,7 @@ void PFDataPublisher::to_msg_queue(T& packet, uint16_t layer_idx, int layer_incl
     d_queue_.pop_front();
   if (packet.header.header.packet_number == 1)
   {
-    const auto scan_time = rclcpp::Duration(1000.0 / packet.header.scan_frequency);
+    const auto scan_time = rclcpp::Duration(1000.0 / packet.header.scan_frequency, 0);
     msg.reset(new sensor_msgs::msg::LaserScan());
     msg->header.frame_id.assign(frame_id_);
     // msg->header.seq = packet.header.header.scan_number;
