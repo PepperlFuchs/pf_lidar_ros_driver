@@ -318,9 +318,9 @@ bool PFSDPBase::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& par
   {
     if (parameter.get_name() == "ip_mode" || parameter.get_name() == "scan_frequency" ||
         parameter.get_name() == "subnet_mask" || parameter.get_name() == "gateway" ||
-        parameter.get_name() == "scan_direction" ||
-        parameter.get_name() == "user_tag" || parameter.get_name() == "ip_address" ||
-        parameter.get_name() == "subnet_mask" || parameter.get_name() == "gateway")
+        parameter.get_name() == "scan_direction" || parameter.get_name() == "user_tag" ||
+        parameter.get_name() == "ip_address" || parameter.get_name() == "subnet_mask" ||
+        parameter.get_name() == "gateway")
     {
       return set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
     }
