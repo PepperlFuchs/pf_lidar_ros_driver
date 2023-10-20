@@ -81,12 +81,30 @@ void PFSDP_2300::declare_specific_parameters()
   std::string layer_enable;
   bool pilot_laser;
 
-  node_->declare_parameter("measure_start_angle", measure_start_angle);
-  node_->declare_parameter("measure_stop_angle", measure_stop_angle);
-  node_->declare_parameter("pilot_start_angle", pilot_start_angle);
-  node_->declare_parameter("pilot_stop_angle", pilot_stop_angle);
-  node_->declare_parameter("layer_enable", layer_enable);
-  node_->declare_parameter("pilot_laser", pilot_laser);
+  if (!node_->has_parameter("measure_start_angle"))
+  {
+    node_->declare_parameter("measure_start_angle", measure_start_angle);
+  }
+  if (!node_->has_parameter("measure_stop_angle"))
+  {
+    node_->declare_parameter("measure_stop_angle", measure_stop_angle);
+  }
+  if (!node_->has_parameter("pilot_start_angle"))
+  {
+    node_->declare_parameter("pilot_start_angle", pilot_start_angle);
+  }
+  if (!node_->has_parameter("pilot_stop_angle"))
+  {
+    node_->declare_parameter("pilot_stop_angle", pilot_stop_angle);
+  }
+  if (!node_->has_parameter("layer_enable"))
+  {
+    node_->declare_parameter("layer_enable", layer_enable);
+  }
+  if (!node_->has_parameter("pilot_laser"))
+  {
+    node_->declare_parameter("pilot_laser", pilot_laser);
+  }
 }
 
 bool PFSDP_2300::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters)

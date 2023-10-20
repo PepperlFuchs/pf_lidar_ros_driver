@@ -16,55 +16,95 @@ int main(int argc, char* argv[])
   int samples_per_scan, start_angle, max_num_points_scan, watchdogtimeout, num_layers;
   num_layers = 0;
   bool watchdog, apply_correction = 0;
-  node->declare_parameter("device", device);
+
+  if (!node->has_parameter("device"))
+  {
+    node->declare_parameter("device", device);
+  }
   node->get_parameter("device", device);
   RCLCPP_INFO(node->get_logger(), "device name: %s", device.c_str());
 
-  node->declare_parameter("transport", transport_str);
+  if (!node->has_parameter("transport"))
+  {
+    node->declare_parameter("transport", transport_str);
+  }
   node->get_parameter("transport", transport_str);
   RCLCPP_INFO(node->get_logger(), "transport_str: %s", transport_str.c_str());
 
-  node->declare_parameter("scanner_ip", scanner_ip);
+  if (!node->has_parameter("scanner_ip"))
+  {
+    node->declare_parameter("scanner_ip", scanner_ip);
+  }
   node->get_parameter("scanner_ip", scanner_ip);
   RCLCPP_INFO(node->get_logger(), "scanner_ip: %s", scanner_ip.c_str());
 
-  node->declare_parameter("port", port);
+  if (!node->has_parameter("port"))
+  {
+    node->declare_parameter("port", port);
+  }
   node->get_parameter("port", port);
   RCLCPP_INFO(node->get_logger(), "port: %s", port.c_str());
 
-  node->declare_parameter("start_angle", start_angle);
+  if (!node->has_parameter("start_angle"))
+  {
+    node->declare_parameter("start_angle", start_angle);
+  }
   node->get_parameter("start_angle", start_angle);
   RCLCPP_INFO(node->get_logger(), "start_angle: %d", start_angle);
 
-  node->declare_parameter("max_num_points_scan", max_num_points_scan);
+  if (!node->has_parameter("max_num_points_scan"))
+  {
+    node->declare_parameter("max_num_points_scan", max_num_points_scan);
+  }
   node->get_parameter("max_num_points_scan", max_num_points_scan);
   RCLCPP_INFO(node->get_logger(), "max_num_points_scan: %d", max_num_points_scan);
 
-  node->declare_parameter("watchdogtimeout", watchdogtimeout);
+  if (!node->has_parameter("watchdogtimeout"))
+  {
+    node->declare_parameter("watchdogtimeout", watchdogtimeout);
+  }
   node->get_parameter("watchdogtimeout", watchdogtimeout);
   RCLCPP_INFO(node->get_logger(), "watchdogtimeout: %d", watchdogtimeout);
 
-  node->declare_parameter("watchdog", watchdog);
+  if (!node->has_parameter("watchdog"))
+  {
+    node->declare_parameter("watchdog", watchdog);
+  }
   node->get_parameter("watchdog", watchdog);
   RCLCPP_INFO(node->get_logger(), "watchdog: %d", watchdog);
 
-  node->declare_parameter("num_layers", num_layers);
+  if (!node->has_parameter("num_layers"))
+  {
+    node->declare_parameter("num_layers", num_layers);
+  }
   node->get_parameter("num_layers", num_layers);
   RCLCPP_INFO(node->get_logger(), "num_layers: %d", num_layers);
 
-  node->declare_parameter("scan_topic", topic);
+  if (!node->has_parameter("scan_topic"))
+  {
+    node->declare_parameter("scan_topic", topic);
+  }
   node->get_parameter("scan_topic", topic);
   RCLCPP_INFO(node->get_logger(), "topic: %s", topic.c_str());
 
-  node->declare_parameter("frame_id", frame_id);
+  if (!node->has_parameter("frame_id"))
+  {
+    node->declare_parameter("frame_id", frame_id);
+  }
   node->get_parameter("frame_id", frame_id);
   RCLCPP_INFO(node->get_logger(), "frame_id: %s", frame_id.c_str());
 
-  node->declare_parameter("packet_type", packet_type);
+  if (!node->has_parameter("packet_type"))
+  {
+    node->declare_parameter("packet_type", packet_type);
+  }
   node->get_parameter("packet_type", packet_type);
   RCLCPP_INFO(node->get_logger(), "packet_type: %s", packet_type.c_str());
 
-  node->declare_parameter("apply_correction", apply_correction);
+  if (!node->has_parameter("apply_correction"))
+  {
+    node->declare_parameter("apply_correction", apply_correction);
+  }
   node->get_parameter("apply_correction", apply_correction);
   RCLCPP_INFO(node->get_logger(), "apply_correction: %d", apply_correction);
 

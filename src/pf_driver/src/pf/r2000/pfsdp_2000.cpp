@@ -42,24 +42,78 @@ void PFSDP_2000::declare_specific_parameters()
 
   int filter_width, filter_maximum_margin, lcm_detection_period;
 
-  node_->declare_parameter("samples_per_scan", samples_per_scan);
-  node_->declare_parameter("hmi_application_bitmap", hmi_application_bitmap);
-  node_->declare_parameter("operating_mode", operating_mode);
-  node_->declare_parameter("hmi_display_mode", hmi_display_mode);
-  node_->declare_parameter("hmi_language", hmi_language);
-  node_->declare_parameter("hmi_button_lock", hmi_button_lock);
-  node_->declare_parameter("hmi_parameter_lock", hmi_parameter_lock);
-  node_->declare_parameter("hmi_static_text_1", hmi_static_text_1);
-  node_->declare_parameter("hmi_static_text_2", hmi_static_text_2);
-  node_->declare_parameter("user_notes", user_notes);
-  node_->declare_parameter("filter_type", filter_type);
-  node_->declare_parameter("filter_width", filter_width);
-  node_->declare_parameter("filter_error_handling", filter_error_handling);
-  node_->declare_parameter("filter_maximum_margin", filter_maximum_margin);
-  node_->declare_parameter("filter_remission_threshold", filter_remission_threshold);
-  node_->declare_parameter("lcm_detection_sensitivity", lcm_detection_sensitivity);
-  node_->declare_parameter("lcm_detection_period", lcm_detection_period);
-  node_->declare_parameter("lcm_sector_enable", lcm_sector_enable);
+  if (!node_->has_parameter("samples_per_scan"))
+  {
+    node_->declare_parameter("samples_per_scan", samples_per_scan);
+  }
+  if (!node_->has_parameter("hmi_application_bitmap"))
+  {
+    node_->declare_parameter("hmi_application_bitmap", hmi_application_bitmap);
+  }
+  if (!node_->has_parameter("operating_mode"))
+  {
+    node_->declare_parameter("operating_mode", operating_mode);
+  }
+  if (!node_->has_parameter("hmi_display_mode"))
+  {
+    node_->declare_parameter("hmi_display_mode", hmi_display_mode);
+  }
+  if (!node_->has_parameter("hmi_language"))
+  {
+    node_->declare_parameter("hmi_language", hmi_language);
+  }
+  if (!node_->has_parameter("hmi_button_lock"))
+  {
+    node_->declare_parameter("hmi_button_lock", hmi_button_lock);
+  }
+  if (!node_->has_parameter("hmi_parameter_lock"))
+  {
+    node_->declare_parameter("hmi_parameter_lock", hmi_parameter_lock);
+  }
+  if (!node_->has_parameter("hmi_static_text_1"))
+  {
+    node_->declare_parameter("hmi_static_text_1", hmi_static_text_1);
+  }
+  if (!node_->has_parameter("hmi_static_text_2"))
+  {
+    node_->declare_parameter("hmi_static_text_2", hmi_static_text_2);
+  }
+  if (!node_->has_parameter("user_notes"))
+  {
+    node_->declare_parameter("user_notes", user_notes);
+  }
+  if (!node_->has_parameter("filter_type"))
+  {
+    node_->declare_parameter("filter_type", filter_type);
+  }
+  if (!node_->has_parameter("filter_width"))
+  {
+    node_->declare_parameter("filter_width", filter_width);
+  }
+  if (!node_->has_parameter("filter_error_handling"))
+  {
+    node_->declare_parameter("filter_error_handling", filter_error_handling);
+  }
+  if (!node_->has_parameter("filter_maximum_margin"))
+  {
+    node_->declare_parameter("filter_maximum_margin", filter_maximum_margin);
+  }
+  if (!node_->has_parameter("filter_remission_threshold"))
+  {
+    node_->declare_parameter("filter_remission_threshold", filter_remission_threshold);
+  }
+  if (!node_->has_parameter("lcm_detection_sensitivity"))
+  {
+    node_->declare_parameter("lcm_detection_sensitivity", lcm_detection_sensitivity);
+  }
+  if (!node_->has_parameter("lcm_detection_period"))
+  {
+    node_->declare_parameter("lcm_detection_period", lcm_detection_period);
+  }
+  if (!node_->has_parameter("lcm_sector_enable"))
+  {
+    node_->declare_parameter("lcm_sector_enable", lcm_sector_enable);
+  }
 }
 
 bool PFSDP_2000::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters)
