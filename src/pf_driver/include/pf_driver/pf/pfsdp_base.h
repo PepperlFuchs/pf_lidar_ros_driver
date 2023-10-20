@@ -60,6 +60,7 @@ protected:
   std::shared_ptr<HandleInfo> info_;
   std::shared_ptr<ScanConfig> config_;
   std::shared_ptr<ScanParameters> params_;
+  rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr parameters_handle_;
 
 public:
   PFSDPBase(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<HandleInfo> info, std::shared_ptr<ScanConfig> config,
@@ -138,7 +139,4 @@ public:
   virtual bool reconfig_callback_impl(const std::vector<rclcpp::Parameter>& parameters);
 
   rcl_interfaces::msg::SetParametersResult reconfig_callback(const std::vector<rclcpp::Parameter>& parameters);
-
-private:
-  rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr parameters_handle_;
 };

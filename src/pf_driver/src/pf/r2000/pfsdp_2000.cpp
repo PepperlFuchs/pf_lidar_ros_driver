@@ -12,6 +12,9 @@ PFSDP_2000::PFSDP_2000(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<Handl
 {
   node_ = node;
   declare_specific_parameters();
+
+  parameters_handle_ =
+      node_->add_on_set_parameters_callback(std::bind(&PFSDP_2000::reconfig_callback, this, std::placeholders::_1));
 }
 
 std::string PFSDP_2000::get_product()
