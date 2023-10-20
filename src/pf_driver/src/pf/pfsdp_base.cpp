@@ -318,7 +318,7 @@ bool PFSDPBase::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& par
   {
     if (parameter.get_name() == "ip_mode" || parameter.get_name() == "scan_frequency" ||
         parameter.get_name() == "subnet_mask" || parameter.get_name() == "gateway" ||
-        parameter.get_name() == "scan_direction" || parameter.get_name() == "locator_indication" ||
+        parameter.get_name() == "scan_direction" ||
         parameter.get_name() == "user_tag" || parameter.get_name() == "ip_address" ||
         parameter.get_name() == "subnet_mask" || parameter.get_name() == "gateway")
     {
@@ -362,6 +362,10 @@ bool PFSDPBase::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& par
     else if (parameter.get_name() == "skip_scans")
     {
       config_->skip_scans = parameter.as_int();
+    }
+    else if (parameter.get_name() == "locator_indication")
+    {
+      return set_parameter({ KV(parameter.get_name(), parameter.as_bool() ? "on" : "off") });
     }
   }
 

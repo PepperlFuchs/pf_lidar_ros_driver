@@ -68,8 +68,9 @@ int main(int argc, char* argv[])
   node->get_parameter("apply_correction", apply_correction);
   RCLCPP_INFO(node->get_logger(), "apply_correction: %d", apply_correction);
 
-  std::string locator_indication, ip_mode, ip_address, subnet_mask, gateway, scan_direction, user_tag;
+  std::string ip_mode, ip_address, subnet_mask, gateway, scan_direction, user_tag;
   int packet_crc, skip_scans, scan_frequency;
+  bool locator_indication;
 
   node->declare_parameter("scan_frequency", scan_frequency);
   node->declare_parameter("locator_indication", locator_indication);
