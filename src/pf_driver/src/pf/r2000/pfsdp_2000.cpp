@@ -36,9 +36,11 @@ void PFSDP_2000::get_scan_parameters()
 
 void PFSDP_2000::declare_specific_parameters()
 {
-  std::string samples_per_scan, hmi_application_bitmap, operating_mode, hmi_display_mode, hmi_language, hmi_button_lock,
-      hmi_parameter_lock, hmi_static_text_1, hmi_static_text_2, user_notes, filter_type, filter_error_handling,
-      filter_remission_threshold, lcm_detection_sensitivity, lcm_sector_enable;
+  std::string hmi_display_mode, hmi_application_bitmap, operating_mode, hmi_language, hmi_static_text_1,
+      hmi_static_text_2, user_notes, filter_type, filter_error_handling, filter_remission_threshold,
+      lcm_detection_sensitivity, lcm_sector_enable;
+
+  bool hmi_button_lock, hmi_parameter_lock;
 
   int samples_per_scan, filter_width, filter_maximum_margin, lcm_detection_period;
 
@@ -122,9 +124,7 @@ bool PFSDP_2000::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& pa
 
   for (const auto& parameter : parameters)
   {
-    if (parameter.get_name() == "samples_per_scan" || parameter.get_name() == "hmi_display_mode" ||
-        parameter.get_name() == "hmi_language" || parameter.get_name() == "hmi_button_lock" ||
-        parameter.get_name() == "hmi_parameter_lock" || parameter.get_name() == "hmi_static_text_1" ||
+    if (parameter.get_name() == "hmi_language" || parameter.get_name() == "hmi_static_text_1" ||
         parameter.get_name() == "hmi_static_text_2" || parameter.get_name() == "user_notes" ||
         parameter.get_name() == "operating_mode" || parameter.get_name() == "filter_type" ||
         parameter.get_name() == "filter_error_handling" || parameter.get_name() == "filter_remission_threshold" ||
@@ -148,6 +148,15 @@ bool PFSDP_2000::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& pa
              parameter.get_name() == "filter_maximum_margin" || parameter.get_name() == "lcm_detection_period")
     {
       return set_parameter({ KV(parameter.get_name(), parameter.as_int()) });
+    }
+    else if (parameter.get_name() == "hmi_button_lock" || parameter.get_name() == "hmi_parameter_lock")
+    {
+      return set_parameter({ KV(parameter.get_name(), parameter.as_bool() ? "on" : "off") });
+    }
+    else if (parameter.get_name() == "hmi_display_mode")
+    {
+      return set_parameter(
+          { KV(parameter.get_name(), parameter.value_to_string() == "mode_off" ? "off" : parameter.value_to_string()) });
     }
   }
 
