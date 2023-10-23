@@ -31,7 +31,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource([
             FindPackageShare("pf_description"), '/launch', '/pf_bringup.launch.py'
         ]),
-        launch_arguments = {'scanner': 'r2300'}.items()
+        launch_arguments = {'scanner': 'r2300_single_layer'}.items()
     )
 
     ld.add_action(node)

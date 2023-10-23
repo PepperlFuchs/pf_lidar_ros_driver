@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="r2300" >
+    <xacro:include filename="$(find pf_description)/urdf/r2300.urdf.xacro" />
+
+    <!-- create a virtual root link -->
+    <link name="world" />
+
+    <!-- instantiate r2300 macro -->
+    <xacro:r2300 prefix="" />
+
+    <!-- connect world link to scanner link -->
+    <joint name="world_joint" type="fixed">
+        <parent link="world" />
+        <child link = "scanner_link" />
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    </joint>
+</robot>

@@ -1,13 +1,14 @@
-R2300:
-  transport: "udp"
-  scanner_ip: "169.254.251.244"
-  # port: "3000" # optional 
-  start_angle: -450000
-  max_num_points_scan: 0
-  packet_type: "C1"
-  scan_topic: "/scan"
-  frame_id: "scanner_link"
-  watchdog: false
-  watchdogtimeout: 60000
-  num_layers: 4
-  apply_correction: false
+ros_main:
+  ros__parameters:
+    transport: "udp"
+    scanner_ip: "169.254.235.110"
+    # port: "3000" # optional
+    start_angle: -450000
+    max_num_points_scan: 0
+    packet_type: "C1"
+    scan_topic: "/scan"
+    frame_id: "scanner_link"
+    watchdog: false
+    watchdogtimeout: 60000
+    num_layers: 4
+    apply_correction: false
