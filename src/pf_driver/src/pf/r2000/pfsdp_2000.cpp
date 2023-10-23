@@ -130,7 +130,7 @@ bool PFSDP_2000::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& pa
         parameter.get_name() == "filter_error_handling" || parameter.get_name() == "filter_remission_threshold" ||
         parameter.get_name() == "lcm_detection_sensitivity" || parameter.get_name() == "lcm_sector_enable")
     {
-      set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
+      return set_parameter({ KV(parameter.get_name(), parameter.value_to_string()) });
     }
     else if (parameter.get_name() == "packet_type")
     {
