@@ -155,8 +155,8 @@ bool PFSDP_2000::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& pa
     }
     else if (parameter.get_name() == "hmi_display_mode")
     {
-      return set_parameter(
-          { KV(parameter.get_name(), parameter.value_to_string() == "mode_off" ? "off" : parameter.value_to_string()) });
+      return set_parameter({ KV(parameter.get_name(),
+                                parameter.value_to_string() == "mode_off" ? "off" : parameter.value_to_string()) });
     }
   }
 
