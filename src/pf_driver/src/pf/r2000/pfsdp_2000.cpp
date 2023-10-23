@@ -40,7 +40,7 @@ void PFSDP_2000::declare_specific_parameters()
       hmi_parameter_lock, hmi_static_text_1, hmi_static_text_2, user_notes, filter_type, filter_error_handling,
       filter_remission_threshold, lcm_detection_sensitivity, lcm_sector_enable;
 
-  int filter_width, filter_maximum_margin, lcm_detection_period;
+  int samples_per_scan, filter_width, filter_maximum_margin, lcm_detection_period;
 
   if (!node_->has_parameter("samples_per_scan"))
   {
@@ -144,8 +144,8 @@ bool PFSDP_2000::reconfig_callback_impl(const std::vector<rclcpp::Parameter>& pa
         successful = false;
       }
     }
-    else if (parameter.get_name() == "filter_width" || parameter.get_name() == "filter_maximum_margin" ||
-             parameter.get_name() == "lcm_detection_period")
+    else if (parameter.get_name() == "samples_per_scan" || parameter.get_name() == "filter_width" ||
+             parameter.get_name() == "filter_maximum_margin" || parameter.get_name() == "lcm_detection_period")
     {
       return set_parameter({ KV(parameter.get_name(), parameter.as_int()) });
     }
