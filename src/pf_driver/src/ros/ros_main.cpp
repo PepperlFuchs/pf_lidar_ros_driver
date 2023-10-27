@@ -98,7 +98,8 @@ int main(int argc, char* argv[])
       {
         ROS_ERROR("Network failure");
       }
-      else{
+      else
+      {
         pf_interface.stop_transmission();
       }
     }
