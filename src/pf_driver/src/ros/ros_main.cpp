@@ -102,6 +102,5 @@ int main(int argc, char* argv[])
     pf_interface.terminate();
   }
 
-  pf_interface.stop_transmission();
   return 0;
 }

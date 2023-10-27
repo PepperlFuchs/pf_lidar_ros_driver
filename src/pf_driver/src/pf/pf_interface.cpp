@@ -162,6 +162,9 @@ void PFInterface::terminate()
     return;
   watchdog_timer_.stop();
   pipeline_->terminate();
+
+  stop_transmission();
+
   pipeline_.reset();
   protocol_interface_.reset();
   transport_.reset();
