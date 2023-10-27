@@ -153,6 +153,7 @@ void PFInterface::stop_transmission()
     return;
   protocol_interface_->stop_scanoutput(info_->handle);
   protocol_interface_->release_handle(info_->handle);
+
   change_state(PFState::INIT);
 }
 
@@ -162,8 +163,6 @@ void PFInterface::terminate()
     return;
   watchdog_timer_.stop();
   pipeline_->terminate();
-
-  stop_transmission();
 
   pipeline_.reset();
   protocol_interface_.reset();
