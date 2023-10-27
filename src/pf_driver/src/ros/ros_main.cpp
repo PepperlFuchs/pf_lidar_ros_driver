@@ -143,17 +143,31 @@ int main(int argc, char* argv[])
   std::shared_ptr<ScanParameters> params = std::make_shared<ScanParameters>();
   params->apply_correction = node->get_parameter("apply_correction").get_parameter_value().get<bool>();
 
-  PFInterface pf_interface(node);
+  static PFInterface pf_interface(node);
 
-  std::shared_ptr<std::mutex> net_mtx_ = std::make_shared<std::mutex>();
-  std::shared_ptr<std::condition_variable> net_cv_ = std::make_shared<std::condition_variable>();
-  bool net_fail = false;
+  static std::shared_ptr<std::mutex> net_mtx_ = std::make_shared<std::mutex>();
+  static std::shared_ptr<std::condition_variable> net_cv_ = std::make_shared<std::condition_variable>();
+  static bool net_fail = false;
   bool retrying = false;
 
   rclcpp::executors::MultiThreadedExecutor executor;
   executor.add_node(node);
 
   std::thread t([&executor] { executor.spin(); });
+
+  // capture SIGINT (Ctr+C) to unblock the wait on conditional variable
+  std::thread t2([] {
+    std::signal(SIGINT, [](int /* signum */) {
+      std::cout << "received SIGINT" << std::endl;
+      // notify main thread about network failure
+      {
+        std::lock_guard<std::mutex> lock(*net_mtx_);
+        net_fail = true;
+      }
+      net_cv_->notify_one();
+      pf_interface.stop_transmission();
+    });
+  });
 
   while (rclcpp::ok())
   {
@@ -176,13 +190,14 @@ int main(int argc, char* argv[])
     retrying = true;
     // wait for condition variable
     std::unique_lock<std::mutex> net_lock(*net_mtx_);
-    net_cv_->wait(net_lock, [&net_fail] { return net_fail; });
+    net_cv_->wait(net_lock, [] { return net_fail; });
     RCLCPP_ERROR(node->get_logger(), "Network failure");
     pf_interface.terminate();
   }
-
-  rclcpp::shutdown();
+  std::cout << "I am here" << std::endl;
   pf_interface.stop_transmission();
+  rclcpp::shutdown();
   t.join();
+  t2.join();
   return 0;
 }
