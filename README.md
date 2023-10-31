@@ -28,13 +28,13 @@ git clone --branch=main https://github.com/PepperlFuchs/pf_lidar_ros_driver.git
 export ROS_DISTRO=melodic OR export ROS_DISTRO=noetic
 cd <path/to/workspace>
 rosdep update
-rosdep install --from-paths src --ignore-src --rosdistro=ROS_DISTRO -y
+rosdep install --from-paths src --ignore-src --rosdistro=$ROS_DISTRO -y
 ```
   
 **Build the workspace:**  
 ```
 cd <path/to/workspace>
-source /opt/ros/ROS_DISTRO/setup.bash
+source /opt/ros/$ROS_DISTRO/setup.bash
 ```
 If `catkin_tools` is installed as shown above:
 ```
