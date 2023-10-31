@@ -3,7 +3,7 @@
 ![Build Status](https://github.com/PepperlFuchs/pf_lidar_ros_driver/actions/workflows/main.yml/badge.svg?branch=ros2)
 
 **Required platform:**  
-Ubuntu 20.04 / ROS Foxy OR Ubuntu 20.04 / ROS Galactic  
+Ubuntu 20.04 / ROS Foxy OR Ubuntu 20.04 / ROS Galactic  OR Ubuntu 22.04 / ROS Humble
   
 **Clone the repository:**  
 Clone the repository in the `src` folder of your ROS workspace
@@ -13,7 +13,7 @@ git clone --branch=porting-ros2 https://github.com/PepperlFuchs/pf_lidar_ros_dri
   
 **Install the missing dependencies:**  
 ```
-export ROS_DISTRO=foxy OR export ROS_DISTRO=galactic
+export ROS_DISTRO=foxy OR export ROS_DISTRO=galactic OR export ROS_DISTRO=humble
 cd <path/to/workspace>
 rosdep update --include-eol-distros
 rosdep install --from-paths src --ignore-src --rosdistro=$ROS_DISTRO -y
