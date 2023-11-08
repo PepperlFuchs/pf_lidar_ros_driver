@@ -9,6 +9,7 @@
   <license>Apache2.0</license>
   <url type="website">https://github.com/PepperlFuchs/pf_lidar_ros_driver</url>
 
+  <exec_depend>launch_ros</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>rviz2</exec_depend>
   <exec_depend>urdf</exec_depend>
