@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-  <include file="$(find pf_description)/launch/pf_bringup.launch" >
-    <arg name="scanner" value="r2300" />
-  </include>
-</launch>
