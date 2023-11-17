@@ -5,6 +5,8 @@
 **Required platform:**  
 Ubuntu 18.04 / ROS Melodic OR Ubuntu 20.04 / ROS Noetic  
 
+Note: The ROS2 driver is available here: https://github.com/PepperlFuchs/pf_lidar_ros2_driver
+
 To use `catkin_tools` instead of `catkin_make` for building from source:
 ```
 sudo sh \
