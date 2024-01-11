@@ -186,6 +186,14 @@ void PFSDPBase::request_handle_tcp(const std::string& port, const std::string& p
   {
     query["packet_type"] = config_->packet_type;
   }
+  if (!port.empty())
+  {
+    query["port"] = port;
+  }
+  else
+  {
+    query["port"] = info_->port;
+  }
   auto resp = get_request("request_handle_tcp", { "handle", "port" }, query);
 
   info_->handle = resp["handle"];
