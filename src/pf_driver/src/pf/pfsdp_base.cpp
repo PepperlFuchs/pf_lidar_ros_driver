@@ -190,7 +190,7 @@ void PFSDPBase::request_handle_tcp(const std::string& port, const std::string& p
   {
     query["port"] = port;
   }
-  else
+  else if (info_->port.compare("0") != 0)
   {
     query["port"] = info_->port;
   }
