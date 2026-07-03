@@ -1,4 +1,7 @@
-## ROS drivers for R2000 and R2300 laser scanners
+# Support for ROS1 driver is discontinued!
+Please use the ROS2 driver: https://github.com/PepperlFuchs/pf_lidar_ros2_driver
+
+## ROS1 drivers for R2000 and R2300 laser scanners
 
 ![Build Status](https://github.com/PepperlFuchs/pf_lidar_ros_driver/actions/workflows/main.yml/badge.svg)
 
